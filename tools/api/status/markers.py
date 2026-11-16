@@ -11,7 +11,20 @@ MARKER = re.compile(r'\bDM_(IMPL|STUB|STUB_RETURN|STUB_VOID)\s*\(\s*"([^"]*)"')
 LEXEME = re.compile(
     r"""(?P<literal>"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')|/\*.*?\*/|//[^\n]*""", re.DOTALL
 )
-SOURCE_SUFFIXES = {".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".inl", ".mm"}
+SOURCE_SUFFIXES = {
+    ".c",
+    ".cc",
+    ".cpp",
+    ".cxx",
+    ".h",
+    ".hh",
+    ".hpp",
+    ".hxx",
+    ".inl",
+    ".ipp",
+    ".m",
+    ".mm",
+}
 IMPLEMENTED = "implemented"
 STUB = "stub"
 KINDS = {"IMPL": IMPLEMENTED, "STUB": STUB, "STUB_RETURN": STUB, "STUB_VOID": STUB}

@@ -92,6 +92,31 @@ class ReportStatusTest(FixtureTestCase):
         self.assertEqual(methods["ID3D11Device::CreateTexture2D"]["state"], "stub")
         self.assertEqual(methods["ID3D11Device1::CreateDeferredContext1"]["state"], "missing")
 
+    def test_scans_every_c_family_suffix(self) -> None:
+        suffixes = [
+            ".c",
+            ".cc",
+            ".cpp",
+            ".cxx",
+            ".h",
+            ".hh",
+            ".hpp",
+            ".hxx",
+            ".inl",
+            ".ipp",
+            ".m",
+            ".mm",
+        ]
+        for suffix in suffixes:
+            with self.subTest(suffix=suffix):
+                self.fixture.write(
+                    f"src/device{suffix}", 'void f() { DM_IMPL("ID3D11Device::CreateBuffer"); }'
+                )
+                self.run_ok()
+                method = self.fixture.methods()["ID3D11Device::CreateBuffer"]
+                self.assertEqual(method["location"], f"device{suffix}:1")
+                (self.fixture.sources / f"device{suffix}").unlink()
+
     def test_ignores_markers_in_comments(self) -> None:
         source = '// DM_IMPL("ID3D11Device::CreateBuffer")\n/* DM_STUB("D3D11CreateDevice") */\n'
         self.fixture.write("src/device.cpp", source)
