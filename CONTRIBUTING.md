@@ -4,7 +4,7 @@ Read the [roadmap](docs/ROADMAP.md), the [architecture decision records](docs/ad
 
 ## License
 
-Contributions are accepted under the [MIT license](LICENSE). Never copy or translate code from Wine, vkd3d, vkd3d-proton, DXMT or any other LGPL/GPL project; they are behavioral reference only ([ADR 0001](docs/adr/0001-license.md)). Pull requests that contain such code are not accepted.
+Contributions are accepted under the [MIT license](LICENSE). Pull requests containing code copied or translated from LGPL/GPL code, including Wine, vkd3d, vkd3d-proton and DXMT, are not accepted ([ADR 0001](docs/adr/0001-license.md)).
 
 ## Building and testing
 
@@ -15,17 +15,17 @@ tools/build.sh --test unix
 tools/build.sh --test sanitize
 ```
 
+Changes to PE-side code must also pass `tools/build.sh win64 win32`.
+
 ASan is broken on macOS 27, so local runs there may use `DIRECTMETAL_SANITIZERS=undefined tools/build.sh --test sanitize`. CI runs the full ASan and UBSan build on hosted runners.
 
 Format C++ and Objective-C++ with `clang-format -i`, and Python with `ruff format` and `ruff check`.
 
-GPU tests run with Metal validation enabled:
+GPU tests run with Metal validation enabled ([ADR 0007](docs/adr/0007-testing-strategy.md)):
 
 ```sh
 MTL_DEBUG_LAYER=1 MTL_SHADER_VALIDATION=1 tools/build.sh --test unix
 ```
-
-A validation error is a test failure.
 
 ## Branches and commits
 
@@ -40,9 +40,8 @@ fix: clamp mip count for BC formats below block size
 ## Pull requests
 
 - Keep each pull request to one topic. Describe the change and how it was tested.
-- New behavior and every bug fix come with tests at the lowest tier that exercises them, per [ADR 0007](docs/adr/0007-testing-strategy.md). A bug fix's regression test must fail without the fix.
-- GPU tests pass with Metal API and shader validation enabled.
-- Results that differ from the Windows reference are fixed, or tracked as an issue and linked from the pull request.
+- Tests follow [ADR 0007](docs/adr/0007-testing-strategy.md); a bug fix's regression test fails without the fix.
+- Results that differ from the [Windows reference](docs/adr/0007-testing-strategy.md#oracle) are fixed, or tracked as an issue and linked from the pull request.
 - CI must pass. Rebase on `main` rather than merging it into your branch.
 
 ## Reporting issues
