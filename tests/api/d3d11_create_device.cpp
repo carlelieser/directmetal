@@ -83,7 +83,9 @@ bool check_bridge_reply(bool is_unix_side_expected) {
 int main(int argc, char** argv) {
     const bool has_mode = argc == 2;
     const bool is_unix_side_expected = has_mode && std::strcmp(argv[1], "unix") == 0;
-    if (!has_mode || !(is_unix_side_expected || std::strcmp(argv[1], "no-unix") == 0)) {
+    const bool is_unix_side_absent = has_mode && std::strcmp(argv[1], "no-unix") == 0;
+    const bool is_mode_known = is_unix_side_expected || is_unix_side_absent;
+    if (!is_mode_known) {
         std::fprintf(stderr, "usage: d3d11_create_device unix|no-unix\n");
         return 2;
     }
