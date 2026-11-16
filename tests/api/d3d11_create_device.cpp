@@ -50,6 +50,7 @@ bool check_create_device_and_swap_chain(HMODULE d3d11) {
 
 using BridgeCall = directmetal::bridge::Status(__cdecl*)(std::uint32_t code, void* params);
 
+// directmetal_bridge_call is the bridge module's public export, so this tests a public interface.
 // Calls log_call directly. With the unix side present only directmetal.so can fill host_system;
 // without it, the bridge must return Wine's unix library load failure.
 bool check_bridge_reply(bool is_unix_side_expected) {
