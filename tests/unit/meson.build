@@ -7,4 +7,4 @@ unit_tests = executable(
     cpp_args: '-DDIRECTMETAL_EXPECTED_VERSION="@0@"'.format(meson.project_version()),
 )
 
-test('unit', unit_tests, protocol: 'gtest')
+test('unit', unit_tests, protocol: 'gtest', timeout: 30)
