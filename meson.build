@@ -16,8 +16,8 @@ if host_machine.system() == 'windows'
     subdir('src/pe')
 elif host_machine.system() == 'darwin'
     macos_min_version = '-mmacosx-version-min=14.0'
-    add_global_arguments(macos_min_version, language: 'cpp')
-    add_global_link_arguments(macos_min_version, language: 'cpp')
+    add_global_arguments(macos_min_version, language: ['cpp', 'objcpp'])
+    add_global_link_arguments(macos_min_version, language: ['cpp', 'objcpp'])
     subdir('src/unix')
     subdir('tests/unit')
 else
