@@ -80,9 +80,9 @@ Each phase ends in a working, tested state. Phases 4–7 depend on 1–3; 5 depe
 - CI: hosted macOS runners (build, lint, unit tests), a Windows job, and one self-hosted Apple silicon runner with Wine installed.
 - GoogleTest wired into Meson; ASan/UBSan build configuration.
 - Coding standards, formatter config, contribution guide, issue templates.
-- API inventory tooling (done: `tools/api/`) extended to report, per method, implementation status and test coverage.
+- API inventory tooling (`tools/api/`) reporting, per method, implementation status and test coverage (done; see [API inventories](api/README.md#implementation-status)).
 
-**Exit:** `d3d11.dll` stub loads in Wine on macOS, logs a call that crosses into the unix side through `directmetal.dll`, and returns `E_NOTIMPL`; this is asserted by an API test running in CI.
+**Exit:** `d3d11.dll` stub loads in Wine on macOS, logs a call that crosses into the unix side through `directmetal.dll`, and returns `E_NOTIMPL`; this is asserted by an API test running in CI, and the status report gate `python3 -I tools/api/report_status.py --require d3d11:stub>=1 --require d3d11:tested>=1` passes on that test's call logs.
 
 ### Phase 1 — Core runtime and Metal backend
 
