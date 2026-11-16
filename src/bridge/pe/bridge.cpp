@@ -63,6 +63,8 @@ extern "C" Status __cdecl directmetal_bridge_call(std::uint32_t code, void* para
     return connection.dispatcher(connection.handle, code, params);
 }
 
+// Connecting dlopens directmetal.so under the loader lock, so its static initializers must stay
+// trivial; the backend initializes lazily on its first call.
 extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID) noexcept {
     if (reason == DLL_PROCESS_ATTACH) {
         DisableThreadLibraryCalls(instance);
