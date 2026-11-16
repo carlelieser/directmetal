@@ -1,0 +1,1780 @@
+{
+ "enums": {
+  "DXGI_ADAPTER_FLAG": {
+   "members": [
+    "DXGI_ADAPTER_FLAG_NONE",
+    "DXGI_ADAPTER_FLAG_REMOTE",
+    "DXGI_ADAPTER_FLAG_SOFTWARE",
+    "DXGI_ADAPTER_FLAG_FORCE_DWORD"
+   ],
+   "name": "DXGI_ADAPTER_FLAG",
+   "source": "dxgi.idl"
+  },
+  "DXGI_ADAPTER_FLAG3": {
+   "members": [
+    "DXGI_ADAPTER_FLAG3_NONE",
+    "DXGI_ADAPTER_FLAG3_REMOTE",
+    "DXGI_ADAPTER_FLAG3_SOFTWARE",
+    "DXGI_ADAPTER_FLAG3_ACG_COMPATIBLE",
+    "DXGI_ADAPTER_FLAG3_SUPPORT_MONITORED_FENCES",
+    "DXGI_ADAPTER_FLAG3_SUPPORT_NON_MONITORED_FENCES",
+    "DXGI_ADAPTER_FLAG3_KEYED_MUTEX_CONFORMANCE",
+    "DXGI_ADAPTER_FLAG3_FORCE_DWORD"
+   ],
+   "name": "DXGI_ADAPTER_FLAG3",
+   "source": "dxgi1_6.idl"
+  },
+  "DXGI_ALPHA_MODE": {
+   "members": [
+    "DXGI_ALPHA_MODE_UNSPECIFIED",
+    "DXGI_ALPHA_MODE_PREMULTIPLIED",
+    "DXGI_ALPHA_MODE_STRAIGHT",
+    "DXGI_ALPHA_MODE_IGNORE",
+    "DXGI_ALPHA_MODE_FORCE_DWORD"
+   ],
+   "name": "DXGI_ALPHA_MODE",
+   "source": "dxgi1_2.idl"
+  },
+  "DXGI_COLOR_SPACE_TYPE": {
+   "members": [
+    "DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709",
+    "DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709",
+    "DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P709",
+    "DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P2020",
+    "DXGI_COLOR_SPACE_RESERVED",
+    "DXGI_COLOR_SPACE_YCBCR_FULL_G22_NONE_P709_X601",
+    "DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P601",
+    "DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P601",
+    "DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P709",
+    "DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P709",
+    "DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P2020",
+    "DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P2020",
+    "DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020",
+    "DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_LEFT_P2020",
+    "DXGI_COLOR_SPACE_RGB_STUDIO_G2084_NONE_P2020",
+    "DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_TOPLEFT_P2020",
+    "DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_TOPLEFT_P2020",
+    "DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020",
+    "DXGI_COLOR_SPACE_YCBCR_STUDIO_GHLG_TOPLEFT_P2020",
+    "DXGI_COLOR_SPACE_YCBCR_FULL_GHLG_TOPLEFT_P2020",
+    "DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P709",
+    "DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P2020",
+    "DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P709",
+    "DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P2020",
+    "DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_TOPLEFT_P2020",
+    "DXGI_COLOR_SPACE_CUSTOM"
+   ],
+   "name": "DXGI_COLOR_SPACE_TYPE",
+   "source": "dxgicommon.h"
+  },
+  "DXGI_COMPUTE_PREEMPTION_GRANULARITY": {
+   "members": [
+    "DXGI_COMPUTE_PREEMPTION_DMA_BUFFER_BOUNDARY",
+    "DXGI_COMPUTE_PREEMPTION_DISPATCH_BOUNDARY",
+    "DXGI_COMPUTE_PREEMPTION_THREAD_GROUP_BOUNDARY",
+    "DXGI_COMPUTE_PREEMPTION_THREAD_BOUNDARY",
+    "DXGI_COMPUTE_PREEMPTION_INSTRUCTION_BOUNDARY"
+   ],
+   "name": "DXGI_COMPUTE_PREEMPTION_GRANULARITY",
+   "source": "dxgi1_2.idl"
+  },
+  "DXGI_DEBUG_RLO_FLAGS": {
+   "members": [
+    "DXGI_DEBUG_RLO_SUMMARY",
+    "DXGI_DEBUG_RLO_DETAIL",
+    "DXGI_DEBUG_RLO_IGNORE_INTERNAL",
+    "DXGI_DEBUG_RLO_ALL"
+   ],
+   "name": "DXGI_DEBUG_RLO_FLAGS",
+   "source": "dxgidebug.idl"
+  },
+  "DXGI_FEATURE": {
+   "members": [
+    "DXGI_FEATURE_PRESENT_ALLOW_TEARING"
+   ],
+   "name": "DXGI_FEATURE",
+   "source": "dxgi1_5.idl"
+  },
+  "DXGI_FORMAT": {
+   "members": [
+    "DXGI_FORMAT_UNKNOWN",
+    "DXGI_FORMAT_R32G32B32A32_TYPELESS",
+    "DXGI_FORMAT_R32G32B32A32_FLOAT",
+    "DXGI_FORMAT_R32G32B32A32_UINT",
+    "DXGI_FORMAT_R32G32B32A32_SINT",
+    "DXGI_FORMAT_R32G32B32_TYPELESS",
+    "DXGI_FORMAT_R32G32B32_FLOAT",
+    "DXGI_FORMAT_R32G32B32_UINT",
+    "DXGI_FORMAT_R32G32B32_SINT",
+    "DXGI_FORMAT_R16G16B16A16_TYPELESS",
+    "DXGI_FORMAT_R16G16B16A16_FLOAT",
+    "DXGI_FORMAT_R16G16B16A16_UNORM",
+    "DXGI_FORMAT_R16G16B16A16_UINT",
+    "DXGI_FORMAT_R16G16B16A16_SNORM",
+    "DXGI_FORMAT_R16G16B16A16_SINT",
+    "DXGI_FORMAT_R32G32_TYPELESS",
+    "DXGI_FORMAT_R32G32_FLOAT",
+    "DXGI_FORMAT_R32G32_UINT",
+    "DXGI_FORMAT_R32G32_SINT",
+    "DXGI_FORMAT_R32G8X24_TYPELESS",
+    "DXGI_FORMAT_D32_FLOAT_S8X24_UINT",
+    "DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS",
+    "DXGI_FORMAT_X32_TYPELESS_G8X24_UINT",
+    "DXGI_FORMAT_R10G10B10A2_TYPELESS",
+    "DXGI_FORMAT_R10G10B10A2_UNORM",
+    "DXGI_FORMAT_R10G10B10A2_UINT",
+    "DXGI_FORMAT_R11G11B10_FLOAT",
+    "DXGI_FORMAT_R8G8B8A8_TYPELESS",
+    "DXGI_FORMAT_R8G8B8A8_UNORM",
+    "DXGI_FORMAT_R8G8B8A8_UNORM_SRGB",
+    "DXGI_FORMAT_R8G8B8A8_UINT",
+    "DXGI_FORMAT_R8G8B8A8_SNORM",
+    "DXGI_FORMAT_R8G8B8A8_SINT",
+    "DXGI_FORMAT_R16G16_TYPELESS",
+    "DXGI_FORMAT_R16G16_FLOAT",
+    "DXGI_FORMAT_R16G16_UNORM",
+    "DXGI_FORMAT_R16G16_UINT",
+    "DXGI_FORMAT_R16G16_SNORM",
+    "DXGI_FORMAT_R16G16_SINT",
+    "DXGI_FORMAT_R32_TYPELESS",
+    "DXGI_FORMAT_D32_FLOAT",
+    "DXGI_FORMAT_R32_FLOAT",
+    "DXGI_FORMAT_R32_UINT",
+    "DXGI_FORMAT_R32_SINT",
+    "DXGI_FORMAT_R24G8_TYPELESS",
+    "DXGI_FORMAT_D24_UNORM_S8_UINT",
+    "DXGI_FORMAT_R24_UNORM_X8_TYPELESS",
+    "DXGI_FORMAT_X24_TYPELESS_G8_UINT",
+    "DXGI_FORMAT_R8G8_TYPELESS",
+    "DXGI_FORMAT_R8G8_UNORM",
+    "DXGI_FORMAT_R8G8_UINT",
+    "DXGI_FORMAT_R8G8_SNORM",
+    "DXGI_FORMAT_R8G8_SINT",
+    "DXGI_FORMAT_R16_TYPELESS",
+    "DXGI_FORMAT_R16_FLOAT",
+    "DXGI_FORMAT_D16_UNORM",
+    "DXGI_FORMAT_R16_UNORM",
+    "DXGI_FORMAT_R16_UINT",
+    "DXGI_FORMAT_R16_SNORM",
+    "DXGI_FORMAT_R16_SINT",
+    "DXGI_FORMAT_R8_TYPELESS",
+    "DXGI_FORMAT_R8_UNORM",
+    "DXGI_FORMAT_R8_UINT",
+    "DXGI_FORMAT_R8_SNORM",
+    "DXGI_FORMAT_R8_SINT",
+    "DXGI_FORMAT_A8_UNORM",
+    "DXGI_FORMAT_R1_UNORM",
+    "DXGI_FORMAT_R9G9B9E5_SHAREDEXP",
+    "DXGI_FORMAT_R8G8_B8G8_UNORM",
+    "DXGI_FORMAT_G8R8_G8B8_UNORM",
+    "DXGI_FORMAT_BC1_TYPELESS",
+    "DXGI_FORMAT_BC1_UNORM",
+    "DXGI_FORMAT_BC1_UNORM_SRGB",
+    "DXGI_FORMAT_BC2_TYPELESS",
+    "DXGI_FORMAT_BC2_UNORM",
+    "DXGI_FORMAT_BC2_UNORM_SRGB",
+    "DXGI_FORMAT_BC3_TYPELESS",
+    "DXGI_FORMAT_BC3_UNORM",
+    "DXGI_FORMAT_BC3_UNORM_SRGB",
+    "DXGI_FORMAT_BC4_TYPELESS",
+    "DXGI_FORMAT_BC4_UNORM",
+    "DXGI_FORMAT_BC4_SNORM",
+    "DXGI_FORMAT_BC5_TYPELESS",
+    "DXGI_FORMAT_BC5_UNORM",
+    "DXGI_FORMAT_BC5_SNORM",
+    "DXGI_FORMAT_B5G6R5_UNORM",
+    "DXGI_FORMAT_B5G5R5A1_UNORM",
+    "DXGI_FORMAT_B8G8R8A8_UNORM",
+    "DXGI_FORMAT_B8G8R8X8_UNORM",
+    "DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM",
+    "DXGI_FORMAT_B8G8R8A8_TYPELESS",
+    "DXGI_FORMAT_B8G8R8A8_UNORM_SRGB",
+    "DXGI_FORMAT_B8G8R8X8_TYPELESS",
+    "DXGI_FORMAT_B8G8R8X8_UNORM_SRGB",
+    "DXGI_FORMAT_BC6H_TYPELESS",
+    "DXGI_FORMAT_BC6H_UF16",
+    "DXGI_FORMAT_BC6H_SF16",
+    "DXGI_FORMAT_BC7_TYPELESS",
+    "DXGI_FORMAT_BC7_UNORM",
+    "DXGI_FORMAT_BC7_UNORM_SRGB",
+    "DXGI_FORMAT_AYUV",
+    "DXGI_FORMAT_Y410",
+    "DXGI_FORMAT_Y416",
+    "DXGI_FORMAT_NV12",
+    "DXGI_FORMAT_P010",
+    "DXGI_FORMAT_P016",
+    "DXGI_FORMAT_420_OPAQUE",
+    "DXGI_FORMAT_YUY2",
+    "DXGI_FORMAT_Y210",
+    "DXGI_FORMAT_Y216",
+    "DXGI_FORMAT_NV11",
+    "DXGI_FORMAT_AI44",
+    "DXGI_FORMAT_IA44",
+    "DXGI_FORMAT_P8",
+    "DXGI_FORMAT_A8P8",
+    "DXGI_FORMAT_B4G4R4A4_UNORM",
+    "DXGI_FORMAT_P208",
+    "DXGI_FORMAT_V208",
+    "DXGI_FORMAT_V408",
+    "DXGI_FORMAT_SAMPLER_FEEDBACK_MIN_MIP_OPAQUE",
+    "DXGI_FORMAT_SAMPLER_FEEDBACK_MIP_REGION_USED_OPAQUE",
+    "DXGI_FORMAT_A4B4G4R4_UNORM",
+    "DXGI_FORMAT_FORCE_UINT"
+   ],
+   "name": "DXGI_FORMAT",
+   "source": "dxgiformat.h"
+  },
+  "DXGI_FRAME_PRESENTATION_MODE": {
+   "members": [
+    "DXGI_FRAME_PRESENTATION_MODE_COMPOSED",
+    "DXGI_FRAME_PRESENTATION_MODE_OVERLAY",
+    "DXGI_FRAME_PRESENTATION_MODE_NONE",
+    "DXGI_FRAME_PRESENTATION_MODE_COMPOSITION_FAILURE"
+   ],
+   "name": "DXGI_FRAME_PRESENTATION_MODE",
+   "source": "dxgi1_3.idl"
+  },
+  "DXGI_GPU_PREFERENCE": {
+   "members": [
+    "DXGI_GPU_PREFERENCE_UNSPECIFIED",
+    "DXGI_GPU_PREFERENCE_MINIMUM_POWER",
+    "DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE"
+   ],
+   "name": "DXGI_GPU_PREFERENCE",
+   "source": "dxgi1_6.idl"
+  },
+  "DXGI_GRAPHICS_PREEMPTION_GRANULARITY": {
+   "members": [
+    "DXGI_GRAPHICS_PREEMPTION_DMA_BUFFER_BOUNDARY",
+    "DXGI_GRAPHICS_PREEMPTION_PRIMITIVE_BOUNDARY",
+    "DXGI_GRAPHICS_PREEMPTION_TRIANGLE_BOUNDARY",
+    "DXGI_GRAPHICS_PREEMPTION_PIXEL_BOUNDARY",
+    "DXGI_GRAPHICS_PREEMPTION_INSTRUCTION_BOUNDARY"
+   ],
+   "name": "DXGI_GRAPHICS_PREEMPTION_GRANULARITY",
+   "source": "dxgi1_2.idl"
+  },
+  "DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAGS": {
+   "members": [
+    "DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_FULLSCREEN",
+    "DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_WINDOWED",
+    "DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_CURSOR_STRETCHED"
+   ],
+   "name": "DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAGS",
+   "source": "dxgi1_6.idl"
+  },
+  "DXGI_HDR_METADATA_TYPE": {
+   "members": [
+    "DXGI_HDR_METADATA_TYPE_NONE",
+    "DXGI_HDR_METADATA_TYPE_HDR10",
+    "DXGI_HDR_METADATA_TYPE_HDR10PLUS"
+   ],
+   "name": "DXGI_HDR_METADATA_TYPE",
+   "source": "dxgi1_5.idl"
+  },
+  "DXGI_INFO_QUEUE_MESSAGE_CATEGORY": {
+   "members": [
+    "DXGI_INFO_QUEUE_MESSAGE_CATEGORY_UNKNOWN",
+    "DXGI_INFO_QUEUE_MESSAGE_CATEGORY_MISCELLANEOUS",
+    "DXGI_INFO_QUEUE_MESSAGE_CATEGORY_INITIALIZATION",
+    "DXGI_INFO_QUEUE_MESSAGE_CATEGORY_CLEANUP",
+    "DXGI_INFO_QUEUE_MESSAGE_CATEGORY_COMPILATION",
+    "DXGI_INFO_QUEUE_MESSAGE_CATEGORY_STATE_CREATION",
+    "DXGI_INFO_QUEUE_MESSAGE_CATEGORY_STATE_SETTING",
+    "DXGI_INFO_QUEUE_MESSAGE_CATEGORY_STATE_GETTING",
+    "DXGI_INFO_QUEUE_MESSAGE_CATEGORY_RESOURCE_MANIPULATION",
+    "DXGI_INFO_QUEUE_MESSAGE_CATEGORY_EXECUTION",
+    "DXGI_INFO_QUEUE_MESSAGE_CATEGORY_SHADER"
+   ],
+   "name": "DXGI_INFO_QUEUE_MESSAGE_CATEGORY",
+   "source": "dxgidebug.idl"
+  },
+  "DXGI_INFO_QUEUE_MESSAGE_SEVERITY": {
+   "members": [
+    "DXGI_INFO_QUEUE_MESSAGE_SEVERITY_CORRUPTION",
+    "DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR",
+    "DXGI_INFO_QUEUE_MESSAGE_SEVERITY_WARNING",
+    "DXGI_INFO_QUEUE_MESSAGE_SEVERITY_INFO",
+    "DXGI_INFO_QUEUE_MESSAGE_SEVERITY_MESSAGE"
+   ],
+   "name": "DXGI_INFO_QUEUE_MESSAGE_SEVERITY",
+   "source": "dxgidebug.idl"
+  },
+  "DXGI_MEMORY_SEGMENT_GROUP": {
+   "members": [
+    "DXGI_MEMORY_SEGMENT_GROUP_LOCAL",
+    "DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL"
+   ],
+   "name": "DXGI_MEMORY_SEGMENT_GROUP",
+   "source": "dxgi1_4.idl"
+  },
+  "DXGI_MODE_ROTATION": {
+   "members": [
+    "DXGI_MODE_ROTATION_UNSPECIFIED",
+    "DXGI_MODE_ROTATION_IDENTITY",
+    "DXGI_MODE_ROTATION_ROTATE90",
+    "DXGI_MODE_ROTATION_ROTATE180",
+    "DXGI_MODE_ROTATION_ROTATE270"
+   ],
+   "name": "DXGI_MODE_ROTATION",
+   "source": "dxgitype.idl"
+  },
+  "DXGI_MODE_SCALING": {
+   "members": [
+    "DXGI_MODE_SCALING_UNSPECIFIED",
+    "DXGI_MODE_SCALING_CENTERED",
+    "DXGI_MODE_SCALING_STRETCHED"
+   ],
+   "name": "DXGI_MODE_SCALING",
+   "source": "dxgitype.idl"
+  },
+  "DXGI_MODE_SCANLINE_ORDER": {
+   "members": [
+    "DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED",
+    "DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE",
+    "DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST",
+    "DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST"
+   ],
+   "name": "DXGI_MODE_SCANLINE_ORDER",
+   "source": "dxgitype.idl"
+  },
+  "DXGI_MULTIPLANE_OVERLAY_YCbCr_FLAGS": {
+   "members": [
+    "DXGI_MULTIPLANE_OVERLAY_YCbCr_FLAG_NOMINAL_RANGE",
+    "DXGI_MULTIPLANE_OVERLAY_YCbCr_FLAG_BT709",
+    "DXGI_MULTIPLANE_OVERLAY_YCbCr_FLAG_xvYCC"
+   ],
+   "name": "DXGI_MULTIPLANE_OVERLAY_YCbCr_FLAGS",
+   "source": "dxgi1_3.idl"
+  },
+  "DXGI_OFFER_RESOURCE_FLAGS": {
+   "members": [
+    "DXGI_OFFER_RESOURCE_FLAG_ALLOW_DECOMMIT"
+   ],
+   "name": "DXGI_OFFER_RESOURCE_FLAGS",
+   "source": "dxgi1_5.idl"
+  },
+  "DXGI_OFFER_RESOURCE_PRIORITY": {
+   "members": [
+    "DXGI_OFFER_RESOURCE_PRIORITY_LOW",
+    "DXGI_OFFER_RESOURCE_PRIORITY_NORMAL",
+    "DXGI_OFFER_RESOURCE_PRIORITY_HIGH"
+   ],
+   "name": "DXGI_OFFER_RESOURCE_PRIORITY",
+   "source": "dxgi1_2.idl"
+  },
+  "DXGI_OUTDUPL_FLAG": {
+   "members": [
+    "DXGI_OUTDUPL_COMPOSITED_UI_CAPTURE_ONLY"
+   ],
+   "name": "DXGI_OUTDUPL_FLAG",
+   "source": "dxgi1_5.idl"
+  },
+  "DXGI_OUTDUPL_POINTER_SHAPE_TYPE": {
+   "members": [
+    "DXGI_OUTDUPL_POINTER_SHAPE_TYPE_MONOCHROME",
+    "DXGI_OUTDUPL_POINTER_SHAPE_TYPE_COLOR",
+    "DXGI_OUTDUPL_POINTER_SHAPE_TYPE_MASKED_COLOR"
+   ],
+   "name": "DXGI_OUTDUPL_POINTER_SHAPE_TYPE",
+   "source": "dxgi1_2.idl"
+  },
+  "DXGI_OVERLAY_COLOR_SPACE_SUPPORT_FLAG": {
+   "members": [
+    "DXGI_OVERLAY_COLOR_SPACE_SUPPORT_FLAG_PRESENT"
+   ],
+   "name": "DXGI_OVERLAY_COLOR_SPACE_SUPPORT_FLAG",
+   "source": "dxgi1_4.idl"
+  },
+  "DXGI_OVERLAY_SUPPORT_FLAG": {
+   "members": [
+    "DXGI_OVERLAY_SUPPORT_FLAG_DIRECT",
+    "DXGI_OVERLAY_SUPPORT_FLAG_SCALING"
+   ],
+   "name": "DXGI_OVERLAY_SUPPORT_FLAG",
+   "source": "dxgi1_3.idl"
+  },
+  "DXGI_RECLAIM_RESOURCE_RESULTS": {
+   "members": [
+    "DXGI_RECLAIM_RESOURCE_RESULT_OK",
+    "DXGI_RECLAIM_RESOURCE_RESULT_DISCARDED",
+    "DXGI_RECLAIM_RESOURCE_RESULT_NOT_COMMITTED"
+   ],
+   "name": "DXGI_RECLAIM_RESOURCE_RESULTS",
+   "source": "dxgi1_5.idl"
+  },
+  "DXGI_RESIDENCY": {
+   "members": [
+    "DXGI_RESIDENCY_FULLY_RESIDENT",
+    "DXGI_RESIDENCY_RESIDENT_IN_SHARED_MEMORY",
+    "DXGI_RESIDENCY_EVICTED_TO_DISK"
+   ],
+   "name": "DXGI_RESIDENCY",
+   "source": "dxgi.idl"
+  },
+  "DXGI_SCALING": {
+   "members": [
+    "DXGI_SCALING_STRETCH",
+    "DXGI_SCALING_NONE",
+    "DXGI_SCALING_ASPECT_RATIO_STRETCH"
+   ],
+   "name": "DXGI_SCALING",
+   "source": "dxgi1_2.idl"
+  },
+  "DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG": {
+   "members": [
+    "DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT",
+    "DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_OVERLAY_PRESENT"
+   ],
+   "name": "DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG",
+   "source": "dxgi1_4.idl"
+  },
+  "DXGI_SWAP_CHAIN_FLAG": {
+   "members": [
+    "DXGI_SWAP_CHAIN_FLAG_NONPREROTATED",
+    "DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH",
+    "DXGI_SWAP_CHAIN_FLAG_GDI_COMPATIBLE",
+    "DXGI_SWAP_CHAIN_FLAG_RESTRICTED_CONTENT",
+    "DXGI_SWAP_CHAIN_FLAG_RESTRICT_SHARED_RESOURCE_DRIVER",
+    "DXGI_SWAP_CHAIN_FLAG_DISPLAY_ONLY",
+    "DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT",
+    "DXGI_SWAP_CHAIN_FLAG_FOREGROUND_LAYER",
+    "DXGI_SWAP_CHAIN_FLAG_FULLSCREEN_VIDEO",
+    "DXGI_SWAP_CHAIN_FLAG_YUV_VIDEO",
+    "DXGI_SWAP_CHAIN_FLAG_HW_PROTECTED",
+    "DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING",
+    "DXGI_SWAP_CHAIN_FLAG_RESTRICTED_TO_ALL_HOLOGRAPHIC_DISPLAYS"
+   ],
+   "name": "DXGI_SWAP_CHAIN_FLAG",
+   "source": "dxgi.idl"
+  },
+  "DXGI_SWAP_EFFECT": {
+   "members": [
+    "DXGI_SWAP_EFFECT_DISCARD",
+    "DXGI_SWAP_EFFECT_SEQUENTIAL",
+    "DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL",
+    "DXGI_SWAP_EFFECT_FLIP_DISCARD"
+   ],
+   "name": "DXGI_SWAP_EFFECT",
+   "source": "dxgi.idl"
+  }
+ },
+ "functions": {
+  "CreateDXGIFactory": "dxgi.idl",
+  "CreateDXGIFactory1": "dxgi.idl",
+  "CreateDXGIFactory2": "dxgi1_3.idl",
+  "DXGIGetDebugInterface": "dxgidebug.idl",
+  "DXGIGetDebugInterface1": "dxgi1_3.idl"
+ },
+ "group": "dxgi",
+ "interfaces": {
+  "IDXGIAdapter": {
+   "base": "IDXGIObject",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "EnumOutputs"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDesc"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CheckInterfaceSupport"
+    }
+   ],
+   "name": "IDXGIAdapter",
+   "source": "dxgi.idl"
+  },
+  "IDXGIAdapter1": {
+   "base": "IDXGIAdapter",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDesc1"
+    }
+   ],
+   "name": "IDXGIAdapter1",
+   "source": "dxgi.idl"
+  },
+  "IDXGIAdapter2": {
+   "base": "IDXGIAdapter1",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDesc2"
+    }
+   ],
+   "name": "IDXGIAdapter2",
+   "source": "dxgi1_2.idl"
+  },
+  "IDXGIAdapter3": {
+   "base": "IDXGIAdapter2",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "RegisterHardwareContentProtectionTeardownStatusEvent"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "UnregisterHardwareContentProtectionTeardownStatus"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "QueryVideoMemoryInfo"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetVideoMemoryReservation"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "RegisterVideoMemoryBudgetChangeNotificationEvent"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "UnregisterVideoMemoryBudgetChangeNotification"
+    }
+   ],
+   "name": "IDXGIAdapter3",
+   "source": "dxgi1_4.idl"
+  },
+  "IDXGIAdapter4": {
+   "base": "IDXGIAdapter3",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDesc3"
+    }
+   ],
+   "name": "IDXGIAdapter4",
+   "source": "dxgi1_6.idl"
+  },
+  "IDXGIDebug": {
+   "base": "IUnknown",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "ReportLiveObjects"
+    }
+   ],
+   "name": "IDXGIDebug",
+   "source": "dxgidebug.idl"
+  },
+  "IDXGIDebug1": {
+   "base": "IDXGIDebug",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "EnableLeakTrackingForThread"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "DisableLeakTrackingForThread"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "IsLeakTrackingEnabledForThread"
+    }
+   ],
+   "name": "IDXGIDebug1",
+   "source": "dxgidebug.idl"
+  },
+  "IDXGIDecodeSwapChain": {
+   "base": "IUnknown",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "PresentBuffer"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetSourceRect"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetTargetRect"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetDestSize"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetSourceRect"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetTargetRect"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDestSize"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetColorSpace"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetColorSpace"
+    }
+   ],
+   "name": "IDXGIDecodeSwapChain",
+   "source": "dxgi1_3.idl"
+  },
+  "IDXGIDevice": {
+   "base": "IDXGIObject",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetAdapter"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreateSurface"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "QueryResourceResidency"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetGPUThreadPriority"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetGPUThreadPriority"
+    }
+   ],
+   "name": "IDXGIDevice",
+   "source": "dxgi.idl"
+  },
+  "IDXGIDevice1": {
+   "base": "IDXGIDevice",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetMaximumFrameLatency"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetMaximumFrameLatency"
+    }
+   ],
+   "name": "IDXGIDevice1",
+   "source": "dxgi.idl"
+  },
+  "IDXGIDevice2": {
+   "base": "IDXGIDevice1",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "OfferResources"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "ReclaimResources"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "EnqueueSetEvent"
+    }
+   ],
+   "name": "IDXGIDevice2",
+   "source": "dxgi1_2.idl"
+  },
+  "IDXGIDevice3": {
+   "base": "IDXGIDevice2",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "Trim"
+    }
+   ],
+   "name": "IDXGIDevice3",
+   "source": "dxgi1_3.idl"
+  },
+  "IDXGIDevice4": {
+   "base": "IDXGIDevice3",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "OfferResources1"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "ReclaimResources1"
+    }
+   ],
+   "name": "IDXGIDevice4",
+   "source": "dxgi1_5.idl"
+  },
+  "IDXGIDeviceSubObject": {
+   "base": "IDXGIObject",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDevice"
+    }
+   ],
+   "name": "IDXGIDeviceSubObject",
+   "source": "dxgi.idl"
+  },
+  "IDXGIDisplayControl": {
+   "base": "IUnknown",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "IsStereoEnabled"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetStereoEnabled"
+    }
+   ],
+   "name": "IDXGIDisplayControl",
+   "source": "dxgi1_2.idl"
+  },
+  "IDXGIFactory": {
+   "base": "IDXGIObject",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "EnumAdapters"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "MakeWindowAssociation"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetWindowAssociation"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreateSwapChain"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreateSoftwareAdapter"
+    }
+   ],
+   "name": "IDXGIFactory",
+   "source": "dxgi.idl"
+  },
+  "IDXGIFactory1": {
+   "base": "IDXGIFactory",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "EnumAdapters1"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "IsCurrent"
+    }
+   ],
+   "name": "IDXGIFactory1",
+   "source": "dxgi.idl"
+  },
+  "IDXGIFactory2": {
+   "base": "IDXGIFactory1",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "IsWindowedStereoEnabled"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreateSwapChainForHwnd"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreateSwapChainForCoreWindow"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetSharedResourceAdapterLuid"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "RegisterStereoStatusWindow"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "RegisterStereoStatusEvent"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "UnregisterStereoStatus"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "RegisterOcclusionStatusWindow"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "RegisterOcclusionStatusEvent"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "UnregisterOcclusionStatus"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreateSwapChainForComposition"
+    }
+   ],
+   "name": "IDXGIFactory2",
+   "source": "dxgi1_2.idl"
+  },
+  "IDXGIFactory3": {
+   "base": "IDXGIFactory2",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetCreationFlags"
+    }
+   ],
+   "name": "IDXGIFactory3",
+   "source": "dxgi1_3.idl"
+  },
+  "IDXGIFactory4": {
+   "base": "IDXGIFactory3",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "EnumAdapterByLuid"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "EnumWarpAdapter"
+    }
+   ],
+   "name": "IDXGIFactory4",
+   "source": "dxgi1_4.idl"
+  },
+  "IDXGIFactory5": {
+   "base": "IDXGIFactory4",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CheckFeatureSupport"
+    }
+   ],
+   "name": "IDXGIFactory5",
+   "source": "dxgi1_5.idl"
+  },
+  "IDXGIFactory6": {
+   "base": "IDXGIFactory5",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "EnumAdapterByGpuPreference"
+    }
+   ],
+   "name": "IDXGIFactory6",
+   "source": "dxgi1_6.idl"
+  },
+  "IDXGIFactory7": {
+   "base": "IDXGIFactory6",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "RegisterAdaptersChangedEvent"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "UnregisterAdaptersChangedEvent"
+    }
+   ],
+   "name": "IDXGIFactory7",
+   "source": "dxgi1_6.idl"
+  },
+  "IDXGIFactoryMedia": {
+   "base": "IUnknown",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreateSwapChainForCompositionSurfaceHandle"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreateDecodeSwapChainForCompositionSurfaceHandle"
+    }
+   ],
+   "name": "IDXGIFactoryMedia",
+   "source": "dxgi1_3.idl"
+  },
+  "IDXGIInfoQueue": {
+   "base": "IUnknown",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetMessageCountLimit"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "ClearStoredMessages"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetMessage"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetNumStoredMessagesAllowedByRetrievalFilters"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetNumStoredMessages"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetNumMessagesDiscardedByMessageCountLimit"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetMessageCountLimit"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetNumMessagesAllowedByStorageFilter"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetNumMessagesDeniedByStorageFilter"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "AddStorageFilterEntries"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetStorageFilter"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "ClearStorageFilter"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "PushEmptyStorageFilter"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "PushDenyAllStorageFilter"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "PushCopyOfStorageFilter"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "PushStorageFilter"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "PopStorageFilter"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetStorageFilterStackSize"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "AddRetrievalFilterEntries"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetRetrievalFilter"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "ClearRetrievalFilter"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "PushEmptyRetrievalFilter"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "PushDenyAllRetrievalFilter"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "PushCopyOfRetrievalFilter"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "PushRetrievalFilter"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "PopRetrievalFilter"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetRetrievalFilterStackSize"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "AddMessage"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "AddApplicationMessage"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetBreakOnCategory"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetBreakOnSeverity"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetBreakOnID"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetBreakOnCategory"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetBreakOnSeverity"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetBreakOnID"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetMuteDebugOutput"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetMuteDebugOutput"
+    }
+   ],
+   "name": "IDXGIInfoQueue",
+   "source": "dxgidebug.idl"
+  },
+  "IDXGIKeyedMutex": {
+   "base": "IDXGIDeviceSubObject",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "AcquireSync"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "ReleaseSync"
+    }
+   ],
+   "name": "IDXGIKeyedMutex",
+   "source": "dxgi.idl"
+  },
+  "IDXGIObject": {
+   "base": "IUnknown",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetPrivateData"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetPrivateDataInterface"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetPrivateData"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetParent"
+    }
+   ],
+   "name": "IDXGIObject",
+   "source": "dxgi.idl"
+  },
+  "IDXGIOutput": {
+   "base": "IDXGIObject",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDesc"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDisplayModeList"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "FindClosestMatchingMode"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "WaitForVBlank"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "TakeOwnership"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "ReleaseOwnership"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetGammaControlCapabilities"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetGammaControl"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetGammaControl"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetDisplaySurface"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDisplaySurfaceData"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetFrameStatistics"
+    }
+   ],
+   "name": "IDXGIOutput",
+   "source": "dxgi.idl"
+  },
+  "IDXGIOutput1": {
+   "base": "IDXGIOutput",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDisplayModeList1"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "FindClosestMatchingMode1"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDisplaySurfaceData1"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "DuplicateOutput"
+    }
+   ],
+   "name": "IDXGIOutput1",
+   "source": "dxgi1_2.idl"
+  },
+  "IDXGIOutput2": {
+   "base": "IDXGIOutput1",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SupportsOverlays"
+    }
+   ],
+   "name": "IDXGIOutput2",
+   "source": "dxgi1_3.idl"
+  },
+  "IDXGIOutput3": {
+   "base": "IDXGIOutput2",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CheckOverlaySupport"
+    }
+   ],
+   "name": "IDXGIOutput3",
+   "source": "dxgi1_3.idl"
+  },
+  "IDXGIOutput4": {
+   "base": "IDXGIOutput3",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CheckOverlayColorSpaceSupport"
+    }
+   ],
+   "name": "IDXGIOutput4",
+   "source": "dxgi1_4.idl"
+  },
+  "IDXGIOutput5": {
+   "base": "IDXGIOutput4",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "DuplicateOutput1"
+    }
+   ],
+   "name": "IDXGIOutput5",
+   "source": "dxgi1_5.idl"
+  },
+  "IDXGIOutput6": {
+   "base": "IDXGIOutput5",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDesc1"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CheckHardwareCompositionSupport"
+    }
+   ],
+   "name": "IDXGIOutput6",
+   "source": "dxgi1_6.idl"
+  },
+  "IDXGIOutputDuplication": {
+   "base": "IDXGIObject",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDesc"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "AcquireNextFrame"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetFrameDirtyRects"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetFrameMoveRects"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetFramePointerShape"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "MapDesktopSurface"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "UnMapDesktopSurface"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "ReleaseFrame"
+    }
+   ],
+   "name": "IDXGIOutputDuplication",
+   "source": "dxgi1_2.idl"
+  },
+  "IDXGIResource": {
+   "base": "IDXGIDeviceSubObject",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetSharedHandle"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetUsage"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetEvictionPriority"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetEvictionPriority"
+    }
+   ],
+   "name": "IDXGIResource",
+   "source": "dxgi.idl"
+  },
+  "IDXGIResource1": {
+   "base": "IDXGIResource",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreateSubresourceSurface"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreateSharedHandle"
+    }
+   ],
+   "name": "IDXGIResource1",
+   "source": "dxgi1_2.idl"
+  },
+  "IDXGISurface": {
+   "base": "IDXGIDeviceSubObject",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDesc"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "Map"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "Unmap"
+    }
+   ],
+   "name": "IDXGISurface",
+   "source": "dxgi.idl"
+  },
+  "IDXGISurface1": {
+   "base": "IDXGISurface",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDC"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "ReleaseDC"
+    }
+   ],
+   "name": "IDXGISurface1",
+   "source": "dxgi.idl"
+  },
+  "IDXGISurface2": {
+   "base": "IDXGISurface1",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetResource"
+    }
+   ],
+   "name": "IDXGISurface2",
+   "source": "dxgi1_2.idl"
+  },
+  "IDXGISwapChain": {
+   "base": "IDXGIDeviceSubObject",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "Present"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetBuffer"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetFullscreenState"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetFullscreenState"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDesc"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "ResizeBuffers"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "ResizeTarget"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetContainingOutput"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetFrameStatistics"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetLastPresentCount"
+    }
+   ],
+   "name": "IDXGISwapChain",
+   "source": "dxgi.idl"
+  },
+  "IDXGISwapChain1": {
+   "base": "IDXGISwapChain",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDesc1"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetFullscreenDesc"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetHwnd"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetCoreWindow"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "Present1"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "IsTemporaryMonoSupported"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetRestrictToOutput"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetBackgroundColor"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetBackgroundColor"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetRotation"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetRotation"
+    }
+   ],
+   "name": "IDXGISwapChain1",
+   "source": "dxgi1_2.idl"
+  },
+  "IDXGISwapChain2": {
+   "base": "IDXGISwapChain1",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetSourceSize"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetSourceSize"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetMaximumFrameLatency"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetMaximumFrameLatency"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetFrameLatencyWaitableObject"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetMatrixTransform"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetMatrixTransform"
+    }
+   ],
+   "name": "IDXGISwapChain2",
+   "source": "dxgi1_3.idl"
+  },
+  "IDXGISwapChain3": {
+   "base": "IDXGISwapChain2",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetCurrentBackBufferIndex"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CheckColorSpaceSupport"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetColorSpace1"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "ResizeBuffers1"
+    }
+   ],
+   "name": "IDXGISwapChain3",
+   "source": "dxgi1_4.idl"
+  },
+  "IDXGISwapChain4": {
+   "base": "IDXGISwapChain3",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetHDRMetaData"
+    }
+   ],
+   "name": "IDXGISwapChain4",
+   "source": "dxgi1_5.idl"
+  },
+  "IDXGISwapChainMedia": {
+   "base": "IUnknown",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetFrameStatisticsMedia"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetPresentDuration"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CheckPresentDurationSupport"
+    }
+   ],
+   "name": "IDXGISwapChainMedia",
+   "source": "dxgi1_3.idl"
+  }
+ },
+ "provenance": "Headers: `dxgi.idl`, `dxgi1_2.idl`, `dxgi1_3.idl`, `dxgi1_4.idl`, `dxgi1_5.idl`, `dxgi1_6.idl`, `dxgicommon.h`, `dxgidebug.idl`, `dxgiformat.h`, `dxgitype.idl` from `microsoft/DirectX-Headers@61c7718954ec`, `mingw-w64/mingw-w64@3dc9567fee2f`.",
+ "structs": {
+  "D3DCOLORVALUE": "dxgitype.idl",
+  "DXGI_ADAPTER_DESC": "dxgi.idl",
+  "DXGI_ADAPTER_DESC1": "dxgi.idl",
+  "DXGI_ADAPTER_DESC2": "dxgi1_2.idl",
+  "DXGI_ADAPTER_DESC3": "dxgi1_6.idl",
+  "DXGI_DECODE_SWAP_CHAIN_DESC": "dxgi1_3.idl",
+  "DXGI_DISPLAY_COLOR_SPACE": "dxgi.idl",
+  "DXGI_FRAME_STATISTICS": "dxgi.idl",
+  "DXGI_FRAME_STATISTICS_MEDIA": "dxgi1_3.idl",
+  "DXGI_GAMMA_CONTROL": "dxgitype.idl",
+  "DXGI_GAMMA_CONTROL_CAPABILITIES": "dxgitype.idl",
+  "DXGI_HDR_METADATA_HDR10": "dxgi1_5.idl",
+  "DXGI_HDR_METADATA_HDR10PLUS": "dxgi1_5.idl",
+  "DXGI_INFO_QUEUE_FILTER": "dxgidebug.idl",
+  "DXGI_INFO_QUEUE_FILTER_DESC": "dxgidebug.idl",
+  "DXGI_INFO_QUEUE_MESSAGE": "dxgidebug.idl",
+  "DXGI_MAPPED_RECT": "dxgi.idl",
+  "DXGI_MATRIX_3X2_F": "dxgi1_3.idl",
+  "DXGI_MODE_DESC": "dxgitype.idl",
+  "DXGI_MODE_DESC1": "dxgi1_2.idl",
+  "DXGI_OUTDUPL_DESC": "dxgi1_2.idl",
+  "DXGI_OUTDUPL_FRAME_INFO": "dxgi1_2.idl",
+  "DXGI_OUTDUPL_MOVE_RECT": "dxgi1_2.idl",
+  "DXGI_OUTDUPL_POINTER_POSITION": "dxgi1_2.idl",
+  "DXGI_OUTDUPL_POINTER_SHAPE_INFO": "dxgi1_2.idl",
+  "DXGI_OUTPUT_DESC": "dxgi.idl",
+  "DXGI_OUTPUT_DESC1": "dxgi1_6.idl",
+  "DXGI_PRESENT_PARAMETERS": "dxgi1_2.idl",
+  "DXGI_QUERY_VIDEO_MEMORY_INFO": "dxgi1_4.idl",
+  "DXGI_RATIONAL": "dxgicommon.h",
+  "DXGI_RGB": "dxgitype.idl",
+  "DXGI_SAMPLE_DESC": "dxgicommon.h",
+  "DXGI_SHARED_RESOURCE": "dxgi.idl",
+  "DXGI_SURFACE_DESC": "dxgi.idl",
+  "DXGI_SWAP_CHAIN_DESC": "dxgi.idl",
+  "DXGI_SWAP_CHAIN_DESC1": "dxgi1_2.idl",
+  "DXGI_SWAP_CHAIN_FULLSCREEN_DESC": "dxgi1_2.idl",
+  "LUID": "dxgi.idl"
+ }
+}
