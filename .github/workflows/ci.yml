@@ -1,0 +1,188 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  lint:
+    runs-on: macos-26
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-tools
+      - name: clang-format
+        run: |
+          git ls-files -z '*.c' '*.cc' '*.cpp' '*.h' '*.hpp' '*.m' '*.mm' \
+            | xargs -0 clang-format --dry-run --Werror
+      - name: ruff format
+        run: ruff format --check
+      - name: ruff check
+        run: ruff check
+
+  build-unix:
+    runs-on: macos-26
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-tools
+      - name: Build and test unix (x86_64)
+        run: tools/build.sh --test unix
+      - name: Build and test unix-arm64
+        run: tools/build.sh --test unix-arm64
+      - name: API tooling unit tests
+        run: |
+          if [[ -d tools/api/tests ]]; then
+            python -I -m unittest discover -s tools/api/tests
+          else
+            echo "::notice::tools/api/tests does not exist; no API tooling tests to run"
+          fi
+
+  sanitize:
+    runs-on: macos-26
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-tools
+      - name: Build and test with ASan and UBSan
+        run: tools/build.sh --test sanitize
+
+  build-pe:
+    runs-on: macos-26
+    timeout-minutes: 20
+    env:
+      LLVM_MINGW_VERSION: "20261104"
+      LLVM_MINGW_RELEASE: llvm-mingw-20261104-ucrt-macos-universal
+      LLVM_MINGW_SHA256: 66cbd5178c4a71b0d473e68ede172f8eb7d15d023e67f39201d0a69e21f6bf3c
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-tools
+      - name: Locate LLVM-MinGW
+        run: echo "DIRECTMETAL_LLVM_MINGW=$RUNNER_TEMP/llvm-mingw" >> "$GITHUB_ENV"
+      - id: llvm-mingw-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ env.DIRECTMETAL_LLVM_MINGW }}
+          key: ${{ env.LLVM_MINGW_RELEASE }}-${{ env.LLVM_MINGW_SHA256 }}
+      - name: Install LLVM-MinGW
+        if: steps.llvm-mingw-cache.outputs.cache-hit != 'true'
+        run: |
+          archive="$RUNNER_TEMP/$LLVM_MINGW_RELEASE.tar.xz"
+          curl -fsSL -o "$archive" \
+            "https://github.com/mstorsjo/llvm-mingw/releases/download/$LLVM_MINGW_VERSION/$LLVM_MINGW_RELEASE.tar.xz"
+          echo "$LLVM_MINGW_SHA256  $archive" | shasum -a 256 -c
+          mkdir -p "$DIRECTMETAL_LLVM_MINGW"
+          tar -xJf "$archive" --strip-components=1 -C "$DIRECTMETAL_LLVM_MINGW"
+      - name: Build win64 and win32
+        run: tools/build.sh win64 win32
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pe-dlls
+          path: |
+            build/win64/**/*.dll
+            build/win32/**/*.dll
+          if-no-files-found: error
+
+  windows:
+    needs: build-pe
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: pe-dlls
+          path: pe-dlls
+      - name: Load win64 DLLs
+        shell: pwsh
+        run: tools/ci/load_dlls.ps1 -Directory pe-dlls/win64 -Architecture x64
+      # x86 DLLs load only into a 32-bit process; the SysWOW64 Windows PowerShell is one.
+      - name: Load win32 DLLs
+        shell: cmd
+        run: >-
+          %SystemRoot%\SysWOW64\WindowsPowerShell\v1.0\powershell.exe -NoProfile -NonInteractive
+          -ExecutionPolicy Bypass -File tools\ci\load_dlls.ps1 -Directory pe-dlls\win32 -Architecture x86
+
+  wine-api:
+    # Self-hosted runners must never execute code from forks.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, macOS, ARM64, apple-gpu, macos-27]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Wine version
+        run: wine --version
+      - name: Install tools
+        run: |
+          python3 -m venv "$RUNNER_TEMP/ci-tools"
+          "$RUNNER_TEMP/ci-tools/bin/python" -m pip install --disable-pip-version-check \
+            -r tools/ci/requirements.txt
+          echo "$RUNNER_TEMP/ci-tools/bin" >> "$GITHUB_PATH"
+      - id: target
+        name: Check for wine-api target
+        run: |
+          if grep -qE '^[[:space:]]*wine-api\)' tools/build.sh; then
+            echo "is_available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_available=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::tools/build.sh has no wine-api target yet; skipping Wine API tests"
+          fi
+      - name: Build and run API tests under Wine
+        if: steps.target.outputs.is_available == 'true'
+        run: tools/build.sh --test wine-api
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure() && steps.target.outputs.is_available == 'true'
+        with:
+          name: wine-api-meson-logs
+          path: build/wine-api/meson-logs/
+
+  api-status:
+    needs: build-unix
+    runs-on: macos-26
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.13"
+      - id: report
+        name: Report API implementation status
+        run: |
+          if [[ -f tools/api/report_status.py ]]; then
+            python -I tools/api/report_status.py
+            echo "is_generated=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::tools/api/report_status.py does not exist; no status report"
+          fi
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: steps.report.outputs.is_generated == 'true'
+        with:
+          name: api-status
+          path: out/api-status/
+          if-no-files-found: error
