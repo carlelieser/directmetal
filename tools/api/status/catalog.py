@@ -33,6 +33,9 @@ class Catalog:
         self._bases: dict[str, str | None] = {}
         self._keys: set[str] = set()
 
+    def _add_group(self, group: str) -> None:
+        self._entries.setdefault(group, [])
+
     def _add_interface(self, name: str, base: str | None) -> None:
         self._bases[name] = base
         self._members.setdefault(name, [])
@@ -86,6 +89,7 @@ def read_inventory(path: Path) -> dict:
 
 
 def add_group(catalog: Catalog, group: str, document: dict) -> None:
+    catalog._add_group(group)
     for function in sorted(document["functions"]):
         catalog._add(Entry(group, None, function))
     for name in sorted(document["interfaces"]):

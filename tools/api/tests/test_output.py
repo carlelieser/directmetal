@@ -39,6 +39,12 @@ class ReportOutputTest(FixtureTestCase):
         summary = (self.fixture.output / "SUMMARY.md").read_text(encoding="utf-8")
         self.assertIn("| [d3d11](d3d11.md) | 1 | 0 | 4 | 1 | 0 | 5 |", summary)
 
+    def test_reports_groups_without_entries(self) -> None:
+        self.run_ok()
+        summary = (self.fixture.output / "SUMMARY.md").read_text(encoding="utf-8")
+        self.assertIn("| [d3d9](d3d9.md) | 0 | 0 | 0 | 0 | 0 | 0 |", summary)
+        self.assertTrue((self.fixture.output / "d3d9.md").is_file())
+
 
 if __name__ == "__main__":
     unittest.main()
