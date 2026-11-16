@@ -10,3 +10,4 @@ Each record states one decision, its context and its consequences. A decision ch
 | [0004](0004-build-system.md) | Meson with a PE cross file |
 | [0005](0005-platform-targets.md) | Apple silicon; macOS 14 for D3D9–11, macOS 26 for D3D12 |
 | [0006](0006-shader-pipeline.md) | Native front ends into DirectMetal IR; MSL then AIR |
+| [0007](0007-testing-strategy.md) | Windows output as reference; tiered test suites and CI gates |
