@@ -4,6 +4,9 @@ Each run gets a fresh directory under --work-dir holding the program with its ap
 new WINEPREFIX, and a WINEDLLPATH in Wine's <dir>/<arch>-windows and <dir>/x86_64-unix layout, so
 Wine pairs directmetal.dll with directmetal.so. Fails unless the program exits with 0 and every
 expected line appears on stderr. The run directory is deleted on success and kept on failure.
+
+With --call-log-dir, that directory is emptied and the program writes its call logs there through
+DIRECTMETAL_CALL_LOG_DIR, set to the directory's Windows path from winepath -w.
 """
 
 import argparse
@@ -31,6 +34,7 @@ class Staging:
     app_dir: Path
     dll_path: Path
     prefix: Path
+    call_log_dir: Path | None
 
 
 def find_wine() -> Path:
@@ -60,6 +64,13 @@ class TestFiles:
     dlls: list[Path]
     builtins: list[Path]
     unix_library: Path | None
+    call_log_dir: Path | None
+
+
+def reset_directory(directory: Path) -> Path:
+    shutil.rmtree(directory, ignore_errors=True)
+    directory.mkdir(parents=True)
+    return directory.resolve()
 
 
 def stage(files: TestFiles, arch: str, work_dir: Path) -> Staging:
@@ -67,7 +78,8 @@ def stage(files: TestFiles, arch: str, work_dir: Path) -> Staging:
         raise SetupError(f"missing {files.unix_library}; build the unix target first")
     work_dir.mkdir(parents=True, exist_ok=True)
     root = Path(tempfile.mkdtemp(prefix="run-", dir=work_dir.resolve()))
-    staging = Staging(root, root / "app", root / "dlls", root / "prefix")
+    call_log_dir = files.call_log_dir and reset_directory(files.call_log_dir)
+    staging = Staging(root, root / "app", root / "dlls", root / "prefix", call_log_dir)
     copy_into(staging.app_dir, [files.program, *files.dlls])
     copy_into(staging.dll_path / PE_DIRS[arch], files.builtins)
     if files.unix_library is not None:
@@ -87,9 +99,26 @@ def wine_environment(staging: Staging) -> dict[str, str]:
     return environment
 
 
+def windows_path(wine: Path, environment: dict[str, str], path: Path) -> str:
+    result = subprocess.run(
+        [str(wine.with_name("winepath")), "-w", str(path)],
+        env=environment,
+        capture_output=True,
+        text=True,
+        timeout=TIMEOUT_SECONDS,
+    )
+    converted = result.stdout.strip()
+    if result.returncode != 0 or not converted:
+        raise SetupError(f"winepath -w {path} failed: {result.stderr.strip()}")
+    return converted
+
+
 def run_program(wine: Path, staging: Staging, command: list[str]) -> subprocess.CompletedProcess:
     environment = wine_environment(staging)
     try:
+        if staging.call_log_dir is not None:
+            log_dir = windows_path(wine, environment, staging.call_log_dir)
+            environment["DIRECTMETAL_CALL_LOG_DIR"] = log_dir
         return subprocess.run(
             [str(wine), str(staging.app_dir / command[0]), *command[1:]],
             env=environment,
@@ -125,6 +154,7 @@ def parse_arguments(arguments: list[str]) -> argparse.Namespace:
     parser.add_argument("--unix-library", type=Path, help="omit to test without the unix side")
     parser.add_argument("--program-arg", action="append", default=[], help="program argument")
     parser.add_argument("--work-dir", type=Path, required=True)
+    parser.add_argument("--call-log-dir", type=Path, help="emptied, then receives call logs")
     parser.add_argument("--expect", action="append", default=[], help="required stderr line")
     return parser.parse_args(arguments)
 
@@ -133,12 +163,18 @@ def main(arguments: list[str]) -> int:
     options = parse_arguments(arguments)
     try:
         wine = find_wine()
-        files = TestFiles(options.program, options.dll, options.builtin, options.unix_library)
+        files = TestFiles(
+            options.program,
+            options.dll,
+            options.builtin,
+            options.unix_library,
+            options.call_log_dir,
+        )
         staging = stage(files, options.arch, options.work_dir)
+        result = run_program(wine, staging, [options.program.name, *options.program_arg])
     except SetupError as error:
         print(f"run_under_wine: {error}", file=sys.stderr)
         return 1
-    result = run_program(wine, staging, [options.program.name, *options.program_arg])
     sys.stdout.write(result.stdout)
     sys.stderr.write(result.stderr)
     problems = failures(result, options.expect)

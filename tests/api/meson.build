@@ -3,6 +3,7 @@ if unix_library == ''
     unix_library = meson.project_source_root() / 'build' / 'unix' / 'src' / 'unix' / 'directmetal.so'
 endif
 
+api_call_log_dir = meson.current_build_dir() / 'call-logs'
 api_arch = host_machine.cpu_family() == 'x86_64' ? 'win64' : 'win32'
 
 d3d11_create_device = executable(
@@ -26,6 +27,7 @@ test(
     args: d3d11_create_device_args + [
         '--unix-library', unix_library,
         '--program-arg', 'unix',
+        '--call-log-dir', api_call_log_dir / 'd3d11_create_device',
         '--work-dir', meson.current_build_dir() / 'd3d11_create_device',
         '--expect', 'directmetal: call D3D11CreateDevice',
         '--expect', 'directmetal: call D3D11CreateDeviceAndSwapChain',
@@ -41,6 +43,7 @@ test(
     python,
     args: d3d11_create_device_args + [
         '--program-arg', 'no-unix',
+        '--call-log-dir', api_call_log_dir / 'd3d11_create_device_without_unix_library',
         '--work-dir', meson.current_build_dir() / 'd3d11_create_device_without_unix_library',
         '--expect', 'directmetal: stub D3D11CreateDevice not logged: bridge call failed with status 0xc0000135',
         '--expect', 'directmetal: stub D3D11CreateDeviceAndSwapChain not logged: bridge call failed with status 0xc0000135',
