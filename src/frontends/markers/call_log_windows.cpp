@@ -36,6 +36,11 @@ std::optional<std::string> log_directory() {
     }
     std::vector<wchar_t> buffer(length);
     const DWORD copied = GetEnvironmentVariableW(name, buffer.data(), length);
+    // The variable can change or vanish between the two calls.
+    const bool is_complete = copied != 0 && copied < length;
+    if (!is_complete) {
+        return std::nullopt;
+    }
     return to_utf8({buffer.data(), copied});
 }
 
