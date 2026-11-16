@@ -1,9 +1,9 @@
 """Runs a PE test program under Wine with DirectMetal staged as out-of-tree builtins.
 
-The program and its app-local DLLs go into a throwaway directory next to a fresh WINEPREFIX.
-Builtin modules go into WINEDLLPATH using Wine's <dir>/<arch>-windows and <dir>/x86_64-unix
-layout, so Wine pairs directmetal.dll with directmetal.so. Fails unless the program exits with 0
-and every expected line appears on stderr.
+Each run gets a fresh directory under --work-dir holding the program with its app-local DLLs, a
+new WINEPREFIX, and a WINEDLLPATH in Wine's <dir>/<arch>-windows and <dir>/x86_64-unix layout, so
+Wine pairs directmetal.dll with directmetal.so. Fails unless the program exits with 0 and every
+expected line appears on stderr. The run directory is deleted on success and kept on failure.
 """
 
 import argparse
@@ -11,6 +11,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -26,6 +27,7 @@ class SetupError(Exception):
 
 @dataclass(frozen=True)
 class Staging:
+    root: Path
     app_dir: Path
     dll_path: Path
     prefix: Path
@@ -63,9 +65,9 @@ class TestFiles:
 def stage(files: TestFiles, arch: str, work_dir: Path) -> Staging:
     if files.unix_library is not None and not files.unix_library.is_file():
         raise SetupError(f"missing {files.unix_library}; build the unix target first")
-    work_dir = work_dir.resolve()
-    shutil.rmtree(work_dir, ignore_errors=True)
-    staging = Staging(work_dir / "app", work_dir / "dlls", work_dir / "prefix")
+    work_dir.mkdir(parents=True, exist_ok=True)
+    root = Path(tempfile.mkdtemp(prefix="run-", dir=work_dir.resolve()))
+    staging = Staging(root, root / "app", root / "dlls", root / "prefix")
     copy_into(staging.app_dir, [files.program, *files.dlls])
     copy_into(staging.dll_path / PE_DIRS[arch], files.builtins)
     if files.unix_library is not None:
@@ -97,7 +99,13 @@ def run_program(wine: Path, staging: Staging, program: Path) -> subprocess.Compl
             timeout=TIMEOUT_SECONDS,
         )
     finally:
-        subprocess.run([str(wine.with_name("wineserver")), "-k"], env=environment, check=False)
+        stop_wineserver(wine, environment)
+
+
+def stop_wineserver(wine: Path, environment: dict[str, str]) -> None:
+    wineserver = str(wine.with_name("wineserver"))
+    subprocess.run([wineserver, "-k"], env=environment, check=False)
+    subprocess.run([wineserver, "-w"], env=environment, check=False, timeout=TIMEOUT_SECONDS)
 
 
 def failures(result: subprocess.CompletedProcess, expected_lines: list[str]) -> list[str]:
@@ -135,7 +143,11 @@ def main(arguments: list[str]) -> int:
     problems = failures(result, options.expect)
     for problem in problems:
         print(f"run_under_wine: {problem}", file=sys.stderr)
-    return 1 if problems else 0
+    if problems:
+        print(f"run_under_wine: kept {staging.root}", file=sys.stderr)
+        return 1
+    shutil.rmtree(staging.root)
+    return 0
 
 
 if __name__ == "__main__":
