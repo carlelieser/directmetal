@@ -118,6 +118,7 @@ jobs:
       - name: Load win64 DLLs
         shell: pwsh
         run: tools/ci/load_dlls.ps1 -Directory pe-dlls/win64 -Architecture x64
+      # x86 DLLs load only into a 32-bit process; the SysWOW64 Windows PowerShell is one.
       - name: Load win32 DLLs
         shell: cmd
         run: >-
