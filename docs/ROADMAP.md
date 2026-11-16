@@ -26,6 +26,7 @@ Metal 4 (`MTL4*`, 61 types in macOS 26) adds explicit command allocators, argume
  │ d3d11.dll d3d12.dll dxgi.dll  │  Wine unixlib     │  device, heaps, encoders,       │
  │  API front ends: COM objects, ├──────────────────►│  pipeline + shader caches,      │
  │  state tracking, validation   │  thunks (+WoW64)  │  CAMetalLayer presentation      │
+ │ bridge: directmetal.dll       │                   │ directmetal.so                  │
  └──────────────┬───────────────┘                   └────────────────┬────────────────┘
                 │ shader bytecode                                     │
         ┌───────▼────────────────────────────────────────┐            │
@@ -36,7 +37,7 @@ Metal 4 (`MTL4*`, 61 types in macOS 26) adds explicit command allocators, argume
 
 Layers, in dependency order (each depends only on layers above it):
 
-1. **Platform bridge** — PE↔unix call marshalling through Wine's unixlib interface, including WoW64 thunks for 32-bit applications, and access to the window's `NSView` via `winemac.drv`.
+1. **Platform bridge** — `directmetal.dll`, the only PE module that crosses into the unix side ([ADR 0008](adr/0008-wine-bridge-module.md)): PE↔unix call marshalling through Wine's unixlib interface, including WoW64 thunks for 32-bit applications, and access to the window's `NSView` via `winemac.drv`.
 2. **Metal backend** — API-neutral wrapper over Metal: device and feature detection, allocators, staging rings, command recording and submission thread, sync primitives, presentation.
 3. **Shared translation services** — format tables (`DXGI_FORMAT`, `D3DFORMAT` → `MTLPixelFormat` + capabilities), state-object hashing, pipeline cache, shader compiler.
 4. **API front ends** — D3D9, D3D10, D3D11, D3D12 and DXGI COM implementations. D3D10 is implemented on the D3D11 front end.
@@ -81,7 +82,7 @@ Each phase ends in a working, tested state. Phases 4–7 depend on 1–3; 5 depe
 - Coding standards, formatter config, contribution guide, issue templates.
 - API inventory tooling (done: `tools/api/`) extended to report, per method, implementation status and test coverage.
 
-**Exit:** `d3d11.dll` stub loads in Wine on macOS, logs a call that crosses into the unix side, and returns `E_NOTIMPL`; this is asserted by an API test running in CI.
+**Exit:** `d3d11.dll` stub loads in Wine on macOS, logs a call that crosses into the unix side through `directmetal.dll`, and returns `E_NOTIMPL`; this is asserted by an API test running in CI.
 
 ### Phase 1 — Core runtime and Metal backend
 

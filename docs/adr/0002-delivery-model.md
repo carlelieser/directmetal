@@ -8,7 +8,7 @@ Unmodified Windows games run on macOS only inside Wine-based runtimes (Wine, Cro
 
 ## Decision
 
-1. Phases 0–8 deliver Wine-integrated builds: PE DLLs (`d3d9.dll`, `d3d10core.dll`, `d3d10.dll`, `d3d11.dll`, `d3d12.dll`, `dxgi.dll`) that call a native unix-side library through Wine's unixlib interface.
+1. Phases 0–8 deliver Wine-integrated builds: PE DLLs (`d3d9.dll`, `d3d10core.dll`, `d3d10.dll`, `d3d11.dll`, `d3d12.dll`, `dxgi.dll`) that call a native unix-side library through Wine's unixlib interface, by way of one bridge module ([ADR 0008](0008-wine-bridge-module.md)).
 2. Phase 9 adds a native macOS library exposing the same COM interfaces with DirectX-compatible headers, built from the same Metal backend and front ends.
 3. The API front ends and Metal backend have no dependency on Wine. Only the platform bridge layer does.
 
