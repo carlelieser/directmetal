@@ -27,6 +27,7 @@ elif host_machine.system() == 'darwin'
     add_global_arguments(macos_min_version, language: ['cpp', 'objcpp'])
     add_global_link_arguments(macos_min_version, language: ['cpp', 'objcpp'])
     subdir('src/unix')
+    subdir('src/frontends/markers')
     subdir('tests/unit')
 else
     error('unsupported host system: ' + host_machine.system())
