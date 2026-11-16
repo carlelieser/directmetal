@@ -146,3 +146,31 @@ jobs:
         with:
           name: wine-api-meson-logs
           path: build/wine-api/meson-logs/
+
+  api-status:
+    needs: [build-unix, wine-api]
+    if: ${{ !cancelled() && !failure() }}
+    runs-on: macos-26
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.13"
+      - id: report
+        name: Report API implementation status
+        run: |
+          if [[ -f tools/api/report_status.py ]]; then
+            python -I tools/api/report_status.py
+            echo "is_generated=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::tools/api/report_status.py does not exist; no status report"
+          fi
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: steps.report.outputs.is_generated == 'true'
+        with:
+          name: api-status
+          path: out/api-status/
+          if-no-files-found: error
