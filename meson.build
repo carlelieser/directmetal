@@ -12,7 +12,9 @@ project(
     ],
 )
 
-if host_machine.system() == 'darwin'
+if host_machine.system() == 'windows'
+    subdir('src/pe')
+elif host_machine.system() == 'darwin'
     macos_min_version = '-mmacosx-version-min=14.0'
     add_project_arguments(macos_min_version, language: 'cpp')
     add_project_link_arguments(macos_min_version, language: 'cpp')
