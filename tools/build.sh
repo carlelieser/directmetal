@@ -50,12 +50,14 @@ require_wine() {
 }
 
 check_target() {
-  if [[ "$1" == wine-api ]]; then
-    check_target win64
-    check_target win32
-    [[ "$is_testing" == 0 ]] || require_wine
-    return
-  fi
+  case "$1" in
+    wine-api)
+      check_target win64
+      check_target win32
+      [[ "$is_testing" == 0 ]] || require_wine
+      return
+      ;;
+  esac
   set_setup_options "$1"
   case "$1" in
     win64) require_compiler x86_64-w64-mingw32-clang++ ;;
@@ -88,14 +90,16 @@ build_wine_api() {
 }
 
 build_target() {
-  if [[ "$1" == wine-api ]]; then
-    build_wine_api
-    return
-  fi
-  compile_target "$1"
-  if [[ "$is_testing" == 1 && "$1" != win* ]]; then
-    meson test -C "build/$1" --print-errorlogs || fail "test failed for $1"
-  fi
+  case "$1" in
+    wine-api) build_wine_api ;;
+    win*) compile_target "$1" ;;
+    *)
+      compile_target "$1"
+      if [[ "$is_testing" == 1 ]]; then
+        meson test -C "build/$1" --print-errorlogs || fail "test failed for $1"
+      fi
+      ;;
+  esac
 }
 
 main() {
