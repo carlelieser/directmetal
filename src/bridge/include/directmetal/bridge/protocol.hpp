@@ -25,6 +25,9 @@ inline constexpr Status status_entrypoint_not_found = static_cast<Status>(0xC000
 
 inline constexpr std::uint32_t max_name_length = 256;
 
+// Callers zero every reserved field; the unix side rejects anything else with
+// status_invalid_parameter so later protocol versions can assign them.
+
 struct alignas(8) QueryVersionParams {
     std::uint32_t version;
     std::uint32_t reserved;
@@ -37,8 +40,12 @@ struct alignas(8) LogCallParams {
 };
 
 static_assert(sizeof(QueryVersionParams) == 8);
+static_assert(offsetof(QueryVersionParams, version) == 0);
+static_assert(offsetof(QueryVersionParams, reserved) == 4);
 static_assert(sizeof(LogCallParams) == 16);
+static_assert(offsetof(LogCallParams, name) == 0);
 static_assert(offsetof(LogCallParams, name_length) == 8);
+static_assert(offsetof(LogCallParams, reserved) == 12);
 
 inline std::uint64_t to_address(const void* pointer) noexcept {
     return reinterpret_cast<std::uintptr_t>(pointer);

@@ -27,6 +27,12 @@ TEST_P(UnixCallTable, QueryVersionReportsProtocolVersion) {
     EXPECT_EQ(params.version, protocol_version);
 }
 
+TEST_P(UnixCallTable, QueryVersionRejectsNonZeroReserved) {
+    QueryVersionParams params{0, 1};
+    EXPECT_EQ(call(FunctionCode::query_version, &params), status_invalid_parameter);
+    EXPECT_EQ(call(FunctionCode::query_version, nullptr), status_invalid_parameter);
+}
+
 TEST_P(UnixCallTable, LogCallWritesNameToStderr) {
     constexpr std::string_view name = "D3D11CreateDevice";
     LogCallParams params{to_address(name.data()), static_cast<std::uint32_t>(name.size()), 0};
@@ -40,6 +46,15 @@ TEST_P(UnixCallTable, LogCallRejectsMissingName) {
     LogCallParams params{0, 4, 0};
     EXPECT_EQ(call(FunctionCode::log_call, &params), status_invalid_parameter);
     EXPECT_EQ(call(FunctionCode::log_call, nullptr), status_invalid_parameter);
+}
+
+TEST_P(UnixCallTable, LogCallRejectsNonZeroReserved) {
+    constexpr std::string_view name = "D3D11CreateDevice";
+    LogCallParams params{to_address(name.data()), static_cast<std::uint32_t>(name.size()), 1};
+    testing::internal::CaptureStderr();
+    const Status status = call(FunctionCode::log_call, &params);
+    EXPECT_EQ(testing::internal::GetCapturedStderr(), "");
+    EXPECT_EQ(status, status_invalid_parameter);
 }
 
 TEST_P(UnixCallTable, LogCallRejectsOverlongName) {

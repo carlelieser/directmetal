@@ -10,7 +10,7 @@ using namespace bridge;
 
 Status query_version(void* params) {
     auto* query = static_cast<QueryVersionParams*>(params);
-    if (query == nullptr) {
+    if (query == nullptr || query->reserved != 0) {
         return status_invalid_parameter;
     }
     query->version = protocol_version;
@@ -19,8 +19,11 @@ Status query_version(void* params) {
 
 Status log_call(void* params) {
     const auto* call = static_cast<const LogCallParams*>(params);
-    const bool has_name = call != nullptr && call->name != 0;
-    if (!has_name || call->name_length > max_name_length) {
+    if (call == nullptr) {
+        return status_invalid_parameter;
+    }
+    const bool has_valid_name = call->name != 0 && call->name_length <= max_name_length;
+    if (!has_valid_name || call->reserved != 0) {
         return status_invalid_parameter;
     }
     std::fprintf(stderr, "directmetal: call %.*s\n", static_cast<int>(call->name_length),
