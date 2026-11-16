@@ -66,7 +66,7 @@ Scanned files: `src/frontends/**` with suffix `.c`, `.cc`, `.cpp`, `.cxx`, `.h`,
 
 ### Recording
 
-The COM base provides the macros from Phase 1. Each expansion behaves as follows:
+[`src/frontends/markers`](../../src/frontends/markers) provides the macros. Each expansion behaves as follows:
 
 - Each call site owns a `static std::atomic<std::uint8_t>`, initially zero. Every call performs one `memory_order_relaxed` load of it; when it is nonzero, the marker does nothing further (`DM_IMPL` continues, stubs return).
 - When it is zero, the calling thread attempts `compare_exchange_strong` from 0 to 1. Only the thread that wins records the call and, for stubs, logs the warning. Recording therefore happens once per call site per process, from exactly one thread, with no lock on the call path.

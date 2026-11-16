@@ -154,6 +154,18 @@ jobs:
       - name: Build and run API tests under Wine
         if: steps.target.outputs.is_available == 'true'
         run: tools/build.sh --test wine-api
+      # The api suite's status gate already ran on these logs; this publishes its report with
+      # test coverage. The hosted api-status job stays independent of this self-hosted job.
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always() && steps.target.outputs.is_available == 'true'
+        with:
+          name: api-status-wine
+          path: |
+            build/win64/tests/api/call-logs/
+            build/win64/tests/api/api-status/
+            build/win32/tests/api/call-logs/
+            build/win32/tests/api/api-status/
+          if-no-files-found: warn
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure() && steps.target.outputs.is_available == 'true'
         with:
