@@ -80,6 +80,7 @@ class ReportStatusTest(FixtureTestCase):
             'HRESULT Device::CreateBuffer() { DM_IMPL("ID3D11Device::CreateBuffer"); }',
             'UINT Device::GetType() { DM_STUB_RETURN("ID3D11Device::GetType", 0); }',
             'HRESULT D3D11CreateDevice() { DM_STUB("D3D11CreateDevice"); }',
+            'void Device::CreateTexture2D() { DM_STUB_VOID("ID3D11Device::CreateTexture2D"); }',
         ]
         self.fixture.write("src/d3d11/device.cpp", "\n".join(source))
         self.run_ok()
@@ -88,7 +89,8 @@ class ReportStatusTest(FixtureTestCase):
         self.assertEqual(methods["ID3D11Device::CreateBuffer"]["location"], "d3d11/device.cpp:1")
         self.assertEqual(methods["ID3D11Device::GetType"]["state"], "stub")
         self.assertEqual(methods["D3D11CreateDevice"]["state"], "stub")
-        self.assertEqual(methods["ID3D11Device::CreateTexture2D"]["state"], "missing")
+        self.assertEqual(methods["ID3D11Device::CreateTexture2D"]["state"], "stub")
+        self.assertEqual(methods["ID3D11Device1::CreateDeferredContext1"]["state"], "missing")
 
     def test_ignores_markers_in_comments(self) -> None:
         source = '// DM_IMPL("ID3D11Device::CreateBuffer")\n/* DM_STUB("D3D11CreateDevice") */\n'

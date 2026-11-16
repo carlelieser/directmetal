@@ -7,12 +7,12 @@ from pathlib import Path
 from .catalog import Catalog
 from .errors import StatusError
 
-MARKER = re.compile(r'\bDM_(IMPL|STUB|STUB_RETURN)\s*\(\s*"([^"]*)"')
+MARKER = re.compile(r'\bDM_(IMPL|STUB|STUB_RETURN|STUB_VOID)\s*\(\s*"([^"]*)"')
 COMMENT = re.compile(r"/\*.*?\*/|//[^\n]*", re.DOTALL)
 SOURCE_SUFFIXES = {".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".inl", ".mm"}
 IMPLEMENTED = "implemented"
 STUB = "stub"
-KINDS = {"IMPL": IMPLEMENTED, "STUB": STUB, "STUB_RETURN": STUB}
+KINDS = {"IMPL": IMPLEMENTED, "STUB": STUB, "STUB_RETURN": STUB, "STUB_VOID": STUB}
 
 
 @dataclass(frozen=True)
