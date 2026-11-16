@@ -1,0 +1,60 @@
+name: Conformance failure
+description: A Wine or vkd3d-proton conformance test fails under DirectMetal.
+labels: ["conformance"]
+body:
+  - type: dropdown
+    id: suite
+    attributes:
+      label: Suite
+      options:
+        - Wine dlls/d3d9/tests
+        - Wine dlls/d3d10core/tests
+        - Wine dlls/d3d10/tests
+        - Wine dlls/d3d11/tests
+        - Wine dlls/dxgi/tests
+        - vkd3d-proton D3D12 tests
+    validations:
+      required: true
+  - type: input
+    id: suite-version
+    attributes:
+      label: Suite version
+      description: Upstream commit or tag the tests were built from.
+    validations:
+      required: true
+  - type: input
+    id: test
+    attributes:
+      label: Test name
+      description: Test function, and source line of the failing check if known.
+      placeholder: "test_texture (d3d11.c:1234)"
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected
+      description: Result the test expects, as on Windows.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual
+      description: Result under DirectMetal, with the failing test output.
+      render: text
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: DirectMetal commit
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: macOS version, Mac model and Wine version.
+    validations:
+      required: true
