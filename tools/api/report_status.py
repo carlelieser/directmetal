@@ -13,9 +13,11 @@ from status.errors import StatusError  # noqa: E402
 from status.markers import scan_sources  # noqa: E402
 from status.render import summary_markdown, to_json, to_markdown  # noqa: E402
 from status.report import GroupStatus, build_report  # noqa: E402
+from status.requirements import failures, parse_requirement  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 CALL_LOG_ENV = "DIRECTMETAL_CALL_LOG_DIR"
+EXIT_REQUIREMENT_UNMET = 1
 EXIT_INVALID_INPUT = 2
 
 
@@ -29,6 +31,13 @@ def parse_arguments(argv: list[str] | None) -> argparse.Namespace:
         type=Path,
         action="append",
         help=f"directory of test call logs; repeatable (default: ${CALL_LOG_ENV} if set)",
+    )
+    parser.add_argument(
+        "--require",
+        action="append",
+        default=[],
+        metavar="GROUP:METRIC>=N[%]",
+        help="exit 1 unless the threshold holds; also accepts <=; repeatable",
     )
     return parser.parse_args(argv)
 
@@ -49,11 +58,16 @@ def write_report(statuses: list[GroupStatus], output: Path) -> None:
 
 
 def run(arguments: argparse.Namespace) -> int:
+    requirements = [parse_requirement(text) for text in arguments.require]
     catalog = load_catalog(arguments.inventory)
     markers = scan_sources(arguments.sources, catalog)
     calls = read_call_logs(call_log_dirs(arguments), catalog)
-    write_report(build_report(catalog, markers, calls), arguments.output)
-    return 0
+    statuses = build_report(catalog, markers, calls)
+    write_report(statuses, arguments.output)
+    unmet = failures(requirements, statuses)
+    for message in unmet:
+        print(message, file=sys.stderr)
+    return EXIT_REQUIREMENT_UNMET if unmet else 0
 
 
 def main(argv: list[str] | None = None) -> int:
