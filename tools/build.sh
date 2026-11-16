@@ -11,6 +11,11 @@ default_targets=(win64 win32 unix)
 is_testing=0
 setup_options=()
 
+fail() {
+  echo "build.sh: $*" >&2
+  exit 1
+}
+
 # Sanitizers build arm64: ASan aborts during process start-up under Rosetta 2.
 set_setup_options() {
   case "$1" in
@@ -22,19 +27,34 @@ set_setup_options() {
       setup_options=(--native-file=toolchains/macos-arm64.ini
         "-Db_sanitize=${DIRECTMETAL_SANITIZERS:-address,undefined}" -Db_lundef=false)
       ;;
-    *) echo "unknown target: $1" >&2; return 1 ;;
+    *) fail "unknown target: $1" ;;
+  esac
+}
+
+require_compiler() {
+  command -v "$1" > /dev/null \
+    || fail "$1 not found on PATH; set DIRECTMETAL_LLVM_MINGW to an LLVM-MinGW install"
+}
+
+check_target() {
+  set_setup_options "$1"
+  case "$1" in
+    win64) require_compiler x86_64-w64-mingw32-clang++ ;;
+    win32) require_compiler i686-w64-mingw32-clang++ ;;
   esac
 }
 
 build_target() {
   local target="$1" build_dir="build/$1"
   set_setup_options "$target"
-  if [[ ! -f "$build_dir/build.ninja" ]]; then
-    meson setup "$build_dir" "${setup_options[@]}"
+  if [[ -f "$build_dir/build.ninja" ]]; then
+    meson setup --reconfigure "$build_dir" "${setup_options[@]}" || fail "setup failed for $target"
+  else
+    meson setup "$build_dir" "${setup_options[@]}" || fail "setup failed for $target"
   fi
-  meson compile -C "$build_dir"
+  meson compile -C "$build_dir" || fail "compile failed for $target"
   if [[ "$is_testing" == 1 && "$target" != win* ]]; then
-    meson test -C "$build_dir" --print-errorlogs
+    meson test -C "$build_dir" --print-errorlogs || fail "test failed for $target"
   fi
 }
 
@@ -51,6 +71,9 @@ main() {
     PATH="$DIRECTMETAL_LLVM_MINGW/bin:$PATH"
   fi
   cd "$repo_root"
+  for target in "${targets[@]}"; do
+    check_target "$target"
+  done
   for target in "${targets[@]}"; do
     build_target "$target"
   done
