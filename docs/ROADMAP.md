@@ -15,7 +15,7 @@ Counts come from the generated [API inventories](api/SUMMARY.md). Methods are th
 | DXGI 1.0–1.6 | 46 | 189 | 32 | 38 | 5 |
 | Metal (macOS 26 SDK) | 294 | 2524 | 128 | — | 8 |
 
-Metal 4 (`MTL4*`, 61 types in macOS 26) adds explicit command allocators, argument tables, residency sets and an explicit compiler. Its model is close to Direct3D 12 and is the intended backend for it.
+Metal 4 (`MTL4*`, 61 types in macOS 26) adds explicit command allocators, argument tables, residency sets and an explicit compiler. Direct3D 12 is implemented on it.
 
 ## Architecture
 
@@ -41,18 +41,18 @@ Layers, in dependency order (each depends only on layers above it):
 3. **Shared translation services** — format tables (`DXGI_FORMAT`, `D3DFORMAT` → `MTLPixelFormat` + capabilities), state-object hashing, pipeline cache, shader compiler.
 4. **API front ends** — D3D9, D3D10, D3D11, D3D12 and DXGI COM implementations. D3D10 is implemented on the D3D11 front end.
 
-## Decisions to make in Phase 0
+## Decisions
 
-| Decision | Recommendation | Rationale |
-| --- | --- | --- |
-| Delivery model | Wine-integrated PE/unix split DLLs first; a native macOS SDK build later | Unmodified Windows games only run under Wine/CrossOver; a source-port SDK reuses the same backend. |
-| Language | C++20; Objective-C++ only inside the Metal backend, or [metal-cpp](https://developer.apple.com/metal/cpp/) | COM front ends map naturally to C++ vtables; keeps Objective-C out of the PE side. |
-| Build | Meson with a mingw-w64/clang cross file for PE, Apple clang for unix side | Proven for Wine-integrated graphics layers; one build describes both targets. |
-| Minimum OS | macOS 14 for D3D9–11; Metal 4 path (macOS 26) for D3D12, with a Metal 3 fallback evaluated in Phase 7 | Balances user reach against D3D12 feasibility. |
-| Hardware | Apple silicon first; Intel/AMD Macs best-effort | Apple GPU family 7+ supports BC formats, mesh shaders and ray tracing. |
-| Shader output | MSL source first, AIR (Metal LLVM IR) emission later | MSL is debuggable and testable; AIR removes runtime source compilation cost. |
-| DXIL front end | Evaluate a native DXIL reader against [dxil-spirv](https://github.com/HansKristian-Work/dxil-spirv) + [SPIRV-Cross](https://github.com/KhronosGroup/SPIRV-Cross); keep Apple's Metal Shader Converter as an optional, non-default backend | Open-source path stays self-contained; the converter is closed source. |
-| License | Undecided | Must be chosen before accepting outside contributions; constrains which prior art can be reused. |
+Recorded in [architecture decision records](adr/README.md).
+
+| Area | Decision |
+| --- | --- |
+| License | MIT. Permissive code (MIT, zlib, BSD, NCSA, Apache-2.0) may be reused; LGPL/GPL code (Wine, vkd3d, vkd3d-proton, DXMT) is reference only. [ADR 0001](adr/0001-license.md) |
+| Delivery | Wine-integrated PE/unix DLLs in Phases 0–8; native macOS SDK in Phase 9. [ADR 0002](adr/0002-delivery-model.md) |
+| Language | C++20; Objective-C++ only inside the Metal backend. [ADR 0003](adr/0003-language.md) |
+| Build | Meson; LLVM-MinGW cross file for PE, Apple clang for the unix side. [ADR 0004](adr/0004-build-system.md) |
+| Platform | Apple silicon only; macOS 14 for D3D9–11, macOS 26 (Metal 4) for D3D12; x86_64 unix side under Rosetta 2. [ADR 0005](adr/0005-platform-targets.md) |
+| Shaders | D3D9 bytecode, DXBC and DXIL front ends into DirectMetal IR; MSL backend, AIR from Phase 8. No SPIR-V, no Metal Shader Converter. [ADR 0006](adr/0006-shader-pipeline.md) |
 
 ## Phases
 
@@ -60,8 +60,7 @@ Each phase ends in a working, tested state. Phases 4–7 depend on 1–3; 5 depe
 
 ### Phase 0 — Foundations
 
-- Record the decisions above as ADRs under `docs/adr/`.
-- Build system producing empty PE DLLs and a unix library loadable by Wine; CI on macOS runners (build, lint, unit tests).
+- Meson build producing empty PE DLLs and a unix library loadable by Wine; CI on macOS runners (build, lint, unit tests).
 - Coding standards, formatter config, contribution guide, issue templates.
 - API inventory tooling (done: `tools/api/`) extended to emit per-interface coverage reports.
 
@@ -104,14 +103,14 @@ Each phase ends in a working, tested state. Phases 4–7 depend on 1–3; 5 depe
 - Emulation of features Metal lacks: geometry shaders and stream output (compute/mesh pipeline), hull/domain shaders (compute tessellation factors + post-tessellation vertex functions), line/point primitive quirks.
 - Feature levels 10_0–11_1, then D3D11.1–11.4 interfaces (`ID3D11Device1`–`ID3D11Device5`, `ID3D11DeviceContext1`–`4`).
 
-**Exit:** Wine's `dlls/d3d11/tests` pass at an agreed threshold; three representative D3D11 titles render correctly.
+**Exit:** Wine's `dlls/d3d11/tests` pass at 90% or better, with every failure tracked as an issue; three representative D3D11 titles render correctly.
 
 ### Phase 5 — Direct3D 10 / 10.1
 
 - `ID3D10Device`/`ID3D10Device1` mapped onto the D3D11 front end.
 - `d3d10.dll` effects framework (`ID3D10Effect*`) and shader reflection.
 
-**Exit:** Wine's `dlls/d3d10core/tests` and `dlls/d3d10/tests` pass at an agreed threshold.
+**Exit:** Wine's `dlls/d3d10core/tests` and `dlls/d3d10/tests` pass at 90% or better, with every failure tracked as an issue.
 
 ### Phase 6 — Direct3D 9
 
@@ -122,19 +121,19 @@ Each phase ends in a working, tested state. Phases 4–7 depend on 1–3; 5 depe
 - D3D9 conventions: half-pixel offset, clip planes, point sprites, `D3DFMT` FOURCC extensions used by games (`INTZ`, `DF24`, `ATI1/ATI2`, `NULL`).
 - 32-bit application support through WoW64.
 
-**Exit:** Wine's `dlls/d3d9/tests` pass at an agreed threshold; three representative D3D9 titles render correctly.
+**Exit:** Wine's `dlls/d3d9/tests` pass at 90% or better, with every failure tracked as an issue; three representative D3D9 titles render correctly.
 
 ### Phase 7 — Direct3D 12
 
-- Device, command queues (direct/compute/copy), allocators and lists on `MTL4CommandQueue`/`MTL4CommandAllocator`/`MTL4CommandBuffer`.
+- Device, command queues (direct/compute/copy), allocators and lists on `MTL4CommandQueue`/`MTL4CommandAllocator`/`MTL4CommandBuffer`; Metal 4 only (macOS 26).
 - Descriptor heaps and root signatures on argument buffers and `MTL4ArgumentTable`; root constants and root descriptors.
 - Heaps, placed and reserved resources on `MTLHeap` and sparse textures; residency via `MTLResidencySet`.
 - Resource barriers and enhanced barriers mapped to Metal 4 barriers; fences on `MTLSharedEvent`.
 - Pipeline state objects and pipeline state streams; `ExecuteIndirect` via indirect command buffers or compute-generated arguments; bundles.
-- DXBC SM5.1 and DXIL SM6.0–6.6 front ends (wave ops, 16-bit types, dynamic resources).
-- Advanced features as capability allows: mesh shaders (Metal mesh pipelines), DXR 1.0/1.1 (Metal ray tracing), VRS (approximation via rasterization rate maps or unsupported), sampler feedback and work graphs (reported unsupported).
+- DXBC SM5.1 and DXIL SM6.0–6.6 front ends into DirectMetal IR (wave ops, 16-bit types, dynamic resources).
+- Mesh shaders on Metal mesh pipelines; DXR 1.0/1.1 on Metal ray tracing. Variable-rate shading, sampler feedback and work graphs are reported unsupported through `CheckFeatureSupport`.
 
-**Exit:** vkd3d-proton's D3D12 test suite passes at an agreed threshold; three representative D3D12 titles render correctly at feature level 12_0.
+**Exit:** vkd3d-proton's D3D12 test suite passes at 90% or better, with every failure tracked as an issue; three representative D3D12 titles render correctly at feature level 12_0.
 
 ### Phase 8 — Performance and compatibility
 
@@ -145,7 +144,7 @@ Each phase ends in a working, tested state. Phases 4–7 depend on 1–3; 5 depe
 ### Phase 9 — Distribution
 
 - Release packaging consumable by Wine-based runtimes; versioning and changelog policy.
-- Native macOS SDK build for source ports, if adopted in Phase 0.
+- Native macOS SDK: arm64 library with DirectX-compatible headers, sharing the backend and front ends.
 - User and contributor documentation.
 
 ## Concept mapping
@@ -180,11 +179,12 @@ Each phase ends in a working, tested state. Phases 4–7 depend on 1–3; 5 depe
 
 ## Prior art
 
-Studied for design, not copied unless licensing permits:
+License determines reuse under [ADR 0001](adr/0001-license.md):
 
-- [DXVK](https://github.com/doitsujin/dxvk) — D3D8–11 on Vulkan.
-- [vkd3d-proton](https://github.com/HansKristian-Work/vkd3d-proton) — D3D12 on Vulkan.
-- [DXMT](https://github.com/3Shain/dxmt) — D3D10/11 on Metal via Wine.
-- [MoltenVK](https://github.com/KhronosGroup/MoltenVK) — Vulkan on Metal.
-- Wine's `wined3d` and `vkd3d` — reference behavior and conformance tests.
+- [DXVK](https://github.com/doitsujin/dxvk) (zlib) — D3D8–11 on Vulkan.
+- [vkd3d-proton](https://github.com/HansKristian-Work/vkd3d-proton) (LGPL-2.1) — D3D12 on Vulkan; test suite used in Phase 7.
+- [DXMT](https://github.com/3Shain/dxmt) (LGPL-2.1) — D3D10/11 on Metal via Wine.
+- [MoltenVK](https://github.com/KhronosGroup/MoltenVK) (Apache-2.0) — Vulkan on Metal.
+- [DirectXShaderCompiler](https://github.com/microsoft/DirectXShaderCompiler) (NCSA) — DXIL format and bitcode reader.
+- Wine, `wined3d` and `vkd3d` (LGPL-2.1) — reference behavior; test suites used in Phases 4–6.
 - Apple Game Porting Toolkit (D3DMetal) and Metal Shader Converter — closed source; behavioral reference only.
