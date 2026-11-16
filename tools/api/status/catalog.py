@@ -46,6 +46,12 @@ class Catalog:
     def groups(self) -> list[tuple[str, tuple[Entry, ...]]]:
         return [(group, tuple(entries)) for group, entries in self._entries.items()]
 
+    def interface_keys(self, name: str) -> list[str] | None:
+        """Returns the keys of the methods `name` declares, or None when it is no interface."""
+        if name not in self._bases:
+            return None
+        return [f"{name}{SEPARATOR}{method}" for method in self._members[name]]
+
     def unknown_reason(self, key: str) -> str | None:
         """Returns why `key` names no API entry, or None when it does."""
         if key in self._keys:

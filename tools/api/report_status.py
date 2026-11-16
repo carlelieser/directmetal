@@ -10,12 +10,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from status.call_logs import read_call_logs  # noqa: E402
 from status.catalog import load_catalog  # noqa: E402
 from status.errors import StatusError  # noqa: E402
+from status.exclusions import read_exclusions  # noqa: E402
 from status.markers import scan_sources  # noqa: E402
 from status.render import summary_markdown, to_json, to_markdown  # noqa: E402
-from status.report import GroupStatus, build_report  # noqa: E402
+from status.report import GroupStatus, apply_exclusions, build_report  # noqa: E402
 from status.requirements import failures, parse_requirement  # noqa: E402
 
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+TOOL_DIR = Path(__file__).resolve().parent
+REPO_ROOT = TOOL_DIR.parent.parent
 CALL_LOG_ENV = "DIRECTMETAL_CALL_LOG_DIR"
 EXIT_REQUIREMENT_UNMET = 1
 EXIT_INVALID_INPUT = 2
@@ -25,6 +27,7 @@ def parse_arguments(argv: list[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--inventory", type=Path, default=REPO_ROOT / "docs" / "api")
     parser.add_argument("--sources", type=Path, default=REPO_ROOT / "src" / "frontends")
+    parser.add_argument("--out-of-scope", type=Path, default=TOOL_DIR / "out_of_scope.tsv")
     parser.add_argument("--output", type=Path, default=REPO_ROOT / "out" / "api-status")
     parser.add_argument(
         "--call-log-dir",
@@ -66,7 +69,8 @@ def run(arguments: argparse.Namespace) -> int:
     catalog = load_catalog(arguments.inventory)
     markers = scan_sources(arguments.sources, catalog)
     calls = read_call_logs(call_log_dirs(arguments), catalog)
-    statuses = build_report(catalog, markers, calls)
+    exclusions = read_exclusions(arguments.out_of_scope, catalog)
+    statuses = apply_exclusions(build_report(catalog, markers, calls), exclusions)
     write_report(statuses, arguments.output)
     unmet = failures(requirements, statuses)
     for message in unmet:

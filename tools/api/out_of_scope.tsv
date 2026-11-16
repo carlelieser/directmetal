@@ -1,0 +1,3 @@
+# DirectX API entries DirectMetal does not implement, reviewed in pull requests.
+# One row per entry: KEY or INTERFACE, a tab, and the reason. An interface excludes every method it declares.
+# Excluded entries may carry DM_STUB markers; an excluded entry with DM_IMPL is an error.

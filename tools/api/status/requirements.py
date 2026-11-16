@@ -45,7 +45,8 @@ def measured(requirement: Requirement, status: GroupStatus) -> float:
     count = status.count(requirement.metric)
     if not requirement.is_percentage:
         return count
-    return 100 * count / len(status.methods) if status.methods else 0.0
+    in_scope = len(status.in_scope())
+    return 100 * count / in_scope if in_scope else 0.0
 
 
 def failures(requirements: list[Requirement], statuses: list[GroupStatus]) -> list[str]:

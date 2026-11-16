@@ -38,6 +38,8 @@ class StatusFixture:
         self.output = root / "out"
         self.sources.mkdir()
         self.logs.mkdir()
+        self.exclusions = root / "out_of_scope.tsv"
+        self.exclusions.write_text("", encoding="utf-8")
         for group in GROUPS:
             document = INVENTORY.get(group, {"functions": {}, "interfaces": {}})
             self.write(f"inventory/{group}.json", json.dumps(document))
@@ -49,7 +51,8 @@ class StatusFixture:
 
     def run(self, *extra: str, environment: dict | None = None) -> subprocess.CompletedProcess:
         command = [sys.executable, "-I", str(SCRIPT), "--inventory", str(self.root / "inventory")]
-        command += ["--sources", str(self.sources), "--output", str(self.output), *extra]
+        command += ["--sources", str(self.sources), "--output", str(self.output)]
+        command += ["--out-of-scope", str(self.exclusions), *extra]
         env = {name: value for name, value in os.environ.items() if name != CALL_LOG_ENV}
         env.update(environment or {})
         return subprocess.run(command, capture_output=True, text=True, env=env, check=False)

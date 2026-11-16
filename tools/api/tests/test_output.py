@@ -37,7 +37,7 @@ class ReportOutputTest(FixtureTestCase):
         self.assertIn("| Tested | 1 | 20.0% |", report)
         self.assertIn("| `CreateBuffer` | implemented | yes | `device.cpp:1` |", report)
         summary = (self.fixture.output / "SUMMARY.md").read_text(encoding="utf-8")
-        self.assertIn("| [d3d11](d3d11.md) | 1 | 0 | 4 | 1 | 5 |", summary)
+        self.assertIn("| [d3d11](d3d11.md) | 1 | 0 | 4 | 1 | 0 | 5 |", summary)
 
 
 if __name__ == "__main__":
