@@ -12,9 +12,12 @@ Requires Meson, Ninja, Xcode and [LLVM-MinGW](https://github.com/mstorsjo/llvm-m
 tools/build.sh                      # win64 and win32 PE DLLs, x86_64 unix library
 tools/build.sh --test unix          # build and run unit tests
 tools/build.sh --test sanitize      # arm64 build and tests with ASan and UBSan
+tools/build.sh --test wine-api      # win64, win32 and unix builds; API tests under Wine
 ```
 
-Targets are `win64`, `win32`, `unix` (x86_64, as Wine runs under Rosetta 2), `unix-arm64` and `sanitize`. Each builds into `build/<target>`. `DIRECTMETAL_SANITIZERS` overrides the sanitizer list, e.g. `DIRECTMETAL_SANITIZERS=undefined`.
+Targets are `win64`, `win32`, `unix` (x86_64, as Wine runs under Rosetta 2), `unix-arm64`, `sanitize` and `wine-api`. Each builds into `build/<target>`; `wine-api` builds `build/unix`, `build/win64` and `build/win32`.
+
+API tests need Wine: `wine` on `PATH`, or `DIRECTMETAL_WINE` set to a Wine install root containing `bin/wine`. Each test creates a throwaway `WINEPREFIX` in its build directory, places `directmetal.dll` and `directmetal.so` on `WINEDLLPATH` (`x86_64-windows` or `i386-windows`, plus `x86_64-unix`) and loads `d3d11.dll` from the test program's directory with `WINEDLLOVERRIDES=d3d11=n;directmetal=b`. The win32 run exercises WoW64. Override the unix library location with `-Dunix_library=<path>`. `DIRECTMETAL_SANITIZERS` overrides the sanitizer list, e.g. `DIRECTMETAL_SANITIZERS=undefined`.
 
 ASan is known to be broken on macOS 27: x86_64 processes abort at start-up and arm64 processes hang during shadow-memory initialization, so tests time out. CI runs the `sanitize` target on hosted runners; locally on macOS 27 use `DIRECTMETAL_SANITIZERS=undefined`.
 
