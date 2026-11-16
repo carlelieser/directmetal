@@ -1,3 +1,5 @@
+"""Renders the status report as Markdown and JSON."""
+
 import json
 
 from .report import METRICS, GroupStatus, MethodStatus

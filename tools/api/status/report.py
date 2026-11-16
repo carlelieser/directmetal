@@ -56,5 +56,5 @@ def build_report(catalog: Catalog, markers: list[Marker], calls: set[str]) -> li
         GroupStatus(
             group, [method_status(entry, chosen.get(entry.key), calls) for entry in entries]
         )
-        for group, entries in catalog.entries.items()
+        for group, entries in catalog.groups()
     ]
