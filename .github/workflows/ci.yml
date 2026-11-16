@@ -137,7 +137,7 @@ jobs:
       - id: target
         name: Check for wine-api target
         run: |
-          if grep -q wine-api tools/build.sh; then
+          if grep -qE '^[[:space:]]*wine-api\)' tools/build.sh; then
             echo "is_available=true" >> "$GITHUB_OUTPUT"
           else
             echo "is_available=false" >> "$GITHUB_OUTPUT"
