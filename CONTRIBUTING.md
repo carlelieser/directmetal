@@ -15,6 +15,8 @@ tools/build.sh --test unix
 tools/build.sh --test sanitize
 ```
 
+ASan is broken on macOS 27, so local runs there may use `DIRECTMETAL_SANITIZERS=undefined tools/build.sh --test sanitize`. CI runs the full ASan and UBSan build on hosted runners.
+
 Format C++ and Objective-C++ with `clang-format -i`, and Python with `ruff format` and `ruff check`.
 
 GPU tests run with Metal validation enabled:
