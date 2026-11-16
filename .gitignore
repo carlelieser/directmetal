@@ -5,3 +5,5 @@
 /.claude/worktrees/
 /third_party/api-headers/
 __pycache__/
+/subprojects/*
+!/subprojects/*.wrap
