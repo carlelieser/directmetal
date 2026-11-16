@@ -4,6 +4,7 @@ from pathlib import Path
 from .model import Enumeration, Interface, Inventory, Member
 from .source_text import block_after, enum_members, strip_comments, unique
 
+DIRECTX_GROUPS = ["d3d9", "d3d10", "d3d11", "d3d12", "dxgi", "common"]
 CPP_QUOTE = re.compile(r'cpp_quote\("((?:[^"\\]|\\.)*)"\)')
 DECLARE_INTERFACE = re.compile(
     r"DECLARE_INTERFACE(?:_IID)?_\(\s*(\w+)\s*,\s*(\w+)\s*(?:,\s*\"[^\"]*\")?\s*\)"

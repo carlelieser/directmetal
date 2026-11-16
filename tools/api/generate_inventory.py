@@ -6,7 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from inventory.directx_parser import parse_directx_group  # noqa: E402
+from inventory.directx_parser import DIRECTX_GROUPS, parse_directx_group  # noqa: E402
 from inventory.metal_parser import parse_metal_group  # noqa: E402
 from inventory.model import Inventory  # noqa: E402
 from inventory.render import GENERATED_NOTE, summary_lines, to_json, to_markdown  # noqa: E402
@@ -15,7 +15,6 @@ TOOL_DIR = Path(__file__).resolve().parent
 REPO_ROOT = TOOL_DIR.parent.parent
 HEADERS_DIR = REPO_ROOT / "third_party" / "api-headers"
 OUTPUT_DIR = REPO_ROOT / "docs" / "api"
-DIRECTX_GROUPS = ["d3d9", "d3d10", "d3d11", "d3d12", "dxgi", "common"]
 
 
 def directx_provenance(group: str) -> str:
