@@ -7,6 +7,7 @@ These rules apply to every change. Architecture decisions live in the [ADRs](adr
 - C++20 everywhere ([ADR 0003](adr/0003-language.md)).
 - Objective-C++ (`.mm`, ARC) only under `src/backend`, behind a C++ interface. Backend headers contain no Objective-C types and no Apple framework includes.
 - PE-side code (`src/pe`) is plain C++ with no Apple framework dependencies. API front ends and the Metal backend have no Wine dependency; only the platform bridge does ([ADR 0002](adr/0002-delivery-model.md)).
+- `directmetal.dll` and `directmetal.so` are the only PE↔unix boundary. API DLLs never call the unix side directly ([ADR 0008](adr/0008-wine-bridge-module.md)).
 - Python 3.12 for tooling under `tools/`.
 
 ## License
@@ -42,7 +43,7 @@ DirectMetal is MIT ([ADR 0001](adr/0001-license.md)).
 ## Error handling
 
 - `HRESULT` is the typed failure for COM methods and for internal functions that feed them. Return the code the Windows runtime returns for the same input; ADR 0007's Windows reference decides when documentation is silent.
-- No exception crosses a COM method or the PE↔unix bridge. COM methods and bridge entry points are `noexcept`; internal code that can throw (allocation, standard library) is caught at that boundary and converted (`std::bad_alloc` → `E_OUTOFMEMORY`).
+- No exception crosses a COM method or the `directmetal.dll`↔`directmetal.so` boundary. COM methods and bridge entry points are `noexcept`; internal code that can throw (allocation, standard library) is caught at that boundary and converted (`std::bad_alloc` → `E_OUTOFMEMORY`).
 - Unimplemented methods return `E_NOTIMPL` and log the interface and method once. They never return `S_OK`.
 - No empty or log-only `catch`, and no `catch` that returns a default hiding the failure. Catch only what this layer can convert or handle.
 - Log and error messages name the operation and its identifying input (interface, method, format, size).
