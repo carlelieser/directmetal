@@ -64,4 +64,4 @@ body:
       description: DirectMetal and Wine output from the failing run. Attach large logs as files.
       render: text
     validations:
-      required: true
+      required: false
