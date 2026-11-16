@@ -35,6 +35,13 @@ def blank_unless_literal(match: re.Match) -> str:
     return re.sub(r"[^\n]", " ", match.group(0))
 
 
+def is_first_statement(text: str, start: int) -> bool:
+    index = start - 1
+    while index >= 0 and text[index].isspace():
+        index -= 1
+    return index >= 0 and text[index] == "{"
+
+
 def read_source(path: Path) -> str:
     try:
         return path.read_text(encoding="utf-8")
@@ -47,6 +54,11 @@ def file_markers(path: Path, relative: str, catalog: Catalog) -> list[Marker]:
     markers = []
     for match in MARKER.finditer(text):
         line = text.count("\n", 0, match.start()) + 1
+        if not is_first_statement(text, match.start()):
+            raise StatusError(
+                f"scan front-end source {path}:{line}: marker must be the first statement of a "
+                "function body, preceded only by whitespace after '{'"
+            )
         key = match.group(2)
         reason = catalog.unknown_reason(key)
         if reason is not None:

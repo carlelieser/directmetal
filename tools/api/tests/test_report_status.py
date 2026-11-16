@@ -116,11 +116,35 @@ class ReportStatusTest(FixtureTestCase):
         self.assertEqual(methods["ID3D11Device::CreateBuffer"]["state"], "implemented")
         self.assertEqual(methods["D3D11CreateDevice"]["location"], "device.cpp:7")
 
+    def test_rejects_marker_that_is_not_first_statement_of_a_body(self) -> None:
+        cases = {
+            "helper.cpp": 'void f() { log(); DM_IMPL("ID3D11Device::CreateBuffer"); }',
+            "raw.cpp": 'const char* text = R"(DM_IMPL("ID3D11Device::CreateBuffer"))";',
+            "file_scope.cpp": '\nDM_STUB("D3D11CreateDevice");',
+        }
+        for name, source in cases.items():
+            with self.subTest(name=name):
+                self.fixture.write(f"src/{name}", source)
+                stderr = self.run_failing()
+                line = 2 if name == "file_scope.cpp" else 1
+                self.assertIn(f"{name}:{line}", stderr)
+                self.assertIn("first statement", stderr)
+                (self.fixture.sources / name).unlink()
+
+    def test_accepts_marker_after_brace_and_whitespace(self) -> None:
+        self.fixture.write(
+            "src/device.cpp", 'HRESULT f()\n{\n\t  DM_IMPL("ID3D11Device::CreateBuffer");\n}'
+        )
+        self.run_ok()
+        self.assertEqual(
+            self.fixture.methods()["ID3D11Device::CreateBuffer"]["location"], "device.cpp:3"
+        )
+
     def test_stub_marker_outranks_implementation_in_either_order(self) -> None:
-        self.fixture.write("src/a.cpp", 'DM_IMPL("ID3D11Device::CreateBuffer");')
-        self.fixture.write("src/b.cpp", 'DM_STUB("ID3D11Device::CreateBuffer");')
-        self.fixture.write("src/c.cpp", 'DM_STUB_RETURN("ID3D11Device::GetType", 0);')
-        self.fixture.write("src/d.cpp", 'DM_IMPL("ID3D11Device::GetType");')
+        self.fixture.write("src/a.cpp", 'void f() { DM_IMPL("ID3D11Device::CreateBuffer"); }')
+        self.fixture.write("src/b.cpp", 'void f() { DM_STUB("ID3D11Device::CreateBuffer"); }')
+        self.fixture.write("src/c.cpp", 'void f() { DM_STUB_RETURN("ID3D11Device::GetType", 0); }')
+        self.fixture.write("src/d.cpp", 'void f() { DM_IMPL("ID3D11Device::GetType"); }')
         self.run_ok()
         methods = self.fixture.methods()
         create_buffer = methods["ID3D11Device::CreateBuffer"]
@@ -156,7 +180,9 @@ class ReportStatusTest(FixtureTestCase):
         self.assertIn("'ID3D11Device' declares no method 'Bogus'", stderr)
 
     def test_rejects_inherited_key_in_source_naming_declaring_interface(self) -> None:
-        self.fixture.write("src/device.cpp", '\n\nDM_IMPL("ID3D11Device1::CreateBuffer");')
+        self.fixture.write(
+            "src/device.cpp", '\n\nvoid f() { DM_IMPL("ID3D11Device1::CreateBuffer"); }'
+        )
         stderr = self.run_failing()
         self.assertIn("device.cpp:3", stderr)
         self.assertIn("use 'ID3D11Device::CreateBuffer'", stderr)
@@ -202,7 +228,7 @@ class ReportStatusTest(FixtureTestCase):
         self.assertIn("blocked", stderr)
 
     def test_markdown_report_lists_counts_and_methods(self) -> None:
-        self.fixture.write("src/device.cpp", 'DM_IMPL("ID3D11Device::CreateBuffer");')
+        self.fixture.write("src/device.cpp", 'void f() { DM_IMPL("ID3D11Device::CreateBuffer"); }')
         self.fixture.write("logs/run.log", "ID3D11Device::CreateBuffer\n")
         self.run_ok("--call-log-dir", str(self.fixture.logs))
         report = (self.fixture.output / "d3d11.md").read_text(encoding="utf-8")
@@ -217,7 +243,7 @@ class ReportStatusTest(FixtureTestCase):
 class RequirementTest(FixtureTestCase):
     def setUp(self) -> None:
         super().setUp()
-        self.fixture.write("src/device.cpp", 'DM_IMPL("ID3D11Device::CreateBuffer");')
+        self.fixture.write("src/device.cpp", 'void f() { DM_IMPL("ID3D11Device::CreateBuffer"); }')
         self.fixture.write("logs/run.log", "ID3D11Device::CreateBuffer\nD3D11CreateDevice\n")
 
     def check(self, *requirements: str) -> subprocess.CompletedProcess:
