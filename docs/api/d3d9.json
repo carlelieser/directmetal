@@ -1,0 +1,2301 @@
+{
+ "enums": {
+  "D3DBACKBUFFER_TYPE": {
+   "members": [
+    "D3DBACKBUFFER_TYPE_MONO",
+    "D3DBACKBUFFER_TYPE_LEFT",
+    "D3DBACKBUFFER_TYPE_RIGHT",
+    "D3DBACKBUFFER_TYPE_FORCE_DWORD"
+   ],
+   "name": "D3DBACKBUFFER_TYPE",
+   "source": "d3d9types.h"
+  },
+  "D3DBASISTYPE": {
+   "members": [
+    "D3DBASIS_BEZIER",
+    "D3DBASIS_BSPLINE",
+    "D3DBASIS_INTERPOLATE",
+    "D3DBASIS_FORCE_DWORD"
+   ],
+   "name": "D3DBASISTYPE",
+   "source": "d3d9types.h"
+  },
+  "D3DBLEND": {
+   "members": [
+    "D3DBLEND_ZERO",
+    "D3DBLEND_ONE",
+    "D3DBLEND_SRCCOLOR",
+    "D3DBLEND_INVSRCCOLOR",
+    "D3DBLEND_SRCALPHA",
+    "D3DBLEND_INVSRCALPHA",
+    "D3DBLEND_DESTALPHA",
+    "D3DBLEND_INVDESTALPHA",
+    "D3DBLEND_DESTCOLOR",
+    "D3DBLEND_INVDESTCOLOR",
+    "D3DBLEND_SRCALPHASAT",
+    "D3DBLEND_BOTHSRCALPHA",
+    "D3DBLEND_BOTHINVSRCALPHA",
+    "D3DBLEND_BLENDFACTOR",
+    "D3DBLEND_INVBLENDFACTOR",
+    "D3DBLEND_SRCCOLOR2",
+    "D3DBLEND_INVSRCCOLOR2",
+    "D3DBLEND_FORCE_DWORD"
+   ],
+   "name": "D3DBLEND",
+   "source": "d3d9types.h"
+  },
+  "D3DBLENDOP": {
+   "members": [
+    "D3DBLENDOP_ADD",
+    "D3DBLENDOP_SUBTRACT",
+    "D3DBLENDOP_REVSUBTRACT",
+    "D3DBLENDOP_MIN",
+    "D3DBLENDOP_MAX",
+    "D3DBLENDOP_FORCE_DWORD"
+   ],
+   "name": "D3DBLENDOP",
+   "source": "d3d9types.h"
+  },
+  "D3DCMPFUNC": {
+   "members": [
+    "D3DCMP_NEVER",
+    "D3DCMP_LESS",
+    "D3DCMP_EQUAL",
+    "D3DCMP_LESSEQUAL",
+    "D3DCMP_GREATER",
+    "D3DCMP_NOTEQUAL",
+    "D3DCMP_GREATEREQUAL",
+    "D3DCMP_ALWAYS",
+    "D3DCMP_FORCE_DWORD"
+   ],
+   "name": "D3DCMPFUNC",
+   "source": "d3d9types.h"
+  },
+  "D3DCOMPOSERECTSOP": {
+   "members": [
+    "D3DCOMPOSERECTS_COPY",
+    "D3DCOMPOSERECTS_OR",
+    "D3DCOMPOSERECTS_AND",
+    "D3DCOMPOSERECTS_NEG",
+    "D3DCOMPOSERECTS_FORCE_DWORD"
+   ],
+   "name": "D3DCOMPOSERECTSOP",
+   "source": "d3d9types.h"
+  },
+  "D3DCUBEMAP_FACES": {
+   "members": [
+    "D3DCUBEMAP_FACE_POSITIVE_X",
+    "D3DCUBEMAP_FACE_NEGATIVE_X",
+    "D3DCUBEMAP_FACE_POSITIVE_Y",
+    "D3DCUBEMAP_FACE_NEGATIVE_Y",
+    "D3DCUBEMAP_FACE_POSITIVE_Z",
+    "D3DCUBEMAP_FACE_NEGATIVE_Z",
+    "D3DCUBEMAP_FACE_FORCE_DWORD"
+   ],
+   "name": "D3DCUBEMAP_FACES",
+   "source": "d3d9types.h"
+  },
+  "D3DCULL": {
+   "members": [
+    "D3DCULL_NONE",
+    "D3DCULL_CW",
+    "D3DCULL_CCW",
+    "D3DCULL_FORCE_DWORD"
+   ],
+   "name": "D3DCULL",
+   "source": "d3d9types.h"
+  },
+  "D3DDEBUGMONITORTOKENS": {
+   "members": [
+    "D3DDMT_ENABLE",
+    "D3DDMT_DISABLE",
+    "D3DDMT_FORCE_DWORD"
+   ],
+   "name": "D3DDEBUGMONITORTOKENS",
+   "source": "d3d9types.h"
+  },
+  "D3DDECLMETHOD": {
+   "members": [
+    "D3DDECLMETHOD_DEFAULT",
+    "D3DDECLMETHOD_PARTIALU",
+    "D3DDECLMETHOD_PARTIALV",
+    "D3DDECLMETHOD_CROSSUV",
+    "D3DDECLMETHOD_UV",
+    "D3DDECLMETHOD_LOOKUP",
+    "D3DDECLMETHOD_LOOKUPPRESAMPLED"
+   ],
+   "name": "D3DDECLMETHOD",
+   "source": "d3d9types.h"
+  },
+  "D3DDECLTYPE": {
+   "members": [
+    "D3DDECLTYPE_FLOAT1",
+    "D3DDECLTYPE_FLOAT2",
+    "D3DDECLTYPE_FLOAT3",
+    "D3DDECLTYPE_FLOAT4",
+    "D3DDECLTYPE_D3DCOLOR",
+    "D3DDECLTYPE_UBYTE4",
+    "D3DDECLTYPE_SHORT2",
+    "D3DDECLTYPE_SHORT4",
+    "D3DDECLTYPE_UBYTE4N",
+    "D3DDECLTYPE_SHORT2N",
+    "D3DDECLTYPE_SHORT4N",
+    "D3DDECLTYPE_USHORT2N",
+    "D3DDECLTYPE_USHORT4N",
+    "D3DDECLTYPE_UDEC3",
+    "D3DDECLTYPE_DEC3N",
+    "D3DDECLTYPE_FLOAT16_2",
+    "D3DDECLTYPE_FLOAT16_4",
+    "D3DDECLTYPE_UNUSED"
+   ],
+   "name": "D3DDECLTYPE",
+   "source": "d3d9types.h"
+  },
+  "D3DDECLUSAGE": {
+   "members": [
+    "D3DDECLUSAGE_POSITION",
+    "D3DDECLUSAGE_BLENDWEIGHT",
+    "D3DDECLUSAGE_BLENDINDICES",
+    "D3DDECLUSAGE_NORMAL",
+    "D3DDECLUSAGE_PSIZE",
+    "D3DDECLUSAGE_TEXCOORD",
+    "D3DDECLUSAGE_TANGENT",
+    "D3DDECLUSAGE_BINORMAL",
+    "D3DDECLUSAGE_TESSFACTOR",
+    "D3DDECLUSAGE_POSITIONT",
+    "D3DDECLUSAGE_COLOR",
+    "D3DDECLUSAGE_FOG",
+    "D3DDECLUSAGE_DEPTH",
+    "D3DDECLUSAGE_SAMPLE"
+   ],
+   "name": "D3DDECLUSAGE",
+   "source": "d3d9types.h"
+  },
+  "D3DDEGREETYPE": {
+   "members": [
+    "D3DDEGREE_LINEAR",
+    "D3DDEGREE_QUADRATIC",
+    "D3DDEGREE_CUBIC",
+    "D3DDEGREE_QUINTIC",
+    "D3DDEGREE_FORCE_DWORD"
+   ],
+   "name": "D3DDEGREETYPE",
+   "source": "d3d9types.h"
+  },
+  "D3DDEVTYPE": {
+   "members": [
+    "D3DDEVTYPE_HAL",
+    "D3DDEVTYPE_REF",
+    "D3DDEVTYPE_SW",
+    "D3DDEVTYPE_NULLREF",
+    "D3DDEVTYPE_FORCE_DWORD"
+   ],
+   "name": "D3DDEVTYPE",
+   "source": "d3d9types.h"
+  },
+  "D3DDISPLAYROTATION": {
+   "members": [
+    "D3DDISPLAYROTATION_IDENTITY",
+    "D3DDISPLAYROTATION_90",
+    "D3DDISPLAYROTATION_180",
+    "D3DDISPLAYROTATION_270"
+   ],
+   "name": "D3DDISPLAYROTATION",
+   "source": "d3d9types.h"
+  },
+  "D3DFILLMODE": {
+   "members": [
+    "D3DFILL_POINT",
+    "D3DFILL_WIREFRAME",
+    "D3DFILL_SOLID",
+    "D3DFILL_FORCE_DWORD"
+   ],
+   "name": "D3DFILLMODE",
+   "source": "d3d9types.h"
+  },
+  "D3DFOGMODE": {
+   "members": [
+    "D3DFOG_NONE",
+    "D3DFOG_EXP",
+    "D3DFOG_EXP2",
+    "D3DFOG_LINEAR",
+    "D3DFOG_FORCE_DWORD"
+   ],
+   "name": "D3DFOGMODE",
+   "source": "d3d9types.h"
+  },
+  "D3DFORMAT": {
+   "members": [
+    "D3DFMT_UNKNOWN",
+    "D3DFMT_R8G8B8",
+    "D3DFMT_A8R8G8B8",
+    "D3DFMT_X8R8G8B8",
+    "D3DFMT_R5G6B5",
+    "D3DFMT_X1R5G5B5",
+    "D3DFMT_A1R5G5B5",
+    "D3DFMT_A4R4G4B4",
+    "D3DFMT_R3G3B2",
+    "D3DFMT_A8",
+    "D3DFMT_A8R3G3B2",
+    "D3DFMT_X4R4G4B4",
+    "D3DFMT_A2B10G10R10",
+    "D3DFMT_A8B8G8R8",
+    "D3DFMT_X8B8G8R8",
+    "D3DFMT_G16R16",
+    "D3DFMT_A2R10G10B10",
+    "D3DFMT_A16B16G16R16",
+    "D3DFMT_A8P8",
+    "D3DFMT_P8",
+    "D3DFMT_L8",
+    "D3DFMT_A8L8",
+    "D3DFMT_A4L4",
+    "D3DFMT_V8U8",
+    "D3DFMT_L6V5U5",
+    "D3DFMT_X8L8V8U8",
+    "D3DFMT_Q8W8V8U8",
+    "D3DFMT_V16U16",
+    "D3DFMT_A2W10V10U10",
+    "D3DFMT_UYVY",
+    "Y",
+    "V",
+    "Y",
+    "D3DFMT_YUY2",
+    "U",
+    "Y",
+    "D3DFMT_DXT1",
+    "X",
+    "T",
+    "D3DFMT_DXT2",
+    "X",
+    "T",
+    "D3DFMT_DXT3",
+    "X",
+    "T",
+    "D3DFMT_DXT4",
+    "X",
+    "T",
+    "D3DFMT_DXT5",
+    "X",
+    "T",
+    "D3DFMT_MULTI2_ARGB8",
+    "E",
+    "T",
+    "D3DFMT_G8R8_G8B8",
+    "R",
+    "G",
+    "B",
+    "D3DFMT_R8G8_B8G8",
+    "G",
+    "B",
+    "G",
+    "D3DFMT_D16_LOCKABLE",
+    "D3DFMT_D32",
+    "D3DFMT_D15S1",
+    "D3DFMT_D24S8",
+    "D3DFMT_D24X8",
+    "D3DFMT_D24X4S4",
+    "D3DFMT_D16",
+    "D3DFMT_L16",
+    "D3DFMT_D32F_LOCKABLE",
+    "D3DFMT_D24FS8",
+    "D3DFMT_D32_LOCKABLE",
+    "D3DFMT_S8_LOCKABLE",
+    "D3DFMT_VERTEXDATA",
+    "D3DFMT_INDEX16",
+    "D3DFMT_INDEX32",
+    "D3DFMT_Q16W16V16U16",
+    "D3DFMT_R16F",
+    "D3DFMT_G16R16F",
+    "D3DFMT_A16B16G16R16F",
+    "D3DFMT_R32F",
+    "D3DFMT_G32R32F",
+    "D3DFMT_A32B32G32R32F",
+    "D3DFMT_CxV8U8",
+    "D3DFMT_A1",
+    "D3DFMT_A2B10G10R10_XR_BIAS",
+    "D3DFMT_BINARYBUFFER",
+    "D3DFMT_FORCE_DWORD"
+   ],
+   "name": "D3DFORMAT",
+   "source": "d3d9types.h"
+  },
+  "D3DLIGHTTYPE": {
+   "members": [
+    "D3DLIGHT_POINT",
+    "D3DLIGHT_SPOT",
+    "D3DLIGHT_DIRECTIONAL",
+    "D3DLIGHT_FORCE_DWORD"
+   ],
+   "name": "D3DLIGHTTYPE",
+   "source": "d3d9types.h"
+  },
+  "D3DMATERIALCOLORSOURCE": {
+   "members": [
+    "D3DMCS_MATERIAL",
+    "D3DMCS_COLOR1",
+    "D3DMCS_COLOR2",
+    "D3DMCS_FORCE_DWORD"
+   ],
+   "name": "D3DMATERIALCOLORSOURCE",
+   "source": "d3d9types.h"
+  },
+  "D3DMULTISAMPLE_TYPE": {
+   "members": [
+    "D3DMULTISAMPLE_NONE",
+    "D3DMULTISAMPLE_NONMASKABLE",
+    "D3DMULTISAMPLE_2_SAMPLES",
+    "D3DMULTISAMPLE_3_SAMPLES",
+    "D3DMULTISAMPLE_4_SAMPLES",
+    "D3DMULTISAMPLE_5_SAMPLES",
+    "D3DMULTISAMPLE_6_SAMPLES",
+    "D3DMULTISAMPLE_7_SAMPLES",
+    "D3DMULTISAMPLE_8_SAMPLES",
+    "D3DMULTISAMPLE_9_SAMPLES",
+    "D3DMULTISAMPLE_10_SAMPLES",
+    "D3DMULTISAMPLE_11_SAMPLES",
+    "D3DMULTISAMPLE_12_SAMPLES",
+    "D3DMULTISAMPLE_13_SAMPLES",
+    "D3DMULTISAMPLE_14_SAMPLES",
+    "D3DMULTISAMPLE_15_SAMPLES",
+    "D3DMULTISAMPLE_16_SAMPLES",
+    "D3DMULTISAMPLE_FORCE_DWORD"
+   ],
+   "name": "D3DMULTISAMPLE_TYPE",
+   "source": "d3d9types.h"
+  },
+  "D3DORDERTYPE": {
+   "members": [
+    "D3DORDER_LINEAR",
+    "D3DORDER_QUADRATIC",
+    "D3DORDER_CUBIC",
+    "D3DORDER_QUINTIC",
+    "D3DORDER_FORCE_DWORD"
+   ],
+   "name": "D3DORDERTYPE",
+   "source": "d3d9types.h"
+  },
+  "D3DPATCHEDGESTYLE": {
+   "members": [
+    "D3DPATCHEDGE_DISCRETE",
+    "D3DPATCHEDGE_CONTINUOUS",
+    "D3DPATCHEDGE_FORCE_DWORD"
+   ],
+   "name": "D3DPATCHEDGESTYLE",
+   "source": "d3d9types.h"
+  },
+  "D3DPOOL": {
+   "members": [
+    "D3DPOOL_DEFAULT",
+    "D3DPOOL_MANAGED",
+    "D3DPOOL_SYSTEMMEM",
+    "D3DPOOL_SCRATCH",
+    "D3DPOOL_FORCE_DWORD"
+   ],
+   "name": "D3DPOOL",
+   "source": "d3d9types.h"
+  },
+  "D3DPRIMITIVETYPE": {
+   "members": [
+    "D3DPT_POINTLIST",
+    "D3DPT_LINELIST",
+    "D3DPT_LINESTRIP",
+    "D3DPT_TRIANGLELIST",
+    "D3DPT_TRIANGLESTRIP",
+    "D3DPT_TRIANGLEFAN",
+    "D3DPT_FORCE_DWORD"
+   ],
+   "name": "D3DPRIMITIVETYPE",
+   "source": "d3d9types.h"
+  },
+  "D3DQUERYTYPE": {
+   "members": [
+    "D3DQUERYTYPE_VCACHE",
+    "D3DQUERYTYPE_RESOURCEMANAGER",
+    "D3DQUERYTYPE_VERTEXSTATS",
+    "D3DQUERYTYPE_EVENT",
+    "D3DQUERYTYPE_OCCLUSION",
+    "D3DQUERYTYPE_TIMESTAMP",
+    "D3DQUERYTYPE_TIMESTAMPDISJOINT",
+    "D3DQUERYTYPE_TIMESTAMPFREQ",
+    "D3DQUERYTYPE_PIPELINETIMINGS",
+    "D3DQUERYTYPE_INTERFACETIMINGS",
+    "D3DQUERYTYPE_VERTEXTIMINGS",
+    "D3DQUERYTYPE_PIXELTIMINGS",
+    "D3DQUERYTYPE_BANDWIDTHTIMINGS",
+    "D3DQUERYTYPE_CACHEUTILIZATION",
+    "D3DQUERYTYPE_MEMORYPRESSURE"
+   ],
+   "name": "D3DQUERYTYPE",
+   "source": "d3d9types.h"
+  },
+  "D3DRENDERSTATETYPE": {
+   "members": [
+    "D3DRS_ZENABLE",
+    "D3DRS_FILLMODE",
+    "D3DRS_SHADEMODE",
+    "D3DRS_ZWRITEENABLE",
+    "D3DRS_ALPHATESTENABLE",
+    "D3DRS_LASTPIXEL",
+    "D3DRS_SRCBLEND",
+    "D3DRS_DESTBLEND",
+    "D3DRS_CULLMODE",
+    "D3DRS_ZFUNC",
+    "D3DRS_ALPHAREF",
+    "D3DRS_ALPHAFUNC",
+    "D3DRS_DITHERENABLE",
+    "D3DRS_ALPHABLENDENABLE",
+    "D3DRS_FOGENABLE",
+    "D3DRS_SPECULARENABLE",
+    "D3DRS_FOGCOLOR",
+    "D3DRS_FOGTABLEMODE",
+    "D3DRS_FOGSTART",
+    "D3DRS_FOGEND",
+    "D3DRS_FOGDENSITY",
+    "D3DRS_RANGEFOGENABLE",
+    "D3DRS_STENCILENABLE",
+    "D3DRS_STENCILFAIL",
+    "D3DRS_STENCILZFAIL",
+    "D3DRS_STENCILPASS",
+    "D3DRS_STENCILFUNC",
+    "D3DRS_STENCILREF",
+    "D3DRS_STENCILMASK",
+    "D3DRS_STENCILWRITEMASK",
+    "D3DRS_TEXTUREFACTOR",
+    "D3DRS_WRAP0",
+    "D3DRS_WRAP1",
+    "D3DRS_WRAP2",
+    "D3DRS_WRAP3",
+    "D3DRS_WRAP4",
+    "D3DRS_WRAP5",
+    "D3DRS_WRAP6",
+    "D3DRS_WRAP7",
+    "D3DRS_CLIPPING",
+    "D3DRS_LIGHTING",
+    "D3DRS_AMBIENT",
+    "D3DRS_FOGVERTEXMODE",
+    "D3DRS_COLORVERTEX",
+    "D3DRS_LOCALVIEWER",
+    "D3DRS_NORMALIZENORMALS",
+    "D3DRS_DIFFUSEMATERIALSOURCE",
+    "D3DRS_SPECULARMATERIALSOURCE",
+    "D3DRS_AMBIENTMATERIALSOURCE",
+    "D3DRS_EMISSIVEMATERIALSOURCE",
+    "D3DRS_VERTEXBLEND",
+    "D3DRS_CLIPPLANEENABLE",
+    "D3DRS_POINTSIZE",
+    "D3DRS_POINTSIZE_MIN",
+    "D3DRS_POINTSPRITEENABLE",
+    "D3DRS_POINTSCALEENABLE",
+    "D3DRS_POINTSCALE_A",
+    "D3DRS_POINTSCALE_B",
+    "D3DRS_POINTSCALE_C",
+    "D3DRS_MULTISAMPLEANTIALIAS",
+    "D3DRS_MULTISAMPLEMASK",
+    "D3DRS_PATCHEDGESTYLE",
+    "D3DRS_DEBUGMONITORTOKEN",
+    "D3DRS_POINTSIZE_MAX",
+    "D3DRS_INDEXEDVERTEXBLENDENABLE",
+    "D3DRS_COLORWRITEENABLE",
+    "D3DRS_TWEENFACTOR",
+    "D3DRS_BLENDOP",
+    "D3DRS_POSITIONDEGREE",
+    "D3DRS_NORMALDEGREE",
+    "D3DRS_SCISSORTESTENABLE",
+    "D3DRS_SLOPESCALEDEPTHBIAS",
+    "D3DRS_ANTIALIASEDLINEENABLE",
+    "D3DRS_MINTESSELLATIONLEVEL",
+    "D3DRS_MAXTESSELLATIONLEVEL",
+    "D3DRS_ADAPTIVETESS_X",
+    "D3DRS_ADAPTIVETESS_Y",
+    "D3DRS_ADAPTIVETESS_Z",
+    "D3DRS_ADAPTIVETESS_W",
+    "D3DRS_ENABLEADAPTIVETESSELLATION",
+    "D3DRS_TWOSIDEDSTENCILMODE",
+    "D3DRS_CCW_STENCILFAIL",
+    "D3DRS_CCW_STENCILZFAIL",
+    "D3DRS_CCW_STENCILPASS",
+    "D3DRS_CCW_STENCILFUNC",
+    "D3DRS_COLORWRITEENABLE1",
+    "D3DRS_COLORWRITEENABLE2",
+    "D3DRS_COLORWRITEENABLE3",
+    "D3DRS_BLENDFACTOR",
+    "D3DRS_SRGBWRITEENABLE",
+    "D3DRS_DEPTHBIAS",
+    "D3DRS_WRAP8",
+    "D3DRS_WRAP9",
+    "D3DRS_WRAP10",
+    "D3DRS_WRAP11",
+    "D3DRS_WRAP12",
+    "D3DRS_WRAP13",
+    "D3DRS_WRAP14",
+    "D3DRS_WRAP15",
+    "D3DRS_SEPARATEALPHABLENDENABLE",
+    "D3DRS_SRCBLENDALPHA",
+    "D3DRS_DESTBLENDALPHA",
+    "D3DRS_BLENDOPALPHA",
+    "D3DRS_FORCE_DWORD"
+   ],
+   "name": "D3DRENDERSTATETYPE",
+   "source": "d3d9types.h"
+  },
+  "D3DRESOURCETYPE": {
+   "members": [
+    "D3DRTYPE_SURFACE",
+    "D3DRTYPE_VOLUME",
+    "D3DRTYPE_TEXTURE",
+    "D3DRTYPE_VOLUMETEXTURE",
+    "D3DRTYPE_CUBETEXTURE",
+    "D3DRTYPE_VERTEXBUFFER",
+    "D3DRTYPE_INDEXBUFFER",
+    "D3DRTYPE_FORCE_DWORD"
+   ],
+   "name": "D3DRESOURCETYPE",
+   "source": "d3d9types.h"
+  },
+  "D3DSAMPLERSTATETYPE": {
+   "members": [
+    "D3DSAMP_ADDRESSU",
+    "D3DSAMP_ADDRESSV",
+    "D3DSAMP_ADDRESSW",
+    "D3DSAMP_BORDERCOLOR",
+    "D3DSAMP_MAGFILTER",
+    "D3DSAMP_MINFILTER",
+    "D3DSAMP_MIPFILTER",
+    "D3DSAMP_MIPMAPLODBIAS",
+    "D3DSAMP_MAXMIPLEVEL",
+    "D3DSAMP_MAXANISOTROPY",
+    "D3DSAMP_SRGBTEXTURE",
+    "D3DSAMP_ELEMENTINDEX",
+    "D3DSAMP_DMAPOFFSET",
+    "D3DSAMP_FORCE_DWORD"
+   ],
+   "name": "D3DSAMPLERSTATETYPE",
+   "source": "d3d9types.h"
+  },
+  "D3DSAMPLER_TEXTURE_TYPE": {
+   "members": [
+    "D3DSTT_UNKNOWN",
+    "D3DSTT_1D",
+    "D3DSTT_2D",
+    "D3DSTT_CUBE",
+    "D3DSTT_VOLUME",
+    "D3DSTT_FORCE_DWORD"
+   ],
+   "name": "D3DSAMPLER_TEXTURE_TYPE",
+   "source": "d3d9types.h"
+  },
+  "D3DSCANLINEORDERING": {
+   "members": [
+    "D3DSCANLINEORDERING_UNKNOWN",
+    "D3DSCANLINEORDERING_PROGRESSIVE",
+    "D3DSCANLINEORDERING_INTERLACED"
+   ],
+   "name": "D3DSCANLINEORDERING",
+   "source": "d3d9types.h"
+  },
+  "D3DSHADEMODE": {
+   "members": [
+    "D3DSHADE_FLAT",
+    "D3DSHADE_GOURAUD",
+    "D3DSHADE_PHONG",
+    "D3DSHADE_FORCE_DWORD"
+   ],
+   "name": "D3DSHADEMODE",
+   "source": "d3d9types.h"
+  },
+  "D3DSHADER_ADDRESSMODE_TYPE": {
+   "members": [
+    "D3DSHADER_ADDRMODE_ABSOLUTE",
+    "D3DSHADER_ADDRMODE_RELATIVE",
+    "D3DSHADER_ADDRMODE_FORCE_DWORD"
+   ],
+   "name": "D3DSHADER_ADDRESSMODE_TYPE",
+   "source": "d3d9types.h"
+  },
+  "D3DSHADER_COMPARISON": {
+   "members": [
+    "D3DSPC_RESERVED0",
+    "D3DSPC_GT",
+    "D3DSPC_EQ",
+    "D3DSPC_GE",
+    "D3DSPC_LT",
+    "D3DSPC_NE",
+    "D3DSPC_LE",
+    "D3DSPC_RESERVED1"
+   ],
+   "name": "D3DSHADER_COMPARISON",
+   "source": "d3d9types.h"
+  },
+  "D3DSHADER_INSTRUCTION_OPCODE_TYPE": {
+   "members": [
+    "D3DSIO_NOP",
+    "D3DSIO_MOV",
+    "D3DSIO_ADD",
+    "D3DSIO_SUB",
+    "D3DSIO_MAD",
+    "D3DSIO_MUL",
+    "D3DSIO_RCP",
+    "D3DSIO_RSQ",
+    "D3DSIO_DP3",
+    "D3DSIO_DP4",
+    "D3DSIO_MIN",
+    "D3DSIO_MAX",
+    "D3DSIO_SLT",
+    "D3DSIO_SGE",
+    "D3DSIO_EXP",
+    "D3DSIO_LOG",
+    "D3DSIO_LIT",
+    "D3DSIO_DST",
+    "D3DSIO_LRP",
+    "D3DSIO_FRC",
+    "D3DSIO_M4x4",
+    "D3DSIO_M4x3",
+    "D3DSIO_M3x4",
+    "D3DSIO_M3x3",
+    "D3DSIO_M3x2",
+    "D3DSIO_CALL",
+    "D3DSIO_CALLNZ",
+    "D3DSIO_LOOP",
+    "D3DSIO_RET",
+    "D3DSIO_ENDLOOP",
+    "D3DSIO_LABEL",
+    "D3DSIO_DCL",
+    "D3DSIO_POW",
+    "D3DSIO_CRS",
+    "D3DSIO_SGN",
+    "D3DSIO_ABS",
+    "D3DSIO_NRM",
+    "D3DSIO_SINCOS",
+    "D3DSIO_REP",
+    "D3DSIO_ENDREP",
+    "D3DSIO_IF",
+    "D3DSIO_IFC",
+    "D3DSIO_ELSE",
+    "D3DSIO_ENDIF",
+    "D3DSIO_BREAK",
+    "D3DSIO_BREAKC",
+    "D3DSIO_MOVA",
+    "D3DSIO_DEFB",
+    "D3DSIO_DEFI",
+    "D3DSIO_TEXCOORD",
+    "D3DSIO_TEXKILL",
+    "D3DSIO_TEX",
+    "D3DSIO_TEXBEM",
+    "D3DSIO_TEXBEML",
+    "D3DSIO_TEXREG2AR",
+    "D3DSIO_TEXREG2GB",
+    "D3DSIO_TEXM3x2PAD",
+    "D3DSIO_TEXM3x2TEX",
+    "D3DSIO_TEXM3x3PAD",
+    "D3DSIO_TEXM3x3TEX",
+    "D3DSIO_TEXM3x3DIFF",
+    "D3DSIO_TEXM3x3SPEC",
+    "D3DSIO_TEXM3x3VSPEC",
+    "D3DSIO_EXPP",
+    "D3DSIO_LOGP",
+    "D3DSIO_CND",
+    "D3DSIO_DEF",
+    "D3DSIO_TEXREG2RGB",
+    "D3DSIO_TEXDP3TEX",
+    "D3DSIO_TEXM3x2DEPTH",
+    "D3DSIO_TEXDP3",
+    "D3DSIO_TEXM3x3",
+    "D3DSIO_TEXDEPTH",
+    "D3DSIO_CMP",
+    "D3DSIO_BEM",
+    "D3DSIO_DP2ADD",
+    "D3DSIO_DSX",
+    "D3DSIO_DSY",
+    "D3DSIO_TEXLDD",
+    "D3DSIO_SETP",
+    "D3DSIO_TEXLDL",
+    "D3DSIO_BREAKP",
+    "D3DSIO_PHASE",
+    "D3DSIO_COMMENT",
+    "D3DSIO_END",
+    "D3DSIO_FORCE_DWORD"
+   ],
+   "name": "D3DSHADER_INSTRUCTION_OPCODE_TYPE",
+   "source": "d3d9types.h"
+  },
+  "D3DSHADER_MISCTYPE_OFFSETS": {
+   "members": [
+    "D3DSMO_POSITION",
+    "D3DSMO_FACE"
+   ],
+   "name": "D3DSHADER_MISCTYPE_OFFSETS",
+   "source": "d3d9types.h"
+  },
+  "D3DSHADER_PARAM_DSTMOD_TYPE": {
+   "members": [
+    "D3DSPDM_NONE",
+    "D3DSPDM_SATURATE",
+    "D3DSPDM_PARTIALPRECISION",
+    "D3DSPDM_MSAMPCENTROID",
+    "D3DSPDM_FORCE_DWORD"
+   ],
+   "name": "D3DSHADER_PARAM_DSTMOD_TYPE",
+   "source": "d3d9types.h"
+  },
+  "D3DSHADER_PARAM_REGISTER_TYPE": {
+   "members": [
+    "D3DSPR_TEMP",
+    "D3DSPR_INPUT",
+    "D3DSPR_CONST",
+    "D3DSPR_ADDR",
+    "D3DSPR_TEXTURE",
+    "D3DSPR_RASTOUT",
+    "D3DSPR_ATTROUT",
+    "D3DSPR_TEXCRDOUT",
+    "D3DSPR_OUTPUT",
+    "D3DSPR_CONSTINT",
+    "D3DSPR_COLOROUT",
+    "D3DSPR_DEPTHOUT",
+    "D3DSPR_SAMPLER",
+    "D3DSPR_CONST2",
+    "D3DSPR_CONST3",
+    "D3DSPR_CONST4",
+    "D3DSPR_CONSTBOOL",
+    "D3DSPR_LOOP",
+    "D3DSPR_TEMPFLOAT16",
+    "D3DSPR_MISCTYPE",
+    "D3DSPR_LABEL",
+    "D3DSPR_PREDICATE",
+    "D3DSPR_FORCE_DWORD"
+   ],
+   "name": "D3DSHADER_PARAM_REGISTER_TYPE",
+   "source": "d3d9types.h"
+  },
+  "D3DSHADER_PARAM_SRCMOD_TYPE": {
+   "members": [
+    "D3DSPSM_NONE",
+    "D3DSPSM_NEG",
+    "D3DSPSM_BIAS",
+    "D3DSPSM_BIASNEG",
+    "D3DSPSM_SIGN",
+    "D3DSPSM_SIGNNEG",
+    "D3DSPSM_COMP",
+    "D3DSPSM_X2",
+    "D3DSPSM_X2NEG",
+    "D3DSPSM_DZ",
+    "D3DSPSM_DW",
+    "D3DSPSM_ABS",
+    "D3DSPSM_ABSNEG",
+    "D3DSPSM_NOT",
+    "D3DSPSM_FORCE_DWORD"
+   ],
+   "name": "D3DSHADER_PARAM_SRCMOD_TYPE",
+   "source": "d3d9types.h"
+  },
+  "D3DSTATEBLOCKTYPE": {
+   "members": [
+    "D3DSBT_ALL",
+    "D3DSBT_PIXELSTATE",
+    "D3DSBT_VERTEXSTATE",
+    "D3DSBT_FORCE_DWORD"
+   ],
+   "name": "D3DSTATEBLOCKTYPE",
+   "source": "d3d9types.h"
+  },
+  "D3DSTENCILOP": {
+   "members": [
+    "D3DSTENCILOP_KEEP",
+    "D3DSTENCILOP_ZERO",
+    "D3DSTENCILOP_REPLACE",
+    "D3DSTENCILOP_INCRSAT",
+    "D3DSTENCILOP_DECRSAT",
+    "D3DSTENCILOP_INVERT",
+    "D3DSTENCILOP_INCR",
+    "D3DSTENCILOP_DECR",
+    "D3DSTENCILOP_FORCE_DWORD"
+   ],
+   "name": "D3DSTENCILOP",
+   "source": "d3d9types.h"
+  },
+  "D3DSWAPEFFECT": {
+   "members": [
+    "D3DSWAPEFFECT_DISCARD",
+    "D3DSWAPEFFECT_FLIP",
+    "D3DSWAPEFFECT_COPY",
+    "D3DSWAPEFFECT_OVERLAY",
+    "D3DSWAPEFFECT_FLIPEX",
+    "D3DSWAPEFFECT_FORCE_DWORD"
+   ],
+   "name": "D3DSWAPEFFECT",
+   "source": "d3d9types.h"
+  },
+  "D3DTEXTUREADDRESS": {
+   "members": [
+    "D3DTADDRESS_WRAP",
+    "D3DTADDRESS_MIRROR",
+    "D3DTADDRESS_CLAMP",
+    "D3DTADDRESS_BORDER",
+    "D3DTADDRESS_MIRRORONCE",
+    "D3DTADDRESS_FORCE_DWORD"
+   ],
+   "name": "D3DTEXTUREADDRESS",
+   "source": "d3d9types.h"
+  },
+  "D3DTEXTUREFILTERTYPE": {
+   "members": [
+    "D3DTEXF_NONE",
+    "D3DTEXF_POINT",
+    "D3DTEXF_LINEAR",
+    "D3DTEXF_ANISOTROPIC",
+    "D3DTEXF_FLATCUBIC",
+    "D3DTEXF_GAUSSIANCUBIC",
+    "D3DTEXF_PYRAMIDALQUAD",
+    "D3DTEXF_GAUSSIANQUAD",
+    "D3DTEXF_CONVOLUTIONMONO",
+    "D3DTEXF_FORCE_DWORD"
+   ],
+   "name": "D3DTEXTUREFILTERTYPE",
+   "source": "d3d9types.h"
+  },
+  "D3DTEXTUREOP": {
+   "members": [
+    "D3DTOP_DISABLE",
+    "D3DTOP_SELECTARG1",
+    "D3DTOP_SELECTARG2",
+    "D3DTOP_MODULATE",
+    "D3DTOP_MODULATE2X",
+    "D3DTOP_MODULATE4X",
+    "D3DTOP_ADD",
+    "D3DTOP_ADDSIGNED",
+    "D3DTOP_ADDSIGNED2X",
+    "D3DTOP_SUBTRACT",
+    "D3DTOP_ADDSMOOTH",
+    "D3DTOP_BLENDDIFFUSEALPHA",
+    "D3DTOP_BLENDTEXTUREALPHA",
+    "D3DTOP_BLENDFACTORALPHA",
+    "D3DTOP_BLENDTEXTUREALPHAPM",
+    "D3DTOP_BLENDCURRENTALPHA",
+    "D3DTOP_PREMODULATE",
+    "D3DTOP_MODULATEALPHA_ADDCOLOR",
+    "D3DTOP_MODULATECOLOR_ADDALPHA",
+    "D3DTOP_MODULATEINVALPHA_ADDCOLOR",
+    "D3DTOP_MODULATEINVCOLOR_ADDALPHA",
+    "D3DTOP_BUMPENVMAP",
+    "D3DTOP_BUMPENVMAPLUMINANCE",
+    "D3DTOP_DOTPRODUCT3",
+    "D3DTOP_MULTIPLYADD",
+    "D3DTOP_LERP",
+    "D3DTOP_FORCE_DWORD"
+   ],
+   "name": "D3DTEXTUREOP",
+   "source": "d3d9types.h"
+  },
+  "D3DTEXTURESTAGESTATETYPE": {
+   "members": [
+    "D3DTSS_COLOROP",
+    "D3DTSS_COLORARG1",
+    "D3DTSS_COLORARG2",
+    "D3DTSS_ALPHAOP",
+    "D3DTSS_ALPHAARG1",
+    "D3DTSS_ALPHAARG2",
+    "D3DTSS_BUMPENVMAT00",
+    "D3DTSS_BUMPENVMAT01",
+    "D3DTSS_BUMPENVMAT10",
+    "D3DTSS_BUMPENVMAT11",
+    "D3DTSS_TEXCOORDINDEX",
+    "D3DTSS_BUMPENVLSCALE",
+    "D3DTSS_BUMPENVLOFFSET",
+    "D3DTSS_TEXTURETRANSFORMFLAGS",
+    "D3DTSS_COLORARG0",
+    "D3DTSS_ALPHAARG0",
+    "D3DTSS_RESULTARG",
+    "D3DTSS_CONSTANT",
+    "D3DTSS_FORCE_DWORD"
+   ],
+   "name": "D3DTEXTURESTAGESTATETYPE",
+   "source": "d3d9types.h"
+  },
+  "D3DTEXTURETRANSFORMFLAGS": {
+   "members": [
+    "D3DTTFF_DISABLE",
+    "D3DTTFF_COUNT1",
+    "D3DTTFF_COUNT2",
+    "D3DTTFF_COUNT3",
+    "D3DTTFF_COUNT4",
+    "D3DTTFF_PROJECTED",
+    "D3DTTFF_FORCE_DWORD"
+   ],
+   "name": "D3DTEXTURETRANSFORMFLAGS",
+   "source": "d3d9types.h"
+  },
+  "D3DTRANSFORMSTATETYPE": {
+   "members": [
+    "D3DTS_VIEW",
+    "D3DTS_PROJECTION",
+    "D3DTS_TEXTURE0",
+    "D3DTS_TEXTURE1",
+    "D3DTS_TEXTURE2",
+    "D3DTS_TEXTURE3",
+    "D3DTS_TEXTURE4",
+    "D3DTS_TEXTURE5",
+    "D3DTS_TEXTURE6",
+    "D3DTS_TEXTURE7",
+    "D3DTS_FORCE_DWORD"
+   ],
+   "name": "D3DTRANSFORMSTATETYPE",
+   "source": "d3d9types.h"
+  },
+  "D3DVERTEXBLENDFLAGS": {
+   "members": [
+    "D3DVBF_DISABLE",
+    "D3DVBF_1WEIGHTS",
+    "D3DVBF_2WEIGHTS",
+    "D3DVBF_3WEIGHTS",
+    "D3DVBF_TWEENING",
+    "D3DVBF_0WEIGHTS"
+   ],
+   "name": "D3DVERTEXBLENDFLAGS",
+   "source": "d3d9types.h"
+  },
+  "D3DVS_ADDRESSMODE_TYPE": {
+   "members": [
+    "D3DVS_ADDRMODE_ABSOLUTE",
+    "D3DVS_ADDRMODE_RELATIVE",
+    "D3DVS_ADDRMODE_FORCE_DWORD"
+   ],
+   "name": "D3DVS_ADDRESSMODE_TYPE",
+   "source": "d3d9types.h"
+  },
+  "D3DVS_RASTOUT_OFFSETS": {
+   "members": [
+    "D3DSRO_POSITION",
+    "D3DSRO_FOG",
+    "D3DSRO_POINT_SIZE",
+    "D3DSRO_FORCE_DWORD"
+   ],
+   "name": "D3DVS_RASTOUT_OFFSETS",
+   "source": "d3d9types.h"
+  },
+  "D3DZBUFFERTYPE": {
+   "members": [
+    "D3DZB_FALSE",
+    "D3DZB_TRUE",
+    "D3DZB_USEW",
+    "D3DZB_FORCE_DWORD"
+   ],
+   "name": "D3DZBUFFERTYPE",
+   "source": "d3d9types.h"
+  }
+ },
+ "functions": {
+  "D3DPERF_BeginEvent": "d3d9.h",
+  "D3DPERF_EndEvent": "d3d9.h",
+  "D3DPERF_GetStatus": "d3d9.h",
+  "D3DPERF_QueryRepeatFrame": "d3d9.h",
+  "D3DPERF_SetMarker": "d3d9.h",
+  "D3DPERF_SetOptions": "d3d9.h",
+  "D3DPERF_SetRegion": "d3d9.h",
+  "Direct3DCreate9": "d3d9.h",
+  "Direct3DCreate9Ex": "d3d9.h"
+ },
+ "group": "d3d9",
+ "interfaces": {
+  "IDirect3D9": {
+   "base": "IUnknown",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "RegisterSoftwareDevice"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetAdapterCount"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetAdapterIdentifier"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetAdapterModeCount"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "EnumAdapterModes"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetAdapterDisplayMode"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CheckDeviceType"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CheckDeviceFormat"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CheckDeviceMultiSampleType"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CheckDepthStencilMatch"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CheckDeviceFormatConversion"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDeviceCaps"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetAdapterMonitor"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreateDevice"
+    }
+   ],
+   "name": "IDirect3D9",
+   "source": "d3d9.h"
+  },
+  "IDirect3D9Ex": {
+   "base": "IDirect3D9",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetAdapterModeCountEx"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "EnumAdapterModesEx"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetAdapterDisplayModeEx"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreateDeviceEx"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetAdapterLUID"
+    }
+   ],
+   "name": "IDirect3D9Ex",
+   "source": "d3d9.h"
+  },
+  "IDirect3DBaseTexture9": {
+   "base": "IDirect3DResource9",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetLOD"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetLOD"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetLevelCount"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetAutoGenFilterType"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetAutoGenFilterType"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GenerateMipSubLevels"
+    }
+   ],
+   "name": "IDirect3DBaseTexture9",
+   "source": "d3d9.h"
+  },
+  "IDirect3DCubeTexture9": {
+   "base": "IDirect3DBaseTexture9",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetLevelDesc"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetCubeMapSurface"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "LockRect"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "UnlockRect"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "AddDirtyRect"
+    }
+   ],
+   "name": "IDirect3DCubeTexture9",
+   "source": "d3d9.h"
+  },
+  "IDirect3DDevice9": {
+   "base": "IUnknown",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "TestCooperativeLevel"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetAvailableTextureMem"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "EvictManagedResources"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDirect3D"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDeviceCaps"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDisplayMode"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetCreationParameters"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetCursorProperties"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetCursorPosition"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "ShowCursor"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreateAdditionalSwapChain"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetSwapChain"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetNumberOfSwapChains"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "Reset"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "Present"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetBackBuffer"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetRasterStatus"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetDialogBoxMode"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetGammaRamp"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetGammaRamp"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreateTexture"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreateVolumeTexture"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreateCubeTexture"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreateVertexBuffer"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreateIndexBuffer"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreateRenderTarget"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreateDepthStencilSurface"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "UpdateSurface"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "UpdateTexture"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetRenderTargetData"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetFrontBufferData"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "StretchRect"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "ColorFill"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreateOffscreenPlainSurface"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetRenderTarget"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetRenderTarget"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetDepthStencilSurface"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDepthStencilSurface"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "BeginScene"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "EndScene"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "Clear"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetTransform"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetTransform"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "MultiplyTransform"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetViewport"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetViewport"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetMaterial"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetMaterial"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetLight"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetLight"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "LightEnable"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetLightEnable"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetClipPlane"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetClipPlane"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetRenderState"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetRenderState"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreateStateBlock"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "BeginStateBlock"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "EndStateBlock"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetClipStatus"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetClipStatus"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetTexture"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetTexture"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetTextureStageState"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetTextureStageState"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetSamplerState"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetSamplerState"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "ValidateDevice"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetPaletteEntries"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetPaletteEntries"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetCurrentTexturePalette"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetCurrentTexturePalette"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetScissorRect"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetScissorRect"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetSoftwareVertexProcessing"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetSoftwareVertexProcessing"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetNPatchMode"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetNPatchMode"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "DrawPrimitive"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "DrawIndexedPrimitive"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "DrawPrimitiveUP"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "DrawIndexedPrimitiveUP"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "ProcessVertices"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreateVertexDeclaration"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetVertexDeclaration"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetVertexDeclaration"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetFVF"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetFVF"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreateVertexShader"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetVertexShader"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetVertexShader"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetVertexShaderConstantF"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetVertexShaderConstantF"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetVertexShaderConstantI"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetVertexShaderConstantI"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetVertexShaderConstantB"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetVertexShaderConstantB"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetStreamSource"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetStreamSource"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetStreamSourceFreq"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetStreamSourceFreq"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetIndices"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetIndices"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreatePixelShader"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetPixelShader"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetPixelShader"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetPixelShaderConstantF"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetPixelShaderConstantF"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetPixelShaderConstantI"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetPixelShaderConstantI"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetPixelShaderConstantB"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetPixelShaderConstantB"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "DrawRectPatch"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "DrawTriPatch"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "DeletePatch"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreateQuery"
+    }
+   ],
+   "name": "IDirect3DDevice9",
+   "source": "d3d9.h"
+  },
+  "IDirect3DDevice9Ex": {
+   "base": "IDirect3DDevice9",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetConvolutionMonoKernel"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "ComposeRects"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "PresentEx"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetGPUThreadPriority"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetGPUThreadPriority"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "WaitForVBlank"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CheckResourceResidency"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetMaximumFrameLatency"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetMaximumFrameLatency"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CheckDeviceState"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreateRenderTargetEx"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreateOffscreenPlainSurfaceEx"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "CreateDepthStencilSurfaceEx"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "ResetEx"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDisplayModeEx"
+    }
+   ],
+   "name": "IDirect3DDevice9Ex",
+   "source": "d3d9.h"
+  },
+  "IDirect3DIndexBuffer9": {
+   "base": "IDirect3DResource9",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "Lock"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "Unlock"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDesc"
+    }
+   ],
+   "name": "IDirect3DIndexBuffer9",
+   "source": "d3d9.h"
+  },
+  "IDirect3DPixelShader9": {
+   "base": "IUnknown",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDevice"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetFunction"
+    }
+   ],
+   "name": "IDirect3DPixelShader9",
+   "source": "d3d9.h"
+  },
+  "IDirect3DQuery9": {
+   "base": "IUnknown",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDevice"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetType"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDataSize"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "Issue"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetData"
+    }
+   ],
+   "name": "IDirect3DQuery9",
+   "source": "d3d9.h"
+  },
+  "IDirect3DResource9": {
+   "base": "IUnknown",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDevice"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetPrivateData"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetPrivateData"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "FreePrivateData"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetPriority"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetPriority"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "PreLoad"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetType"
+    }
+   ],
+   "name": "IDirect3DResource9",
+   "source": "d3d9.h"
+  },
+  "IDirect3DStateBlock9": {
+   "base": "IUnknown",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDevice"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "Capture"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "Apply"
+    }
+   ],
+   "name": "IDirect3DStateBlock9",
+   "source": "d3d9.h"
+  },
+  "IDirect3DSurface9": {
+   "base": "IDirect3DResource9",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetContainer"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDesc"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "LockRect"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "UnlockRect"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDC"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "ReleaseDC"
+    }
+   ],
+   "name": "IDirect3DSurface9",
+   "source": "d3d9.h"
+  },
+  "IDirect3DSwapChain9": {
+   "base": "IUnknown",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "Present"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetFrontBufferData"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetBackBuffer"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetRasterStatus"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDisplayMode"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDevice"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetPresentParameters"
+    }
+   ],
+   "name": "IDirect3DSwapChain9",
+   "source": "d3d9.h"
+  },
+  "IDirect3DSwapChain9Ex": {
+   "base": "IDirect3DSwapChain9",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetLastPresentCount"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetPresentStats"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDisplayModeEx"
+    }
+   ],
+   "name": "IDirect3DSwapChain9Ex",
+   "source": "d3d9.h"
+  },
+  "IDirect3DTexture9": {
+   "base": "IDirect3DBaseTexture9",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetLevelDesc"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetSurfaceLevel"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "LockRect"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "UnlockRect"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "AddDirtyRect"
+    }
+   ],
+   "name": "IDirect3DTexture9",
+   "source": "d3d9.h"
+  },
+  "IDirect3DVertexBuffer9": {
+   "base": "IDirect3DResource9",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "Lock"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "Unlock"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDesc"
+    }
+   ],
+   "name": "IDirect3DVertexBuffer9",
+   "source": "d3d9.h"
+  },
+  "IDirect3DVertexDeclaration9": {
+   "base": "IUnknown",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDevice"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDeclaration"
+    }
+   ],
+   "name": "IDirect3DVertexDeclaration9",
+   "source": "d3d9.h"
+  },
+  "IDirect3DVertexShader9": {
+   "base": "IUnknown",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDevice"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetFunction"
+    }
+   ],
+   "name": "IDirect3DVertexShader9",
+   "source": "d3d9.h"
+  },
+  "IDirect3DVolume9": {
+   "base": "IUnknown",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDevice"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetPrivateData"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetPrivateData"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "FreePrivateData"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetContainer"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDesc"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "LockBox"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "UnlockBox"
+    }
+   ],
+   "name": "IDirect3DVolume9",
+   "source": "d3d9.h"
+  },
+  "IDirect3DVolumeTexture9": {
+   "base": "IDirect3DBaseTexture9",
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetLevelDesc"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetVolumeLevel"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "LockBox"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "UnlockBox"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "AddDirtyBox"
+    }
+   ],
+   "name": "IDirect3DVolumeTexture9",
+   "source": "d3d9.h"
+  }
+ },
+ "provenance": "Headers: `d3d9.h`, `d3d9caps.h`, `d3d9types.h` from `mingw-w64/mingw-w64@3dc9567fee2f`.",
+ "structs": {
+  "D3DADAPTER_IDENTIFIER9": "d3d9types.h",
+  "D3DBOX": "d3d9types.h",
+  "D3DCAPS9": "d3d9caps.h",
+  "D3DCLIPSTATUS9": "d3d9types.h",
+  "D3DCOLORVALUE": "d3d9types.h",
+  "D3DCONTENTPROTECTIONCAPS": "d3d9caps.h",
+  "D3DDEVICE_CREATION_PARAMETERS": "d3d9types.h",
+  "D3DDEVINFO_D3D9BANDWIDTHTIMINGS": "d3d9types.h",
+  "D3DDEVINFO_D3D9CACHEUTILIZATION": "d3d9types.h",
+  "D3DDEVINFO_D3D9INTERFACETIMINGS": "d3d9types.h",
+  "D3DDEVINFO_D3D9PIPELINETIMINGS": "d3d9types.h",
+  "D3DDEVINFO_D3D9STAGETIMINGS": "d3d9types.h",
+  "D3DDEVINFO_D3DVERTEXSTATS": "d3d9types.h",
+  "D3DDEVINFO_RESOURCEMANAGER": "d3d9types.h",
+  "D3DDEVINFO_VCACHE": "d3d9types.h",
+  "D3DDISPLAYMODE": "d3d9types.h",
+  "D3DDISPLAYMODEEX": "d3d9types.h",
+  "D3DDISPLAYMODEFILTER": "d3d9types.h",
+  "D3DGAMMARAMP": "d3d9types.h",
+  "D3DINDEXBUFFER_DESC": "d3d9types.h",
+  "D3DLIGHT9": "d3d9types.h",
+  "D3DLINEPATTERN": "d3d9types.h",
+  "D3DLOCKED_BOX": "d3d9types.h",
+  "D3DLOCKED_RECT": "d3d9types.h",
+  "D3DMATERIAL9": "d3d9types.h",
+  "D3DMATRIX": "d3d9types.h",
+  "D3DMEMORYPRESSURE": "d3d9types.h",
+  "D3DOVERLAYCAPS": "d3d9caps.h",
+  "D3DPRESENTSTATS": "d3d9types.h",
+  "D3DPRESENT_PARAMETERS": "d3d9types.h",
+  "D3DPSHADERCAPS2_0": "d3d9caps.h",
+  "D3DRANGE": "d3d9types.h",
+  "D3DRASTER_STATUS": "d3d9types.h",
+  "D3DRECT": "d3d9types.h",
+  "D3DRECTPATCH_INFO": "d3d9types.h",
+  "D3DRESOURCESTATS": "d3d9types.h",
+  "D3DSURFACE_DESC": "d3d9types.h",
+  "D3DTRIPATCH_INFO": "d3d9types.h",
+  "D3DVECTOR": "d3d9types.h",
+  "D3DVERTEXBUFFER_DESC": "d3d9types.h",
+  "D3DVERTEXELEMENT9": "d3d9types.h",
+  "D3DVIEWPORT9": "d3d9types.h",
+  "D3DVOLUME_DESC": "d3d9types.h",
+  "D3DVSHADERCAPS2_0": "d3d9caps.h"
+ }
+}
