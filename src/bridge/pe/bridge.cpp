@@ -1,0 +1,72 @@
+#define DIRECTMETAL_BRIDGE_API
+#include <directmetal/bridge/client.hpp>
+
+#include <windows.h>
+
+extern "C" LONG NTAPI NtQueryVirtualMemory(HANDLE process, PVOID address, int information_class,
+                                           PVOID buffer, SIZE_T length, SIZE_T* result_length);
+
+namespace {
+
+using namespace directmetal::bridge;
+
+using Dispatcher = Status(WINAPI*)(std::uint64_t handle, std::uint32_t code, void* params);
+
+// Wine-specific MEMORY_INFORMATION_CLASS value that loads a builtin module's unix library.
+constexpr int memory_wine_load_unix_lib = 1000;
+
+struct Connection {
+    std::uint64_t handle = 0;
+    Dispatcher dispatcher = nullptr;
+    Status status = status_dll_not_found;
+};
+
+Connection connection;
+
+// ntdll exports the dispatcher as a data symbol holding the function pointer.
+Dispatcher find_dispatcher() {
+    HMODULE ntdll = GetModuleHandleW(L"ntdll.dll");
+    FARPROC slot =
+        ntdll == nullptr ? nullptr : GetProcAddress(ntdll, "__wine_unix_call_dispatcher");
+    return slot == nullptr ? nullptr : *reinterpret_cast<Dispatcher*>(slot);
+}
+
+Connection connect(HMODULE module) {
+    Connection result;
+    result.dispatcher = find_dispatcher();
+    if (result.dispatcher == nullptr) {
+        result.status = status_entrypoint_not_found;
+        return result;
+    }
+    result.status = NtQueryVirtualMemory(GetCurrentProcess(), module, memory_wine_load_unix_lib,
+                                         &result.handle, sizeof(result.handle), nullptr);
+    if (result.status < 0) {
+        return result;
+    }
+    QueryVersionParams query{};
+    result.status = result.dispatcher(result.handle, to_index(FunctionCode::query_version), &query);
+    if (result.status >= 0 && query.version != protocol_version) {
+        result.status = status_revision_mismatch;
+    }
+    return result;
+}
+
+} // namespace
+
+extern "C" Status __cdecl directmetal_bridge_call(std::uint32_t code, void* params) {
+    if (connection.status < 0) {
+        return connection.status;
+    }
+    if (code >= to_index(FunctionCode::count)) {
+        return status_invalid_parameter;
+    }
+    return connection.dispatcher(connection.handle, code, params);
+}
+
+extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID) {
+    if (reason == DLL_PROCESS_ATTACH) {
+        DisableThreadLibraryCalls(instance);
+        connection = connect(instance);
+    }
+    return TRUE;
+}

@@ -1,0 +1,3 @@
+LIBRARY directmetal.dll
+EXPORTS
+    directmetal_bridge_call
