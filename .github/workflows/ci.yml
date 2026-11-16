@@ -115,6 +115,9 @@ jobs:
         with:
           name: pe-dlls
           path: pe-dlls
+      - name: Corrupt d3d9.dll
+        shell: pwsh
+        run: Set-Content -Path pe-dlls/win64/src/pe/d3d9.dll -Value 'not a PE image'
       - name: Load win64 DLLs
         shell: pwsh
         run: tools/ci/load_dlls.ps1 -Directory pe-dlls/win64 -Architecture x64
