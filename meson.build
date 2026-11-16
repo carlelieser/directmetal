@@ -13,6 +13,9 @@ project(
 )
 
 bridge_include = include_directories('src/bridge/include')
+python = find_program('python3')
+
+subdir('tools/bridge')
 
 if host_machine.system() == 'windows'
     subdir('src/pe')
