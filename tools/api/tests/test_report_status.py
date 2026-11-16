@@ -167,6 +167,14 @@ class ReportStatusTest(FixtureTestCase):
         self.assertFalse(methods["ID3D11Device::GetType"]["is_tested"])
         self.assertTrue(self.fixture.methods("common")["IUnknown::AddRef"]["is_tested"])
 
+    def test_ignores_unterminated_final_call_log_line(self) -> None:
+        self.fixture.write("logs/crashed.log", "ID3D11Device::GetType\nID3D11Dev")
+        self.fixture.write("logs/partial.log", "D3D11CreateDevice")
+        self.run_ok("--call-log-dir", str(self.fixture.logs))
+        methods = self.fixture.methods()
+        self.assertTrue(methods["ID3D11Device::GetType"]["is_tested"])
+        self.assertFalse(methods["D3D11CreateDevice"]["is_tested"])
+
     def test_reads_call_log_directory_from_environment(self) -> None:
         self.fixture.write("logs/run.log", "ID3D11Device::GetType\n")
         self.run_ok(environment={CALL_LOG_ENV: str(self.fixture.logs)})

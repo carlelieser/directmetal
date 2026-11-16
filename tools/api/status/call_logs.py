@@ -9,10 +9,12 @@ LOG_PATTERN = "*.log"
 
 
 def read_lines(path: Path) -> list[str]:
+    """Returns the complete lines; a final line without a newline was cut off mid-write."""
     try:
-        return path.read_text(encoding="utf-8").splitlines()
+        text = path.read_text(encoding="utf-8")
     except (OSError, UnicodeDecodeError) as error:
         raise StatusError(f"read call log {path}: {error}") from error
+    return text.split("\n")[:-1]
 
 
 def file_calls(path: Path, catalog: Catalog) -> set[str]:
