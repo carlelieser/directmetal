@@ -7,7 +7,7 @@
 // fields and carry pointers as 64-bit addresses, so 32-bit and 64-bit callers send identical bytes.
 namespace directmetal::bridge {
 
-inline constexpr std::uint32_t protocol_version = 1;
+inline constexpr std::uint32_t protocol_version = 2;
 
 enum class FunctionCode : std::uint32_t {
     query_version,
@@ -18,12 +18,14 @@ enum class FunctionCode : std::uint32_t {
 // NTSTATUS values.
 using Status = std::int32_t;
 inline constexpr Status status_success = 0;
+inline constexpr Status status_unsuccessful = static_cast<Status>(0xC0000001);
 inline constexpr Status status_invalid_parameter = static_cast<Status>(0xC000000D);
 inline constexpr Status status_revision_mismatch = static_cast<Status>(0xC0000059);
 inline constexpr Status status_dll_not_found = static_cast<Status>(0xC0000135);
 inline constexpr Status status_entrypoint_not_found = static_cast<Status>(0xC0000139);
 
 inline constexpr std::uint32_t max_name_length = 256;
+inline constexpr std::uint32_t host_system_size = 16;
 
 // Callers zero every reserved field; the unix side rejects anything else with
 // status_invalid_parameter so later protocol versions can assign them.
@@ -37,15 +39,18 @@ struct alignas(8) LogCallParams {
     std::uint64_t name;
     std::uint32_t name_length;
     std::uint32_t reserved;
+    // Output: the unix host's uname() sysname, NUL-terminated, e.g. "Darwin".
+    char host_system[host_system_size];
 };
 
 static_assert(sizeof(QueryVersionParams) == 8);
 static_assert(offsetof(QueryVersionParams, version) == 0);
 static_assert(offsetof(QueryVersionParams, reserved) == 4);
-static_assert(sizeof(LogCallParams) == 16);
+static_assert(sizeof(LogCallParams) == 32);
 static_assert(offsetof(LogCallParams, name) == 0);
 static_assert(offsetof(LogCallParams, name_length) == 8);
 static_assert(offsetof(LogCallParams, reserved) == 12);
+static_assert(offsetof(LogCallParams, host_system) == 16);
 
 inline std::uint64_t to_address(const void* pointer) noexcept {
     return reinterpret_cast<std::uintptr_t>(pointer);

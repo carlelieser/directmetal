@@ -1,7 +1,9 @@
 #include <directmetal/unixlib.hpp>
 
 #include <cstdio>
+#include <cstring>
 #include <iterator>
+#include <sys/utsname.h>
 
 namespace directmetal {
 namespace {
@@ -17,8 +19,18 @@ Status query_version(void* params) noexcept {
     return status_success;
 }
 
+Status write_host_system(LogCallParams& call) noexcept {
+    utsname host{};
+    if (uname(&host) != 0) {
+        return status_unsuccessful;
+    }
+    std::strncpy(call.host_system, host.sysname, sizeof(call.host_system) - 1);
+    call.host_system[sizeof(call.host_system) - 1] = '\0';
+    return status_success;
+}
+
 Status log_call(void* params) noexcept {
-    const auto* call = static_cast<const LogCallParams*>(params);
+    auto* call = static_cast<LogCallParams*>(params);
     if (call == nullptr) {
         return status_invalid_parameter;
     }
@@ -28,7 +40,7 @@ Status log_call(void* params) noexcept {
     }
     std::fprintf(stderr, "directmetal: call %.*s\n", static_cast<int>(call->name_length),
                  from_address<const char>(call->name));
-    return status_success;
+    return write_host_system(*call);
 }
 
 } // namespace
