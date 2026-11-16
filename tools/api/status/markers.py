@@ -8,7 +8,9 @@ from .catalog import Catalog
 from .errors import StatusError
 
 MARKER = re.compile(r'\bDM_(IMPL|STUB|STUB_RETURN|STUB_VOID)\s*\(\s*"([^"]*)"')
-COMMENT = re.compile(r"/\*.*?\*/|//[^\n]*", re.DOTALL)
+LEXEME = re.compile(
+    r"""(?P<literal>"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')|/\*.*?\*/|//[^\n]*""", re.DOTALL
+)
 SOURCE_SUFFIXES = {".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".inl", ".mm"}
 IMPLEMENTED = "implemented"
 STUB = "stub"
@@ -23,8 +25,14 @@ class Marker:
 
 
 def blank_comments(text: str) -> str:
-    """Replaces comments with spaces so line numbers stay correct."""
-    return COMMENT.sub(lambda match: re.sub(r"[^\n]", " ", match.group(0)), text)
+    """Replaces comments with spaces so line numbers stay correct; literals are kept."""
+    return LEXEME.sub(blank_unless_literal, text)
+
+
+def blank_unless_literal(match: re.Match) -> str:
+    if match["literal"] is not None:
+        return match.group(0)
+    return re.sub(r"[^\n]", " ", match.group(0))
 
 
 def read_source(path: Path) -> str:

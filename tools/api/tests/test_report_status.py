@@ -100,6 +100,22 @@ class ReportStatusTest(FixtureTestCase):
         self.assertEqual(methods["ID3D11Device::CreateBuffer"]["state"], "missing")
         self.assertEqual(methods["D3D11CreateDevice"]["state"], "missing")
 
+    def test_comment_openers_inside_literals_do_not_hide_markers(self) -> None:
+        source = [
+            'const char* pattern = "shaders/*.metal";',
+            """const char quote = '"'; const char* glob = "a/*b";""",
+            "HRESULT Device::CreateBuffer() {",
+            '    DM_IMPL("ID3D11Device::CreateBuffer");',
+            "}",
+            'const char* url = "see http://example.com"; /* trailing */',
+            'void D3D11CreateDevice() { DM_STUB_VOID("D3D11CreateDevice"); }',
+        ]
+        self.fixture.write("src/device.cpp", "\n".join(source))
+        self.run_ok()
+        methods = self.fixture.methods()
+        self.assertEqual(methods["ID3D11Device::CreateBuffer"]["state"], "implemented")
+        self.assertEqual(methods["D3D11CreateDevice"]["location"], "device.cpp:7")
+
     def test_stub_marker_outranks_implementation_in_either_order(self) -> None:
         self.fixture.write("src/a.cpp", 'DM_IMPL("ID3D11Device::CreateBuffer");')
         self.fixture.write("src/b.cpp", 'DM_STUB("ID3D11Device::CreateBuffer");')
