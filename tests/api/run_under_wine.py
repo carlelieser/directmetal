@@ -87,11 +87,11 @@ def wine_environment(staging: Staging) -> dict[str, str]:
     return environment
 
 
-def run_program(wine: Path, staging: Staging, program: Path) -> subprocess.CompletedProcess:
+def run_program(wine: Path, staging: Staging, command: list[str]) -> subprocess.CompletedProcess:
     environment = wine_environment(staging)
     try:
         return subprocess.run(
-            [str(wine), str(staging.app_dir / program.name)],
+            [str(wine), str(staging.app_dir / command[0]), *command[1:]],
             env=environment,
             capture_output=True,
             text=True,
@@ -123,6 +123,7 @@ def parse_arguments(arguments: list[str]) -> argparse.Namespace:
     parser.add_argument("--dll", type=Path, action="append", default=[], help="app-local DLL")
     parser.add_argument("--builtin", type=Path, action="append", default=[], help="builtin DLL")
     parser.add_argument("--unix-library", type=Path, help="omit to test without the unix side")
+    parser.add_argument("--program-arg", action="append", default=[], help="program argument")
     parser.add_argument("--work-dir", type=Path, required=True)
     parser.add_argument("--expect", action="append", default=[], help="required stderr line")
     return parser.parse_args(arguments)
@@ -137,7 +138,7 @@ def main(arguments: list[str]) -> int:
     except SetupError as error:
         print(f"run_under_wine: {error}", file=sys.stderr)
         return 1
-    result = run_program(wine, staging, options.program)
+    result = run_program(wine, staging, [options.program.name, *options.program_arg])
     sys.stdout.write(result.stdout)
     sys.stderr.write(result.stderr)
     problems = failures(result, options.expect)
