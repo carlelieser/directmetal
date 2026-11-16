@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  lint:
+    runs-on: macos-26
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-tools
+      - name: clang-format
+        run: |
+          git ls-files -z '*.c' '*.cc' '*.cpp' '*.h' '*.hpp' '*.m' '*.mm' \
+            | xargs -0 clang-format --dry-run --Werror
+      - name: ruff format
+        run: ruff format --check
+      - name: ruff check
+        run: ruff check
+
+  build-unix:
+    runs-on: macos-26
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-tools
+      - name: Build and test unix (x86_64)
+        run: tools/build.sh --test unix
+      - name: Build and test unix-arm64
+        run: tools/build.sh --test unix-arm64
+      - name: API tooling unit tests
+        run: |
+          if [[ -d tools/api/tests ]]; then
+            python -I -m unittest discover -s tools/api/tests
+          else
+            echo "::notice::tools/api/tests does not exist; no API tooling tests to run"
+          fi
+
+  sanitize:
+    runs-on: macos-26
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-tools
+      - name: Build and test with ASan and UBSan
+        run: tools/build.sh --test sanitize
