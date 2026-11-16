@@ -16,7 +16,8 @@ fail() {
   exit 1
 }
 
-# Sanitizers build arm64: ASan aborts during process start-up under Rosetta 2.
+# Sanitizers build arm64. ASan is broken on macOS 27 for both architectures, so CI runs this
+# target on hosted runners with earlier macOS releases.
 set_setup_options() {
   case "$1" in
     win64) setup_options=(--cross-file=toolchains/win64.ini) ;;
