@@ -23,6 +23,12 @@ class Requirement:
     is_percentage: bool
 
 
+def limit_problem(limit: str, is_percentage: bool) -> str | None:
+    if is_percentage:
+        return "percentage must be at most 100%" if float(limit) > 100 else None
+    return "count must be a whole number" if "." in limit else None
+
+
 def parse_requirement(text: str) -> Requirement:
     match = REQUIREMENT.fullmatch(text)
     if match is None:
@@ -31,6 +37,9 @@ def parse_requirement(text: str) -> Requirement:
         )
     if match["metric"] not in METRICS:
         raise StatusError(f"parse requirement '{text}': metric must be one of {', '.join(METRICS)}")
+    problem = limit_problem(match["limit"], match["percent"] == "%")
+    if problem is not None:
+        raise StatusError(f"parse requirement '{text}': {problem}")
     return Requirement(
         text,
         match["group"],
@@ -46,7 +55,12 @@ def measured(requirement: Requirement, status: GroupStatus) -> float:
     if not requirement.is_percentage:
         return count
     in_scope = len(status.in_scope())
-    return 100 * count / in_scope if in_scope else 0.0
+    if in_scope == 0:
+        raise StatusError(
+            f"check requirement '{requirement.text}': group '{status.group}' has no in-scope "
+            "entries, so a percentage is undefined"
+        )
+    return 100 * count / in_scope
 
 
 def failures(requirements: list[Requirement], statuses: list[GroupStatus]) -> list[str]:

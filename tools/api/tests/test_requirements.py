@@ -35,6 +35,17 @@ class RequirementTest(FixtureTestCase):
         self.assertIn("metric must be one of", self.run_failing("--require", "d3d11:passing>=1"))
         self.assertIn("unknown group 'd3d13'", self.run_failing("--require", "d3d13:tested>=1"))
 
+    def test_rejects_out_of_range_limits(self) -> None:
+        self.assertIn("at most 100%", self.run_failing("--require", "d3d11:tested>=100.5%"))
+        self.assertIn("whole number", self.run_failing("--require", "d3d11:implemented>=1.5"))
+        self.run_ok("--require", "d3d11:tested<=100%", "--require", "d3d11:stub<=0.0%")
+
+    def test_rejects_percentage_for_group_without_in_scope_entries(self) -> None:
+        stderr = self.run_failing("--require", "d3d9:tested>=1%")
+        self.assertIn("check requirement 'd3d9:tested>=1%'", stderr)
+        self.assertIn("no in-scope entries", stderr)
+        self.run_ok("--require", "d3d9:tested<=0")
+
 
 if __name__ == "__main__":
     unittest.main()
