@@ -50,11 +50,15 @@ def call_log_dirs(arguments: argparse.Namespace) -> list[Path]:
 
 
 def write_report(statuses: list[GroupStatus], output: Path) -> None:
-    output.mkdir(parents=True, exist_ok=True)
-    for status in statuses:
-        (output / f"{status.group}.md").write_text(to_markdown(status), encoding="utf-8")
-    (output / "SUMMARY.md").write_text(summary_markdown(statuses), encoding="utf-8")
-    (output / "status.json").write_text(to_json(statuses), encoding="utf-8")
+    files = {f"{status.group}.md": to_markdown(status) for status in statuses}
+    files["SUMMARY.md"] = summary_markdown(statuses)
+    files["status.json"] = to_json(statuses)
+    try:
+        output.mkdir(parents=True, exist_ok=True)
+        for name, text in files.items():
+            (output / name).write_text(text, encoding="utf-8")
+    except OSError as error:
+        raise StatusError(f"write report to {output}: {error}") from error
 
 
 def run(arguments: argparse.Namespace) -> int:

@@ -7,6 +7,7 @@ from pathlib import Path
 from inventory.directx_parser import DIRECTX_GROUPS, ROOT_METHODS
 
 from .errors import StatusError
+from .inventory_shape import shape_problem
 
 IMPLICIT_GROUP = "common"
 SEPARATOR = "::"
@@ -69,9 +70,13 @@ class Catalog:
 
 def read_inventory(path: Path) -> dict:
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
+        document = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError) as error:
         raise StatusError(f"load inventory {path}: {error}") from error
+    problem = shape_problem(document)
+    if problem is not None:
+        raise StatusError(f"load inventory {path}: {problem}")
+    return document
 
 
 def add_group(catalog: Catalog, group: str, document: dict) -> None:
