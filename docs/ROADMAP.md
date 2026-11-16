@@ -53,6 +53,21 @@ Recorded in [architecture decision records](adr/README.md).
 | Build | Meson; LLVM-MinGW cross file for PE, Apple clang for the unix side. [ADR 0004](adr/0004-build-system.md) |
 | Platform | Apple silicon only; macOS 14 for D3D9–11, macOS 26 (Metal 4) for D3D12; x86_64 unix side under Rosetta 2. [ADR 0005](adr/0005-platform-targets.md) |
 | Shaders | D3D9 bytecode, DXBC and DXIL front ends into DirectMetal IR; MSL backend, AIR from Phase 8. No SPIR-V, no Metal Shader Converter. [ADR 0006](adr/0006-shader-pipeline.md) |
+| Testing | Windows (WARP) output is the reference; tiered suites from unit to trace replay and performance. [ADR 0007](adr/0007-testing-strategy.md) |
+
+## Testing
+
+Defined in [ADR 0007](adr/0007-testing-strategy.md). Windows (WARP) is the oracle: the same test programs run there and their recorded outputs are the expected results on macOS.
+
+| Tier | Gate |
+| --- | --- |
+| Unit, shader compile (MSL must compile with `xcrun metal`) | Every pull request, hosted runners |
+| Shader execution, API tests (native bridge and under Wine) | Every pull request, self-hosted Apple silicon |
+| Wine and vkd3d-proton conformance suites, trace replay | Nightly |
+| Performance (fails on >5% frame-time regression) | Nightly, dedicated machine |
+| Fuzzing of bytecode readers and bridge decoding | Continuous |
+
+All GPU tests run with Metal API and shader validation enabled; any validation error is a failure.
 
 ## Phases
 
@@ -60,11 +75,13 @@ Each phase ends in a working, tested state. Phases 4–7 depend on 1–3; 5 depe
 
 ### Phase 0 — Foundations
 
-- Meson build producing empty PE DLLs and a unix library loadable by Wine; CI on macOS runners (build, lint, unit tests).
+- Meson build producing empty PE DLLs and a unix library loadable by Wine.
+- CI: hosted macOS runners (build, lint, unit tests), a Windows job, and one self-hosted Apple silicon runner with Wine installed.
+- GoogleTest wired into Meson; ASan/UBSan build configuration.
 - Coding standards, formatter config, contribution guide, issue templates.
-- API inventory tooling (done: `tools/api/`) extended to emit per-interface coverage reports.
+- API inventory tooling (done: `tools/api/`) extended to report, per method, implementation status and test coverage.
 
-**Exit:** `d3d11.dll` stub loads in Wine on macOS, logs a call that crosses into the unix side, and returns `E_NOTIMPL`.
+**Exit:** `d3d11.dll` stub loads in Wine on macOS, logs a call that crosses into the unix side, and returns `E_NOTIMPL`; this is asserted by an API test running in CI.
 
 ### Phase 1 — Core runtime and Metal backend
 
@@ -72,9 +89,11 @@ Each phase ends in a working, tested state. Phases 4–7 depend on 1–3; 5 depe
 - Logging, per-application configuration, environment overrides, HUD hook points.
 - Bridge: argument marshalling, WoW64 pointer thunks, command-stream batching to minimise PE↔unix transitions.
 - Metal backend: `MTLDevice` selection and capability database, buffer/texture allocation over `MTLHeap`, upload/readback rings, CS-thread submission, `MTLSharedEvent` timelines.
+- Native in-process bridge so front ends run in macOS test processes without Wine.
+- Windows reference job: runs API test programs on WARP and records readbacks, images and return codes.
 - Format tables for `DXGI_FORMAT` (123 values) and `D3DFORMAT` with support flags, substitutions (e.g. `D24_UNORM_S8_UINT` → `Depth32Float_Stencil8`, 3-component formats via buffers) and view-format compatibility.
 
-**Exit:** unit tests cover format mapping and allocator behavior; a native test harness clears and reads back a texture through the backend.
+**Exit:** unit tests cover every `DXGI_FORMAT` mapping and allocator behavior; an API test clears and reads back a texture and matches the Windows reference, with Metal validation enabled.
 
 ### Phase 2 — DXGI and presentation
 
@@ -82,7 +101,7 @@ Each phase ends in a working, tested state. Phases 4–7 depend on 1–3; 5 depe
 - Swap chains (`IDXGISwapChain`–`IDXGISwapChain4`) on `CAMetalLayer`: flip/blit models, sync intervals, resize, frame latency waitable objects, fullscreen transitions.
 - HDR10/scRGB output through EDR and colorspace metadata (later in phase).
 
-**Exit:** a D3D11 test app presents a cleared back buffer at the display refresh rate and survives window resize and fullscreen toggling.
+**Exit:** API tests present at the display refresh rate and pass resize and fullscreen transitions; Wine's `dlls/dxgi/tests` pass at 90% or better, with every failure tracked as an issue.
 
 ### Phase 3 — Shader compiler infrastructure
 
@@ -90,9 +109,10 @@ Each phase ends in a working, tested state. Phases 4–7 depend on 1–3; 5 depe
 - DXBC reader (SM4.0–5.0), signature and reflection parsing (`ID3D11ShaderReflection`).
 - MSL emitter, binding layout generator, specialization for state-dependent variants (e.g. alpha test, sample count).
 - On-disk shader and pipeline cache keyed by bytecode hash and state.
-- Test corpus: HLSL compiled to DXBC with [vkd3d-shader](https://gitlab.winehq.org/wine/vkd3d), executed on GPU with result comparison.
+- Shader test format and corpus: HLSL compiled with `fxc`/`dxc` on the Windows job, executed on WARP for expected output, then executed through DirectMetal and compared.
+- libFuzzer target for the DXBC reader.
 
-**Exit:** vertex, pixel and compute SM5 corpus compiles and produces reference-matching output.
+**Exit:** every SM4/SM5 corpus shader (vertex, pixel, compute) emits MSL that compiles and produces output matching the Windows reference; the DXBC fuzzer runs for 24 hours without a crash.
 
 ### Phase 4 — Direct3D 11
 
@@ -117,7 +137,7 @@ Each phase ends in a working, tested state. Phases 4–7 depend on 1–3; 5 depe
 - `IDirect3D9`/`IDirect3D9Ex`, devices, swap chains, resources with `D3DPOOL` semantics, lost/reset devices.
 - Render, sampler and texture-stage state model; state blocks.
 - Fixed-function pipeline generated as shaders (lighting, fog, texture stages, vertex blending).
-- D3D9 shader bytecode (vs/ps 1.1–3.0) front end into DirectMetal IR.
+- D3D9 shader bytecode (vs/ps 1.1–3.0) front end into DirectMetal IR, with its own fuzzer and corpus.
 - D3D9 conventions: half-pixel offset, clip planes, point sprites, `D3DFMT` FOURCC extensions used by games (`INTZ`, `DF24`, `ATI1/ATI2`, `NULL`).
 - 32-bit application support through WoW64.
 
@@ -130,7 +150,7 @@ Each phase ends in a working, tested state. Phases 4–7 depend on 1–3; 5 depe
 - Heaps, placed and reserved resources on `MTLHeap` and sparse textures; residency via `MTLResidencySet`.
 - Resource barriers and enhanced barriers mapped to Metal 4 barriers; fences on `MTLSharedEvent`.
 - Pipeline state objects and pipeline state streams; `ExecuteIndirect` via indirect command buffers or compute-generated arguments; bundles.
-- DXBC SM5.1 and DXIL SM6.0–6.6 front ends into DirectMetal IR (wave ops, 16-bit types, dynamic resources).
+- DXBC SM5.1 and DXIL SM6.0–6.6 front ends into DirectMetal IR (wave ops, 16-bit types, dynamic resources), with fuzzers and corpus coverage.
 - Mesh shaders on Metal mesh pipelines; DXR 1.0/1.1 on Metal ray tracing. Variable-rate shading, sampler feedback and work graphs are reported unsupported through `CheckFeatureSupport`.
 
 **Exit:** vkd3d-proton's D3D12 test suite passes at 90% or better, with every failure tracked as an issue; three representative D3D12 titles render correctly at feature level 12_0.
@@ -139,13 +159,20 @@ Each phase ends in a working, tested state. Phases 4–7 depend on 1–3; 5 depe
 
 - Asynchronous pipeline compilation, cache prewarming, state deduplication, encoder merging.
 - Frame-time HUD, Metal GPU capture integration, per-title configuration database.
-- Public compatibility list and automated regression runs with captured frame comparisons.
+- Trace corpus: apitrace (D3D9–11) and GFXReconstruct (D3D12) captures replayed nightly under Wine, frames compared with the Windows replay.
+- Performance baselines per trace on the dedicated machine.
+- Public compatibility list generated from trace and conformance results.
+
+**Exit:** nightly trace replay covers at least 20 titles across D3D9–12 with all compared frames within tolerance; performance gate active.
 
 ### Phase 9 — Distribution
 
 - Release packaging consumable by Wine-based runtimes; versioning and changelog policy.
 - Native macOS SDK: arm64 library with DirectX-compatible headers, sharing the backend and front ends.
 - User and contributor documentation.
+- The full test suite runs against the native SDK bridge as well as Wine.
+
+**Exit:** a tagged release passes every gate in [Testing](#testing) on macOS 14 and 26.
 
 ## Concept mapping
 
@@ -175,7 +202,8 @@ Each phase ends in a working, tested state. Phases 4–7 depend on 1–3; 5 depe
 | PE↔unix transition overhead | Batched command streams instead of per-call transitions. |
 | Binding-model limits (Metal 31 buffer slots per stage) | Argument buffers from the start, not as a later optimisation. |
 | Wine/macOS integration changes (`winemac.drv`, WoW64) | Track upstream Wine; keep the bridge layer small and versioned. |
-| Undocumented driver behavior games rely on | Conformance tests from Wine and vkd3d-proton; per-title workarounds behind configuration. |
+| Undocumented driver behavior games rely on | Windows reference outputs, Wine and vkd3d-proton conformance suites, trace replay; per-title workarounds behind configuration. |
+| GPU test infrastructure cost (self-hosted Macs, Windows CI) | Provisioned in Phase 0; hosted runners cover every tier that needs no GPU. |
 
 ## Prior art
 
@@ -186,5 +214,6 @@ License determines reuse under [ADR 0001](adr/0001-license.md):
 - [DXMT](https://github.com/3Shain/dxmt) (LGPL-2.1) — D3D10/11 on Metal via Wine.
 - [MoltenVK](https://github.com/KhronosGroup/MoltenVK) (Apache-2.0) — Vulkan on Metal.
 - [DirectXShaderCompiler](https://github.com/microsoft/DirectXShaderCompiler) (NCSA) — DXIL format and bitcode reader.
-- Wine, `wined3d` and `vkd3d` (LGPL-2.1) — reference behavior; test suites used in Phases 4–6.
+- Wine, `wined3d` and `vkd3d` (LGPL-2.1) — reference behavior; test suites used in Phases 2 and 4–6.
+- [apitrace](https://github.com/apitrace/apitrace) (MIT) and [GFXReconstruct](https://github.com/LunarG/gfxreconstruct) (MIT) — trace capture and replay.
 - Apple Game Porting Toolkit (D3DMetal) and Metal Shader Converter — closed source; behavioral reference only.
