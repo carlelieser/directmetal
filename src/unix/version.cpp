@@ -1,6 +1,6 @@
 #include <directmetal/version.hpp>
 
-namespace directmetal {
+namespace   directmetal   {
 
 std::string_view version() noexcept {
     return DIRECTMETAL_VERSION;
