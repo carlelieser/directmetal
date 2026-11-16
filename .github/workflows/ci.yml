@@ -152,8 +152,7 @@ jobs:
           path: build/wine-api/meson-logs/
 
   api-status:
-    needs: [build-unix, wine-api]
-    if: ${{ !cancelled() && !failure() }}
+    needs: build-unix
     runs-on: macos-26
     timeout-minutes: 10
     steps:
