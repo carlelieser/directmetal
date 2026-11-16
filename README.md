@@ -20,6 +20,10 @@ ASan is known to be broken on macOS 27: x86_64 processes abort at start-up and a
 
 Format C++ with `clang-format -i` and Python with `ruff format`.
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) and the [coding standards](docs/CODING_STANDARDS.md).
+
 ## License
 
 [MIT](LICENSE).
