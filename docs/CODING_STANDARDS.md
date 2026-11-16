@@ -1,25 +1,22 @@
 # Coding standards
 
-These rules apply to every change. Architecture decisions live in the [ADRs](adr/README.md) and are referenced, not restated, here. A rule changes only through a pull request that edits this file.
+These rules apply to every change. Architecture decisions live in the [ADRs](adr/README.md) and are linked, not restated, here. A rule changes only through a pull request that edits this file.
 
-## Languages
+## Languages and boundaries
 
-- C++20 everywhere ([ADR 0003](adr/0003-language.md)).
-- Objective-C++ (`.mm`, ARC) only under `src/backend`, behind a C++ interface. Backend headers contain no Objective-C types and no Apple framework includes.
-- PE-side code (`src/pe`) is plain C++ with no Apple framework dependencies. API front ends and the Metal backend have no Wine dependency; only the platform bridge does ([ADR 0002](adr/0002-delivery-model.md)).
-- `directmetal.dll` and `directmetal.so` are the only PE↔unix boundary. API DLLs never call the unix side directly ([ADR 0008](adr/0008-wine-bridge-module.md)).
+- C++20, with Objective-C++ confined to the Metal backend ([ADR 0003](adr/0003-language.md)).
+- Wine dependencies and the PE↔unix boundary follow [ADR 0002](adr/0002-delivery-model.md) and [ADR 0008](adr/0008-wine-bridge-module.md).
 - Python 3.12 for tooling under `tools/`.
 
 ## License
 
-DirectMetal is MIT ([ADR 0001](adr/0001-license.md)).
-
-- Never copy or translate code from Wine, vkd3d, vkd3d-proton, DXMT or any other LGPL/GPL project, including by porting it line by line to another language or structure. Study their behavior and tests; implement from documentation, tests and observation.
-- Permissively licensed code (MIT, zlib, BSD, NCSA, Apache-2.0) may be incorporated only under `third_party/` with its license notice intact.
+- Never copy or translate LGPL/GPL code ([ADR 0001](adr/0001-license.md)).
+- Permissively licensed code may be incorporated or adapted under ADR 0001, keeping its notices. Adapted code lives with first-party sources, e.g. DXIL reader code derived from DirectXShaderCompiler in `src/` ([ADR 0006](adr/0006-shader-pipeline.md)), and keeps its original copyright header. Vendored, unmodified copies live under `third_party/`.
 
 ## Formatting
 
-- `clang-format` formats C++ and Objective-C++ using the root `.clang-format`. `ruff format` formats Python using `ruff.toml`. No other formatter is used and no file is exempt.
+- First-party sources are formatted with `clang-format` (C++ and Objective-C++, root `.clang-format`) and `ruff format` (Python, `ruff.toml`). No other formatter is used.
+- Vendored code under `third_party/` and generated files such as `docs/api/` are exempt.
 - Python also passes `ruff check`.
 - Formatting changes go in their own commit, separate from behavior changes.
 
@@ -39,11 +36,12 @@ DirectMetal is MIT ([ADR 0001](adr/0001-license.md)).
 - Booleans start with `is`, `has` or `can`.
 - No module, file or namespace named `utils`, `helpers`, `common` or `misc`.
 - Use the vocabulary of the API being implemented: Direct3D terms in front ends, Metal terms in the backend.
+- Match the vocabulary already used in the codebase.
 
 ## Error handling
 
-- `HRESULT` is the typed failure for COM methods and for internal functions that feed them. Return the code the Windows runtime returns for the same input; ADR 0007's Windows reference decides when documentation is silent.
-- No exception crosses a COM method or the `directmetal.dll`↔`directmetal.so` boundary. COM methods and bridge entry points are `noexcept`; internal code that can throw (allocation, standard library) is caught at that boundary and converted (`std::bad_alloc` → `E_OUTOFMEMORY`).
+- `HRESULT` is the typed failure for COM methods and for internal functions that feed them. Return the code Windows returns for the same input; the Windows reference ([ADR 0007](adr/0007-testing-strategy.md)) decides when documentation is silent.
+- No exception crosses a COM method or the bridge boundary. COM methods and bridge entry points are `noexcept`; internal code that can throw (allocation, standard library) is caught at that boundary and converted (`std::bad_alloc` → `E_OUTOFMEMORY`).
 - Unimplemented methods return `E_NOTIMPL` and log the interface and method once. They never return `S_OK`.
 - No empty or log-only `catch`, and no `catch` that returns a default hiding the failure. Catch only what this layer can convert or handle.
 - Log and error messages name the operation and its identifying input (interface, method, format, size).
@@ -51,19 +49,16 @@ DirectMetal is MIT ([ADR 0001](adr/0001-license.md)).
 
 ## Organization
 
-- Layers depend only on layers above them, in the order given in the [roadmap](ROADMAP.md#architecture): platform bridge, Metal backend, shared translation services, API front ends. No circular dependencies between directories.
+- Dependencies point one way: API front ends → shared translation services → Metal backend. Only the bridge (`directmetal.dll` / `directmetal.so`) touches Wine. No circular dependencies between directories.
 - Public headers live under `include/directmetal/` in each component. Everything else is private to its component.
 - Shared libraries build with hidden symbol visibility. Exports are marked explicitly (`DIRECTMETAL_UNIX_API`) or listed in the DLL's `.def` file.
 
 ## Testing
 
-Test tiers, gates and infrastructure are defined in [ADR 0007](adr/0007-testing-strategy.md). In addition:
+Tiers, gates, Metal validation and tolerances follow [ADR 0007](adr/0007-testing-strategy.md). In addition:
 
-- Tests assert observable behavior through public interfaces: COM methods, the backend's C++ interface, the shader compiler's input and output. Never internals.
-- Every bug fix ships with a regression test at the lowest tier that reproduces it, and that test fails without the fix.
+- A bug fix's regression test fails without the fix.
 - Before claiming a test works, break the implementation and confirm the test fails.
-- GPU tests run with `MTL_DEBUG_LAYER=1` and `MTL_SHADER_VALIDATION=1`. A validation error is a failure.
-- Image tolerances are tightened, never loosened without review.
 
 ## Comments
 
