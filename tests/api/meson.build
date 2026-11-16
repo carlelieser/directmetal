@@ -51,3 +51,20 @@ test(
     suite: 'api',
     timeout: 180,
 )
+
+# Phase 0 exit gate (docs/ROADMAP.md). Runs alone after the Wine tests have written their logs.
+test(
+    'd3d11_status_gate',
+    python,
+    args: [
+        '-I', files('../../tools/api/report_status.py'),
+        '--call-log-dir', api_call_log_dir,
+        '--output', meson.current_build_dir() / 'api-status',
+        '--require', 'd3d11:stub>=1',
+        '--require', 'd3d11:tested>=1',
+    ],
+    suite: 'api',
+    priority: -1,
+    is_parallel: false,
+    timeout: 60,
+)
