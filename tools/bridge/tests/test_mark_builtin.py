@@ -8,13 +8,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from mark_builtin import BUILTIN_SIGNATURE, ImageError, main, mark_builtin  # noqa: E402
 
-DOS_STUB = b"This program cannot be run in DOS mode.\r\r\n$".ljust(0x40, b"\0")
+LLD_DOS_STUB = (
+    bytes.fromhex("0e1fba0e00b409cd21b8014ccd21") + b"This program cannot be run in DOS mode.$"
+).ljust(0x40, b"\0")
 
 
 def pe_image(nt_offset: int = 0x80) -> bytes:
     header = bytearray(b"MZ".ljust(0x40, b"\0"))
     struct.pack_into("<I", header, 0x3C, nt_offset)
-    image = bytearray(bytes(header) + DOS_STUB + bytes(range(64)))
+    image = bytearray(bytes(header) + LLD_DOS_STUB + bytes(range(64)))
     image[nt_offset : nt_offset + 4] = b"PE\0\0"
     return bytes(image)
 
@@ -39,6 +41,12 @@ class MarkBuiltinTest(unittest.TestCase):
     def test_rejects_nt_headers_inside_signature(self) -> None:
         with self.assertRaisesRegex(ImageError, "no room"):
             mark_builtin(pe_image(nt_offset=0x50))
+
+    def test_rejects_unexpected_dos_stub(self) -> None:
+        image = bytearray(pe_image())
+        image[0x40:0x44] = b"\x90\x90\x90\x90"
+        with self.assertRaisesRegex(ImageError, "unexpected DOS stub"):
+            mark_builtin(bytes(image))
 
     def test_rejects_missing_dos_header(self) -> None:
         with self.assertRaisesRegex(ImageError, "DOS header"):

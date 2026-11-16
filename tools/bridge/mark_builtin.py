@@ -2,6 +2,11 @@
 
 Wine's loader treats a PE file as builtin when the bytes after its 64-byte DOS header hold the
 32-byte, NUL-padded string "Wine builtin DLL". Only builtin modules get a unix library attached.
+
+The signature replaces the start of the DOS stub, the 16-bit program that prints "This program
+cannot be run in DOS mode". Only DOS executes it; Windows and Wine locate the PE headers through
+e_lfanew and never read the stub. The tool still refuses any stub other than the one lld emits, so
+an unexpected linker layout fails the build instead of being overwritten.
 """
 
 import argparse
@@ -13,6 +18,7 @@ DOS_HEADER_SIZE = 0x40
 NT_HEADERS_OFFSET_FIELD = 0x3C
 BUILTIN_SIGNATURE = b"Wine builtin DLL".ljust(32, b"\0")
 SIGNATURE_END = DOS_HEADER_SIZE + len(BUILTIN_SIGNATURE)
+LLD_DOS_STUB_START = bytes.fromhex("0e1fba0e00b409cd21b8014ccd21") + b"This program canno"
 
 
 class ImageError(Exception):
@@ -32,6 +38,9 @@ def mark_builtin(image: bytes) -> bytes:
     offset = nt_headers_offset(image)
     if offset < SIGNATURE_END:
         raise ImageError(f"e_lfanew {offset:#x} leaves no room for the builtin signature")
+    stub_start = image[DOS_HEADER_SIZE:SIGNATURE_END]
+    if stub_start not in (LLD_DOS_STUB_START, BUILTIN_SIGNATURE):
+        raise ImageError(f"unexpected DOS stub {stub_start.hex()}; expected the one lld emits")
     return image[:DOS_HEADER_SIZE] + BUILTIN_SIGNATURE + image[SIGNATURE_END:]
 
 
