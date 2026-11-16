@@ -3,6 +3,11 @@
 #include <atomic>
 #include <cstdint>
 
+#ifdef _WIN32
+// HRESULT and E_NOTIMPL for DM_STUB.
+#include <windows.h>
+#endif
+
 // Source markers read by tools/api/report_status.py; recording follows docs/api/README.md.
 namespace directmetal::frontends {
 

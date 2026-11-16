@@ -13,6 +13,12 @@ d3d11_create_device = executable(
     link_args: '-static',
 )
 
+static_library(
+    'markers_header_check',
+    'markers_header_check.cpp',
+    dependencies: frontend_markers_dep,
+)
+
 d3d11_create_device_args = [
     files('run_under_wine.py'),
     '--arch', api_arch,
