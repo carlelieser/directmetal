@@ -57,18 +57,19 @@ class TestFiles:
     program: Path
     dlls: list[Path]
     builtins: list[Path]
-    unix_library: Path
+    unix_library: Path | None
 
 
 def stage(files: TestFiles, arch: str, work_dir: Path) -> Staging:
-    if not files.unix_library.is_file():
+    if files.unix_library is not None and not files.unix_library.is_file():
         raise SetupError(f"missing {files.unix_library}; build the unix target first")
     work_dir = work_dir.resolve()
     shutil.rmtree(work_dir, ignore_errors=True)
     staging = Staging(work_dir / "app", work_dir / "dlls", work_dir / "prefix")
     copy_into(staging.app_dir, [files.program, *files.dlls])
     copy_into(staging.dll_path / PE_DIRS[arch], files.builtins)
-    copy_into(staging.dll_path / UNIX_DIR, [files.unix_library])
+    if files.unix_library is not None:
+        copy_into(staging.dll_path / UNIX_DIR, [files.unix_library])
     return staging
 
 
@@ -113,7 +114,7 @@ def parse_arguments(arguments: list[str]) -> argparse.Namespace:
     parser.add_argument("--program", type=Path, required=True)
     parser.add_argument("--dll", type=Path, action="append", default=[], help="app-local DLL")
     parser.add_argument("--builtin", type=Path, action="append", default=[], help="builtin DLL")
-    parser.add_argument("--unix-library", type=Path, required=True)
+    parser.add_argument("--unix-library", type=Path, help="omit to test without the unix side")
     parser.add_argument("--work-dir", type=Path, required=True)
     parser.add_argument("--expect", action="append", default=[], help="required stderr line")
     return parser.parse_args(arguments)
