@@ -38,9 +38,15 @@ Status log_call(void* params) noexcept {
     if (!has_valid_name || call->reserved != 0) {
         return status_invalid_parameter;
     }
+    // The reply is written first so a failure never follows a printed line: the PE side would
+    // otherwise report a logged call as not logged.
+    const Status status = write_host_system(*call);
+    if (status < 0) {
+        return status;
+    }
     std::fprintf(stderr, "directmetal: call %.*s\n", static_cast<int>(call->name_length),
                  from_address<const char>(call->name));
-    return write_host_system(*call);
+    return status_success;
 }
 
 } // namespace
