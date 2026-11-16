@@ -60,3 +60,41 @@ jobs:
       - uses: ./.github/actions/setup-tools
       - name: Build and test with ASan and UBSan
         run: tools/build.sh --test sanitize
+
+  build-pe:
+    runs-on: macos-26
+    timeout-minutes: 20
+    env:
+      LLVM_MINGW_VERSION: "20261104"
+      LLVM_MINGW_RELEASE: llvm-mingw-20261104-ucrt-macos-universal
+      LLVM_MINGW_SHA256: 66cbd5178c4a71b0d473e68ede172f8eb7d15d023e67f39201d0a69e21f6bf3c
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-tools
+      - name: Locate LLVM-MinGW
+        run: echo "DIRECTMETAL_LLVM_MINGW=$RUNNER_TEMP/llvm-mingw" >> "$GITHUB_ENV"
+      - id: llvm-mingw-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ env.DIRECTMETAL_LLVM_MINGW }}
+          key: ${{ env.LLVM_MINGW_RELEASE }}
+      - name: Install LLVM-MinGW
+        if: steps.llvm-mingw-cache.outputs.cache-hit != 'true'
+        run: |
+          archive="$RUNNER_TEMP/$LLVM_MINGW_RELEASE.tar.xz"
+          curl -fsSL -o "$archive" \
+            "https://github.com/mstorsjo/llvm-mingw/releases/download/$LLVM_MINGW_VERSION/$LLVM_MINGW_RELEASE.tar.xz"
+          echo "$LLVM_MINGW_SHA256  $archive" | shasum -a 256 -c
+          mkdir -p "$DIRECTMETAL_LLVM_MINGW"
+          tar -xJf "$archive" --strip-components=1 -C "$DIRECTMETAL_LLVM_MINGW"
+      - name: Build win64 and win32
+        run: tools/build.sh win64 win32
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pe-dlls
+          path: |
+            build/win64/**/*.dll
+            build/win32/**/*.dll
+          if-no-files-found: error
