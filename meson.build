@@ -12,6 +12,8 @@ project(
     ],
 )
 
+bridge_include = include_directories('src/bridge/include')
+
 if host_machine.system() == 'windows'
     subdir('src/pe')
 elif host_machine.system() == 'darwin'
