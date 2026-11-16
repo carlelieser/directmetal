@@ -7,7 +7,7 @@ if host_machine.cpu_family() == 'x86'
     pe_link_args += '-Wl,--kill-at'
 endif
 
-foreach dll : ['d3d9', 'd3d10core', 'd3d10', 'd3d11', 'd3d12', 'dxgi']
+foreach dll : ['d3d9', 'd3d10core', 'd3d10', 'd3d12', 'dxgi']
     shared_library(
         dll,
         link_whole: pe_dll_main,
