@@ -10,7 +10,7 @@ namespace {
 
 using namespace directmetal::bridge;
 
-using Dispatcher = Status(WINAPI*)(std::uint64_t handle, std::uint32_t code, void* params);
+using Dispatcher = Status(WINAPI*)(std::uint64_t handle, std::uint32_t code, void* params) noexcept;
 
 // Wine-specific MEMORY_INFORMATION_CLASS value that loads a builtin module's unix library.
 constexpr int memory_wine_load_unix_lib = 1000;
@@ -24,14 +24,14 @@ struct Connection {
 Connection connection;
 
 // ntdll exports the dispatcher as a data symbol holding the function pointer.
-Dispatcher find_dispatcher() {
+Dispatcher find_dispatcher() noexcept {
     HMODULE ntdll = GetModuleHandleW(L"ntdll.dll");
     FARPROC slot =
         ntdll == nullptr ? nullptr : GetProcAddress(ntdll, "__wine_unix_call_dispatcher");
     return slot == nullptr ? nullptr : *reinterpret_cast<Dispatcher*>(slot);
 }
 
-Connection connect(HMODULE module) {
+Connection connect(HMODULE module) noexcept {
     Connection result;
     result.dispatcher = find_dispatcher();
     if (result.dispatcher == nullptr) {
@@ -53,7 +53,7 @@ Connection connect(HMODULE module) {
 
 } // namespace
 
-extern "C" Status __cdecl directmetal_bridge_call(std::uint32_t code, void* params) {
+extern "C" Status __cdecl directmetal_bridge_call(std::uint32_t code, void* params) noexcept {
     if (connection.status < 0) {
         return connection.status;
     }
@@ -63,7 +63,7 @@ extern "C" Status __cdecl directmetal_bridge_call(std::uint32_t code, void* para
     return connection.dispatcher(connection.handle, code, params);
 }
 
-extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID) {
+extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID) noexcept {
     if (reason == DLL_PROCESS_ATTACH) {
         DisableThreadLibraryCalls(instance);
         connection = connect(instance);

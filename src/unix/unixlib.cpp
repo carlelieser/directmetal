@@ -8,7 +8,7 @@ namespace {
 
 using namespace bridge;
 
-Status query_version(void* params) {
+Status query_version(void* params) noexcept {
     auto* query = static_cast<QueryVersionParams*>(params);
     if (query == nullptr || query->reserved != 0) {
         return status_invalid_parameter;
@@ -17,7 +17,7 @@ Status query_version(void* params) {
     return status_success;
 }
 
-Status log_call(void* params) {
+Status log_call(void* params) noexcept {
     const auto* call = static_cast<const LogCallParams*>(params);
     if (call == nullptr) {
         return status_invalid_parameter;

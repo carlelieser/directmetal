@@ -5,7 +5,7 @@
 
 namespace directmetal {
 
-using UnixCallEntry = bridge::Status (*)(void* params);
+using UnixCallEntry = bridge::Status (*)(void* params) noexcept;
 
 } // namespace directmetal
 

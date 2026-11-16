@@ -9,7 +9,7 @@
 // Exported by directmetal.dll. Returns the failure that prevented connecting to directmetal.so
 // when the unix library is unavailable.
 extern "C" DIRECTMETAL_BRIDGE_API directmetal::bridge::Status __cdecl
-directmetal_bridge_call(std::uint32_t code, void* params);
+directmetal_bridge_call(std::uint32_t code, void* params) noexcept;
 
 namespace directmetal::bridge {
 
