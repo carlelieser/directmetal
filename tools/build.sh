@@ -9,28 +9,28 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 default_targets=(win64 win32 unix)
 is_testing=0
+setup_options=()
 
 # Sanitizers build arm64: ASan aborts during process start-up under Rosetta 2.
-target_options() {
+set_setup_options() {
   case "$1" in
-    win64) echo "--cross-file=toolchains/win64.ini" ;;
-    win32) echo "--cross-file=toolchains/win32.ini" ;;
-    unix) echo "--cross-file=toolchains/macos-x86_64.ini" ;;
-    unix-arm64) echo "--native-file=toolchains/macos-arm64.ini" ;;
+    win64) setup_options=(--cross-file=toolchains/win64.ini) ;;
+    win32) setup_options=(--cross-file=toolchains/win32.ini) ;;
+    unix) setup_options=(--cross-file=toolchains/macos-x86_64.ini) ;;
+    unix-arm64) setup_options=(--native-file=toolchains/macos-arm64.ini) ;;
     sanitize)
-      echo "--native-file=toolchains/macos-arm64.ini" \
-        "-Db_sanitize=${DIRECTMETAL_SANITIZERS:-address,undefined}" "-Db_lundef=false"
+      setup_options=(--native-file=toolchains/macos-arm64.ini
+        "-Db_sanitize=${DIRECTMETAL_SANITIZERS:-address,undefined}" -Db_lundef=false)
       ;;
     *) echo "unknown target: $1" >&2; return 1 ;;
   esac
 }
 
 build_target() {
-  local target="$1" build_dir="build/$1" options
-  options="$(target_options "$target")"
+  local target="$1" build_dir="build/$1"
+  set_setup_options "$target"
   if [[ ! -f "$build_dir/build.ninja" ]]; then
-    # shellcheck disable=SC2086
-    meson setup "$build_dir" $options
+    meson setup "$build_dir" "${setup_options[@]}"
   fi
   meson compile -C "$build_dir"
   if [[ "$is_testing" == 1 && "$target" != win* ]]; then
