@@ -1,0 +1,6 @@
+option(
+    'unix_library',
+    type: 'string',
+    value: '',
+    description: 'directmetal.so used by Wine API tests (default: build/unix from tools/build.sh)',
+)

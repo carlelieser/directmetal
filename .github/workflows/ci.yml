@@ -158,7 +158,9 @@ jobs:
         if: failure() && steps.target.outputs.is_available == 'true'
         with:
           name: wine-api-meson-logs
-          path: build/wine-api/meson-logs/
+          path: |
+            build/win64/meson-logs/
+            build/win32/meson-logs/
 
   api-status:
     needs: build-unix

@@ -31,6 +31,7 @@ These rules apply to every change. Architecture decisions live in the [ADRs](adr
 ## Naming
 
 - Types: `PascalCase`. Functions, variables and namespaces: `snake_case`. Macros: `DIRECTMETAL_UPPER_CASE`, and only where a macro is unavoidable.
+- Exception: the source markers `DM_IMPL`, `DM_STUB`, `DM_STUB_RETURN` and `DM_STUB_VOID` use the `DM_` prefix that the API status report scans for ([docs/api](api/README.md#source-markers)).
 - COM interfaces, their methods and Windows types keep their SDK names (`ID3D11Device::CreateBuffer`, `DXGI_FORMAT`). Metal types keep their Apple names.
 - No single-letter names except loop indices. No type suffixes (`format_enum`, `desc_struct`).
 - Booleans start with `is`, `has` or `can`.

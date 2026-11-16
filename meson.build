@@ -12,8 +12,16 @@ project(
     ],
 )
 
+bridge_include = include_directories('src/bridge/include')
+python = find_program('python3')
+
+subdir('tools/bridge')
+
 if host_machine.system() == 'windows'
     subdir('src/pe')
+    subdir('src/bridge/pe')
+    subdir('src/frontends')
+    subdir('tests/api')
 elif host_machine.system() == 'darwin'
     macos_min_version = '-mmacosx-version-min=14.0'
     add_global_arguments(macos_min_version, language: ['cpp', 'objcpp'])
