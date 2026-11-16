@@ -78,7 +78,7 @@ def stage(files: TestFiles, arch: str, work_dir: Path) -> Staging:
         raise SetupError(f"missing {files.unix_library}; build the unix target first")
     work_dir.mkdir(parents=True, exist_ok=True)
     root = Path(tempfile.mkdtemp(prefix="run-", dir=work_dir.resolve()))
-    call_log_dir = files.call_log_dir and reset_directory(files.call_log_dir)
+    call_log_dir = files.call_log_dir and files.call_log_dir.resolve()
     staging = Staging(root, root / "app", root / "dlls", root / "prefix", call_log_dir)
     copy_into(staging.app_dir, [files.program, *files.dlls])
     copy_into(staging.dll_path / PE_DIRS[arch], files.builtins)
@@ -161,6 +161,9 @@ def parse_arguments(arguments: list[str]) -> argparse.Namespace:
 
 def main(arguments: list[str]) -> int:
     options = parse_arguments(arguments)
+    # Emptied before anything can fail, so a failed setup never leaves earlier logs for the gate.
+    if options.call_log_dir is not None:
+        reset_directory(options.call_log_dir)
     try:
         wine = find_wine()
         files = TestFiles(

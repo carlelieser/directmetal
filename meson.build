@@ -29,6 +29,7 @@ elif host_machine.system() == 'darwin'
     subdir('src/unix')
     subdir('src/frontends/markers')
     subdir('tests/unit')
+    subdir('tests/api/tests')
 else
     error('unsupported host system: ' + host_machine.system())
 endif
