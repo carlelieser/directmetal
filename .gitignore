@@ -1,0 +1,7 @@
+.DS_Store
+/build/
+/out/
+/.cache/
+/.claude/worktrees/
+/third_party/api-headers/
+__pycache__/
