@@ -1,0 +1,67 @@
+name: Bug report
+description: An application or API call misbehaves under DirectMetal.
+labels: ["bug"]
+body:
+  - type: input
+    id: application
+    attributes:
+      label: Application
+      description: Application or game title and version, or the API test that reproduces the problem.
+    validations:
+      required: true
+  - type: dropdown
+    id: api
+    attributes:
+      label: Direct3D version
+      options:
+        - Direct3D 9
+        - Direct3D 10 / 10.1
+        - Direct3D 11
+        - Direct3D 12
+        - DXGI only
+        - Unknown
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+      placeholder: "26.1 (25B78)"
+    validations:
+      required: true
+  - type: input
+    id: mac
+    attributes:
+      label: Mac model
+      placeholder: "MacBook Pro (M3 Pro, 2023)"
+    validations:
+      required: true
+  - type: input
+    id: wine
+    attributes:
+      label: Wine version
+      description: Output of `wine --version`, plus the runtime if not upstream Wine (CrossOver, Whisky, etc.).
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: DirectMetal commit
+      description: Output of `git rev-parse HEAD`, or the release tag.
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happens
+      description: Steps to reproduce, what you expected and what happened instead. Attach screenshots if the problem is visual.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: DirectMetal and Wine output from the failing run. Attach large logs as files.
+      render: text
+    validations:
+      required: true
