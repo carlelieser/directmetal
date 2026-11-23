@@ -61,24 +61,9 @@ constexpr std::array<ClearCase, 8> clear_cases = {{
     {"R8G8B8A8_UNORM_MIP1", rgba8_unorm, 2, {rgba8_color, Color{0.8f, 0.6f, 0.4f, 0.2f}}},
 }};
 
-struct DriverType {
-    harness::Driver driver;
-    D3D_DRIVER_TYPE type;
-};
-
-constexpr std::array<DriverType, 2> driver_types = {{
-    {harness::Driver::hardware, D3D_DRIVER_TYPE_HARDWARE},
-    {harness::Driver::warp, D3D_DRIVER_TYPE_WARP},
-}};
-
-D3D_DRIVER_TYPE to_driver_type(harness::Driver driver) {
-    for (const DriverType& entry : driver_types) {
-        if (entry.driver == driver) {
-            return entry.type;
-        }
-    }
-    return D3D_DRIVER_TYPE_UNKNOWN;
-}
+// Indexed by harness::Driver.
+constexpr std::array<D3D_DRIVER_TYPE, 2> driver_types = {D3D_DRIVER_TYPE_HARDWARE,
+                                                         D3D_DRIVER_TYPE_WARP};
 
 void write_hresult(harness::JsonWriter& json, const char* step, HRESULT result) {
     json.key(step);
@@ -206,6 +191,25 @@ private:
     Owned<ID3D11Texture2D> staging_;
 };
 
+struct FailedCreation {
+    HRESULT result;
+    bool is_output_null;
+};
+
+// The output pointer starts as a sentinel, so is_output_null shows whether the call cleared it.
+FailedCreation create_texture_expecting_failure(const Context& context,
+                                                const D3D11_TEXTURE2D_DESC& desc) {
+    alignas(ID3D11Texture2D*) static unsigned char sentinel_storage;
+    auto* const sentinel = reinterpret_cast<ID3D11Texture2D*>(&sentinel_storage);
+    ID3D11Texture2D* texture = sentinel;
+    const HRESULT result = context.device->CreateTexture2D(&desc, nullptr, &texture);
+    const bool is_created = texture != nullptr && texture != sentinel;
+    if (is_created) {
+        texture->Release();
+    }
+    return {result, texture == nullptr};
+}
+
 void run_expected_failures(harness::JsonWriter& json, const Context& context) {
     const ClearCase& clear_case = clear_cases[0];
     const D3D11_TEXTURE2D_DESC target_desc = texture_desc(clear_case, false);
@@ -221,20 +225,19 @@ void run_expected_failures(harness::JsonWriter& json, const Context& context) {
     }
     D3D11_TEXTURE2D_DESC zero_width_desc = target_desc;
     zero_width_desc.Width = 0;
-    Owned<ID3D11Texture2D> zero_width;
-    result = context.device->CreateTexture2D(&zero_width_desc, nullptr, zero_width.put());
-    write_hresult(json, "create_texture_zero_width", result);
+    const FailedCreation zero_width = create_texture_expecting_failure(context, zero_width_desc);
+    write_hresult(json, "create_texture_zero_width", zero_width.result);
     json.key("is_zero_width_texture_null");
-    json.boolean(zero_width.get() == nullptr);
+    json.boolean(zero_width.is_output_null);
     json.end_object();
 }
 
 HRESULT create_device(harness::Driver driver, Owned<ID3D11Device>& device,
                       D3D_FEATURE_LEVEL& level) {
     constexpr std::array<D3D_FEATURE_LEVEL, 1> levels = {D3D_FEATURE_LEVEL_11_0};
-    return D3D11CreateDevice(nullptr, to_driver_type(driver), nullptr, 0, levels.data(),
-                             static_cast<UINT>(levels.size()), D3D11_SDK_VERSION, device.put(),
-                             &level, nullptr);
+    return D3D11CreateDevice(nullptr, driver_types[static_cast<std::size_t>(driver)], nullptr, 0,
+                             levels.data(), static_cast<UINT>(levels.size()), D3D11_SDK_VERSION,
+                             device.put(), &level, nullptr);
 }
 
 bool run(harness::JsonWriter& json, harness::Driver driver) {
