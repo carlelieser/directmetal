@@ -2,6 +2,7 @@
 # cleared and copied with its claimed usages under Metal validation.
 format_gpu_tests = executable(
     'format_gpu_tests',
+    'buffer_usage_test.mm',
     'claimed_texture_test.mm',
     'format_fixture.mm',
     'mip_autogen_test.mm',
