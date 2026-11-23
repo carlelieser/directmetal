@@ -15,31 +15,34 @@ std::uint64_t blocks(std::uint32_t size, std::uint32_t block) noexcept {
     return (std::uint64_t{size} + block - 1) / block;
 }
 
-struct Pitches {
-    std::uint64_t row;
-    std::uint64_t depth;
+// One subresource, before its pitches are narrowed to SubresourceLayout's 32 bits.
+struct Placement {
+    std::uint64_t offset;
+    std::uint64_t row_pitch;
+    std::uint64_t depth_pitch;
+    std::uint32_t width;
+    std::uint32_t height;
 };
 
-Pitches pitches_of(const formats::FormatInfo& format, std::uint32_t width,
-                   std::uint32_t height) noexcept {
+Placement placement_of(const formats::FormatInfo& format, std::uint32_t width,
+                       std::uint32_t height) noexcept {
     const std::uint64_t row_bytes = blocks(width, format.block_width) * format.bytes_per_block;
     const std::uint64_t row = align_up(row_bytes, StagingLayout::staging_row_alignment);
-    return {row, row * blocks(height, format.block_height)};
+    return {0, row, row * blocks(height, format.block_height), width, height};
 }
 
-// Calls visit(mip, width, height, pitches) for every subresource in Direct3D order and returns
-// the bytes they span.
+// Calls visit with every subresource in Direct3D order and returns the bytes they span.
 template <typename Visit>
 std::uint64_t walk(const D3D11_TEXTURE2D_DESC& desc, const formats::FormatInfo& format,
                    Visit&& visit) {
     std::uint64_t offset = 0;
     for (UINT slice = 0; slice < desc.ArraySize; ++slice) {
         for (UINT mip = 0; mip < desc.MipLevels; ++mip) {
-            const std::uint32_t width = mip_size(desc.Width, mip);
-            const std::uint32_t height = mip_size(desc.Height, mip);
-            const Pitches pitches = pitches_of(format, width, height);
-            visit(offset, width, height, pitches);
-            offset += align_up(pitches.depth, StagingLayout::staging_row_alignment);
+            Placement placement =
+                placement_of(format, mip_size(desc.Width, mip), mip_size(desc.Height, mip));
+            placement.offset = offset;
+            visit(placement);
+            offset += align_up(placement.depth_pitch, StagingLayout::staging_row_alignment);
         }
     }
     return offset;
@@ -53,17 +56,16 @@ std::uint32_t mip_size(std::uint32_t size, std::uint32_t mip) noexcept {
 
 std::uint64_t StagingLayout::required_bytes(const D3D11_TEXTURE2D_DESC& desc,
                                             const formats::FormatInfo& format) noexcept {
-    return walk(desc, format, [](std::uint64_t, std::uint32_t, std::uint32_t, Pitches) {});
+    return walk(desc, format, [](const Placement&) {});
 }
 
 StagingLayout::StagingLayout(const D3D11_TEXTURE2D_DESC& desc, const formats::FormatInfo& format) {
     subresources_.reserve(std::size_t{desc.MipLevels} * desc.ArraySize);
-    const std::uint64_t bytes = walk(
-        desc, format,
-        [this](std::uint64_t offset, std::uint32_t width, std::uint32_t height, Pitches pitches) {
-            subresources_.push_back({offset, static_cast<std::uint32_t>(pitches.row),
-                                     static_cast<std::uint32_t>(pitches.depth), width, height});
-        });
+    const std::uint64_t bytes = walk(desc, format, [this](const Placement& placement) {
+        subresources_.push_back({placement.offset, static_cast<std::uint32_t>(placement.row_pitch),
+                                 static_cast<std::uint32_t>(placement.depth_pitch), placement.width,
+                                 placement.height});
+    });
     size_ = align_up(std::max<std::uint64_t>(bytes, 1), backend::import_alignment);
 }
 
