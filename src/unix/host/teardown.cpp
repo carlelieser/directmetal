@@ -15,6 +15,9 @@ void release(HostContext& context, const TableEntry& removed) noexcept {
         const auto* stream = static_cast<const StreamObject*>(removed.object.get());
         stream->stream->close();
         retire(context, context.table.find(stream->progress));
+        DeviceObject& device = *stream->stream->device();
+        const std::lock_guard lock(device.lifecycle_mutex);
+        device.has_stream = false;
         break;
     }
     case ObjectKind::timeline:

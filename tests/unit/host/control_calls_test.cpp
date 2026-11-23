@@ -212,6 +212,21 @@ TEST_F(HostTest, RejectsAddressesAboveWow64Limit) {
     EXPECT_EQ(call(FunctionCode::log_call, log), status_invalid_parameter);
 }
 
+TEST_F(HostTest, OpensOneStreamPerDevice) {
+    initialize();
+    device = create_device();
+    stream = open_stream(device);
+    alignas(64) StreamControl second{};
+    OpenStreamParams again{device, bridge::to_address(&second), {}, {}};
+    EXPECT_EQ(call(FunctionCode::open_stream, again), status_invalid_device_state);
+    EXPECT_EQ(gpu.live_queues, 1);
+    CloseStreamParams close{stream.stream};
+    ASSERT_EQ(call(FunctionCode::close_stream, close), status_success);
+    EXPECT_EQ(call(FunctionCode::open_stream, again), status_success);
+    CloseStreamParams close_again{again.stream};
+    EXPECT_EQ(call(FunctionCode::close_stream, close_again), status_success);
+}
+
 TEST_F(HostTest, OpensStreamWithProgressTimeline) {
     initialize();
     device = create_device();

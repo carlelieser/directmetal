@@ -106,6 +106,8 @@ struct alignas(8) DestroyTimelineParams {
     Handle timeline;
 };
 
+// In Phase 1 a device has at most one open stream: a second open_stream fails with
+// status_invalid_device_state until close_stream returns for the first.
 struct alignas(8) OpenStreamParams {
     Handle device;
     // 64-byte-aligned PE-side StreamControl (commands.hpp); its completed_progress mirrors the
@@ -128,9 +130,8 @@ struct alignas(8) SubmitStreamParams {
 };
 
 // Returns status_success or status_timeout. Once the stream that signals the timeline (or whose
-// progress timeline it is) has a sticky error, every wait fails with status_device_removed. In
-// Phase 1 the host applies this per device: a sticky error on any stream of the device fails waits
-// on every timeline of that device, which is the same while each device has one stream.
+// progress timeline it is) has a sticky error, every wait fails with status_device_removed. The
+// host applies this per device, which is the same thing while a device has one stream (Phase 1).
 struct alignas(8) WaitTimelineParams {
     Handle timeline;
     std::uint64_t value;

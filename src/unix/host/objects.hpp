@@ -25,6 +25,8 @@ struct DeviceObject {
     std::mutex lifecycle_mutex;
     // Set once, under lifecycle_mutex, when destroy_device starts.
     std::atomic<bool> is_destroyed = false;
+    // Phase 1 allows one stream per device. Guarded by lifecycle_mutex.
+    bool has_stream = false;
 };
 
 // Device's lifecycle lock, or a lock that owns nothing once the device is destroyed.

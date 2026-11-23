@@ -61,6 +61,9 @@ Status open_stream(HostContext& context, OpenStreamParams& params) {
     if (!lock.owns_lock()) {
         return status_invalid_handle;
     }
+    if (device->has_stream) {
+        return status_invalid_device_state;
+    }
     const StreamSetup setup{device, params.device,
                             from_address<StreamControl>(params.control_address), &context.table,
                             context.is_wow64.load()};
@@ -72,7 +75,9 @@ Status open_stream(HostContext& context, OpenStreamParams& params) {
     const Status status = insert_stream(context, stream, params);
     if (status < 0) {
         stream->close();
+        return status;
     }
+    device->has_stream = true;
     return status;
 }
 
