@@ -46,6 +46,7 @@ INSTANTIATE_TEST_SUITE_P(
     testing::Values(Mapping{status_no_memory, backend::Status::out_of_memory},
                     Mapping{status_invalid_parameter, backend::Status::invalid_argument},
                     Mapping{status_invalid_handle, backend::Status::invalid_argument},
+                    Mapping{status_invalid_device_state, backend::Status::invalid_argument},
                     Mapping{status_not_implemented, backend::Status::unsupported},
                     Mapping{status_not_supported, backend::Status::unsupported},
                     Mapping{status_revision_mismatch, backend::Status::unsupported},
