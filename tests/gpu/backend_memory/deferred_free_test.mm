@@ -136,17 +136,25 @@ TEST(DeferredFree, CompletesFromAnotherThread) {
     EXPECT_EQ(offset_of(*make_buffer(*device, size)), offset);
 }
 
-TEST(DeferredFree, CompletionAfterDeviceDestructionIsSafe) {
+// The pending record keeps the Metal buffer alive past the device, and the last completion
+// callback releases it.
+TEST(DeferredFree, CompletionAfterDeviceDestructionReleasesTheResource) {
     FakeQueue queue;
     auto device = make_device();
     resources::track_queue(*device, queue);
     auto buffer = make_buffer(*device, size);
+    __weak id<MTLBuffer> weak;
+    @autoreleasepool {
+        weak = resources::metal_buffer(*buffer);
+    }
     queue.submit();
     buffer.reset();
     resources::untrack_queue(*device, queue);
     device.reset();
+    EXPECT_NE(weak, nil);
     queue.fake_progress().signal_cpu(1);
     EXPECT_EQ(queue.fake_progress().waiting_count(), 0u);
+    EXPECT_EQ(weak, nil);
 }
 
 } // namespace
