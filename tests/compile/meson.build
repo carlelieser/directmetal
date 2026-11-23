@@ -12,4 +12,11 @@ else
         'interfaces_native.cpp',
         dependencies: [bridge_client_dep, formats_dep, host_core_dep, runtime_dep],
     )
+    static_library(
+        'backend_private',
+        'backend_private.mm',
+        include_directories: backend_private_include,
+        dependencies: backend_dep,
+        objcpp_args: '-fobjc-arc',
+    )
 endif
