@@ -133,6 +133,11 @@ TEST_F(HostTest, ReportsDeviceCreationFailure) {
     EXPECT_EQ(call(FunctionCode::create_device, params), status_not_supported);
     CreateDeviceParams unaligned{0, {1000, 0}, {}, {}};
     EXPECT_EQ(call(FunctionCode::create_device, unaligned), status_invalid_parameter);
+    provider.create_status = backend::Status::success;
+    CreateDeviceParams huge{0, {std::uint64_t{2} << 30, 0}, {}, {}};
+    EXPECT_EQ(call(FunctionCode::create_device, huge), status_invalid_parameter);
+    CreateDeviceParams largest{0, {std::uint64_t{1} << 30, 0}, {}, {}};
+    EXPECT_EQ(call(FunctionCode::create_device, largest), status_success);
 }
 
 TEST_F(HostTest, CreatesAndValidatesBuffers) {

@@ -14,6 +14,10 @@ namespace {
 
 using namespace bridge;
 
+// Every heap the device grows by is at least this large, so a larger request could exhaust memory
+// with one small resource.
+constexpr std::uint64_t max_heap_block_size = std::uint64_t{1} << 30;
+
 // runtime::log::Level::off; levels above it are unknown.
 constexpr std::uint32_t max_log_level = 5;
 
@@ -106,7 +110,9 @@ Status enumerate_adapters(HostContext& context, EnumerateAdaptersParams& params)
 
 Status create_device(HostContext& context, CreateDeviceParams& params) {
     const DeviceOptions& options = params.options;
-    if (options.heap_block_size % shared_memory_alignment != 0) {
+    const bool is_block_size_valid = options.heap_block_size % shared_memory_alignment == 0 &&
+                                     options.heap_block_size <= max_heap_block_size;
+    if (!is_block_size_valid) {
         return status_invalid_parameter;
     }
     const backend::DeviceRequest defaults{};

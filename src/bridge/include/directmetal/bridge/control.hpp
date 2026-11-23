@@ -42,6 +42,8 @@ struct alignas(8) EnumerateAdaptersParams {
     backend::Capabilities adapter; // out
 };
 
+// heap_block_size is 0 for the default or a multiple of shared_memory_alignment of at most 1 GiB;
+// dedicated_threshold is 0 for the default.
 struct alignas(8) DeviceOptions {
     std::uint64_t heap_block_size;
     std::uint64_t dedicated_threshold;
