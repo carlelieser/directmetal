@@ -100,6 +100,15 @@ TEST(StreamDecoder, IgnoresSharedMemoryChangesAfterSubmission) {
     expect_samples(sink.commands, 0);
 }
 
+TEST(StreamDecoder, RejectsChunksWrappingPastTheAddressSpace) {
+    StreamDecoder decoder;
+    RecordingSink sink;
+    const SubmitStreamParams submission{{1}, UINT64_MAX - 7, 64, 0, 1};
+    EXPECT_EQ(decoder.decode(submission, sink), status_invalid_parameter);
+    EXPECT_EQ(decoder.failure().opcode, framing_failure_opcode);
+    EXPECT_TRUE(sink.commands.empty());
+}
+
 // Each case corrupts a valid chunk or its submission.
 struct Malformation {
     std::string name;

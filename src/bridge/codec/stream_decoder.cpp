@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <limits>
 #include <new>
 
 namespace directmetal::bridge {
@@ -122,6 +123,11 @@ Status StreamDecoder::validate_submission(const SubmitStreamParams& submission) 
     const bool is_aligned = submission.chunk_address % command_alignment == 0;
     const bool is_addressable = submission.chunk_address != 0 && is_aligned;
     if (!has_valid_size || !is_addressable || submission.reserved != 0) {
+        return status_invalid_parameter;
+    }
+    // Checked before any pointer arithmetic on the address.
+    constexpr std::uint64_t address_limit = std::numeric_limits<std::uintptr_t>::max();
+    if (submission.chunk_address > address_limit - submission.chunk_size) {
         return status_invalid_parameter;
     }
     return submission.sequence == next_sequence_ ? status_success : status_invalid_parameter;
