@@ -5,6 +5,7 @@ memory_include = include_directories('include')
 memory_lib = static_library(
     'memory',
     'src/range_allocator.cpp',
+    'src/ring_allocator.cpp',
     include_directories: memory_include,
 )
 

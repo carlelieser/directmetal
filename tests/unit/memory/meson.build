@@ -2,6 +2,7 @@
 memory_tests = executable(
     'memory_tests',
     'range_allocator_test.cpp',
+    'ring_allocator_test.cpp',
     dependencies: [memory_dep, gtest_dep],
 )
 
