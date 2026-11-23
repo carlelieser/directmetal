@@ -1,7 +1,10 @@
 # GPU tests for backend_commands (suite 'gpu').
 backend_commands_tests = executable(
     'backend_commands_tests',
+    'clear_test.mm',
+    'copy_test.mm',
     'progress_test.mm',
+    'subresource_test.mm',
     'timeline_test.mm',
     include_directories: backend_private_include,
     dependencies: [backend_dep, gtest_dep],
