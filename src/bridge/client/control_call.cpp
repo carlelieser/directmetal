@@ -18,6 +18,18 @@ constexpr std::array<std::string_view, static_cast<std::size_t>(FunctionCode::co
         "wait_timeline",  "close_stream",    "release_memory", "destroy_timeline",
 };
 
+constexpr bool has_every_name() noexcept {
+    for (const std::string_view name : function_names) {
+        if (name.empty()) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Aggregate initialization leaves names missing from the list empty.
+static_assert(has_every_name(), "function_names needs an entry for every FunctionCode");
+
 struct StatusMapping {
     Status bridge;
     backend::Status backend;
