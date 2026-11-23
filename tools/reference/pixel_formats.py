@@ -14,6 +14,8 @@ class PixelLayout:
     # Bit widths of channels packed into one integer, lowest bits first; empty when each struct
     # field is a channel.
     bit_fields: tuple[int, ...] = ()
+    # struct format reading the same bytes as unsigned integers; set for float formats.
+    bit_packing: str | None = None
 
     @property
     def size(self) -> int:
@@ -25,8 +27,8 @@ PIXEL_LAYOUTS = {
     "R8G8B8A8_UNORM_SRGB": PixelLayout("<4B"),
     "B8G8R8A8_UNORM": PixelLayout("<4B"),
     "R10G10B10A2_UNORM": PixelLayout("<I", (10, 10, 10, 2)),
-    "R16G16B16A16_FLOAT": PixelLayout("<4e"),
-    "R32G32B32A32_FLOAT": PixelLayout("<4f"),
+    "R16G16B16A16_FLOAT": PixelLayout("<4e", bit_packing="<4H"),
+    "R32G32B32A32_FLOAT": PixelLayout("<4f", bit_packing="<4I"),
     "R32G32B32A32_UINT": PixelLayout("<4I"),
 }
 
@@ -48,7 +50,7 @@ def unpack_bit_fields(value: int, bit_fields: tuple[int, ...]) -> Pixel:
     return tuple(channels)
 
 
-def decode_pixels(format_name: str, readback: str) -> list[Pixel]:
+def unpack(format_name: str, readback: str, is_bit_pattern: bool) -> list[Pixel]:
     layout = layout_of(format_name)
     try:
         data = bytes.fromhex(readback)
@@ -59,10 +61,21 @@ def decode_pixels(format_name: str, readback: str) -> list[Pixel]:
             f"readback of format {format_name} has {len(data)} bytes, "
             f"not a multiple of the {layout.size}-byte pixel"
         )
-    pixels = [fields for fields in struct.iter_unpack(layout.packing, data)]
+    packing = layout.bit_packing if is_bit_pattern and layout.bit_packing else layout.packing
+    pixels = list(struct.iter_unpack(packing, data))
     if layout.bit_fields:
         return [unpack_bit_fields(fields[0], layout.bit_fields) for fields in pixels]
     return pixels
+
+
+def decode_pixels(format_name: str, readback: str) -> list[Pixel]:
+    """Decodes channel values: integers, or floats for float formats."""
+    return unpack(format_name, readback, False)
+
+
+def bit_patterns(format_name: str, readback: str) -> list[Pixel]:
+    """Decodes channels as unsigned integers, so -0.0 and +0.0, or two NaN payloads, differ."""
+    return unpack(format_name, readback, True)
 
 
 def channel_difference(expected: float | int, actual: float | int) -> float:

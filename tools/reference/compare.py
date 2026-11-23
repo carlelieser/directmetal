@@ -12,7 +12,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from pixel_formats import channel_difference, decode_pixels  # noqa: E402
+from pixel_formats import bit_patterns, channel_difference, decode_pixels  # noqa: E402
 from sources import ReferenceToolError  # noqa: E402
 
 EXIT_MISMATCH = 1
@@ -88,19 +88,31 @@ class Comparator:
             return [
                 f"{location.path}: expected {len(expected_pixels)} pixels, got {len(actual_pixels)}"
             ]
-        tolerance = self.tolerance(format_name)
+        is_mismatch = self.pixel_mismatch(format_name, expected, actual)
         mismatches = [
             f"{location.path}: pixel {index} expected {list(expected_pixel)}, "
             f"got {list(actual_pixel)}"
             for index, (expected_pixel, actual_pixel) in enumerate(
                 zip(expected_pixels, actual_pixels, strict=True)
             )
-            if pixel_difference(expected_pixel, actual_pixel) > tolerance
+            if is_mismatch[index]
         ]
         if len(mismatches) > MAX_PIXEL_REPORTS:
             remaining = len(mismatches) - MAX_PIXEL_REPORTS
             mismatches = [*mismatches[:MAX_PIXEL_REPORTS], f"{location.path}: {remaining} more"]
         return mismatches
+
+    def pixel_mismatch(self, format_name: str, expected: str, actual: str) -> list[bool]:
+        tolerance = self.tolerance(format_name)
+        if tolerance == 0:
+            pairs = zip(
+                bit_patterns(format_name, expected), bit_patterns(format_name, actual), strict=True
+            )
+            return [expected_bits != actual_bits for expected_bits, actual_bits in pairs]
+        pairs = zip(
+            decode_pixels(format_name, expected), decode_pixels(format_name, actual), strict=True
+        )
+        return [pixel_difference(*pixels) > tolerance for pixels in pairs]
 
 
 def pixel_difference(expected: tuple, actual: tuple) -> float:

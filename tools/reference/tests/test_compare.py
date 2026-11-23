@@ -87,6 +87,16 @@ class DifferencesTest(unittest.TestCase):
             "pixel 0",
         )
 
+    def test_distinguishes_signed_zeros_at_zero_tolerance(self) -> None:
+        reference = output("R32G32B32A32_FLOAT", packed("<4f", [(0.0, 1.0, 2.0, 3.0)]))
+        actual = output("R32G32B32A32_FLOAT", packed("<4f", [(-0.0, 1.0, 2.0, 3.0)]))
+        self.assert_differs(reference, actual, "pixel 0")
+
+    def test_distinguishes_nan_payloads_at_zero_tolerance(self) -> None:
+        reference = output("R16G16B16A16_FLOAT", packed("<4H", [(0x7E00, 0, 0, 0)]))
+        actual = output("R16G16B16A16_FLOAT", packed("<4H", [(0x7E01, 0, 0, 0)]))
+        self.assert_differs(reference, actual, "pixel 0")
+
     def test_rejects_uint_off_by_one(self) -> None:
         reference = output("R32G32B32A32_UINT", packed("<4I", [(1, 255, 65536, 123456)]))
         actual = output("R32G32B32A32_UINT", packed("<4I", [(1, 255, 65536, 123457)]))
