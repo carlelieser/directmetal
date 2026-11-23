@@ -8,7 +8,12 @@ subdir('commands')
 backend_lib = static_library(
     'backend',
     'adapters.mm',
+    'arena.mm',
+    'device.mm',
+    'heap_pool.mm',
     'pixel_format_check.mm',
+    'resources.mm',
+    'texture_descriptor.mm',
     include_directories: [backend_private_include, backend_include],
     dependencies: [memory_dep, metal_dep],
     objcpp_args: '-fobjc-arc',

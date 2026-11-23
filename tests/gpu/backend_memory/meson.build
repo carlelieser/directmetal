@@ -2,6 +2,9 @@
 backend_memory_tests = executable(
     'backend_memory_tests',
     'adapter_test.mm',
+    'gpu_access_test.mm',
+    'heap_test.mm',
+    'texture_test.mm',
     include_directories: backend_private_include,
     dependencies: [backend_dep, gtest_dep],
     objcpp_args: '-fobjc-arc',
