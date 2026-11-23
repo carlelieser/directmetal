@@ -5,6 +5,7 @@ runtime_lib = static_library(
     'config.cpp',
     'config_file.cpp',
     'config_options.cpp',
+    'config_process.cpp',
     'config_value.cpp',
     'hud.cpp',
     'log.cpp',

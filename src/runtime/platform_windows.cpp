@@ -2,6 +2,7 @@
 
 #include <windows.h>
 
+#include <array>
 #include <vector>
 
 namespace directmetal::platform {
@@ -69,6 +70,49 @@ bool write_all(FileHandle file, std::string_view data) noexcept {
 
 void close_file(FileHandle file) noexcept {
     CloseHandle(reinterpret_cast<HANDLE>(file));
+}
+
+ReadResult read_text_file(const std::string& path) {
+    const std::wstring wide_path = to_utf16(path);
+    HANDLE file = CreateFileW(wide_path.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
+                              nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (file == INVALID_HANDLE_VALUE) {
+        const DWORD error = GetLastError();
+        const bool is_missing = error == ERROR_FILE_NOT_FOUND || error == ERROR_PATH_NOT_FOUND;
+        return {is_missing ? ReadStatus::missing : ReadStatus::failed, {}};
+    }
+    ReadResult result{ReadStatus::ok, {}};
+    std::array<char, 4096> buffer;
+    while (true) {
+        DWORD count = 0;
+        const BOOL is_read =
+            ReadFile(file, buffer.data(), static_cast<DWORD>(buffer.size()), &count, nullptr);
+        if (!is_read || result.text.size() + count > max_text_file_bytes) {
+            result = {ReadStatus::failed, {}};
+            break;
+        }
+        if (count == 0) {
+            break;
+        }
+        result.text.append(buffer.data(), count);
+    }
+    CloseHandle(file);
+    return result;
+}
+
+std::string executable_path() {
+    std::vector<wchar_t> buffer(MAX_PATH);
+    while (true) {
+        const DWORD length =
+            GetModuleFileNameW(nullptr, buffer.data(), static_cast<DWORD>(buffer.size()));
+        if (length == 0) {
+            return {};
+        }
+        if (length < buffer.size()) {
+            return to_utf8({buffer.data(), length});
+        }
+        buffer.resize(buffer.size() * 2);
+    }
 }
 
 } // namespace directmetal::platform
