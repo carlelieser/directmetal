@@ -40,6 +40,10 @@ public:
     std::optional<Allocation> allocate(std::uint64_t size, std::uint64_t alignment,
                                        std::uint64_t retire_value);
     void retire(std::uint64_t completed_value);
+    // release_memory, then frees the memory; repeating it after a success is harmless. On failure
+    // the memory stays allocated, since the unix side may still use it, and a later call retries.
+    // Afterwards the ring hands out nothing and capacity() is 0.
+    backend::Status release() noexcept;
     // Bytes imported: the requested capacity rounded up to shared_memory_alignment.
     std::uint64_t capacity() const noexcept;
 

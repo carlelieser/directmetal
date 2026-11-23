@@ -47,18 +47,30 @@ StagingRing::StagingRing(StagingRing&& other) noexcept
     : device_(other.device_), memory_(std::exchange(other.memory_, {})),
       buffer_(std::exchange(other.buffer_, {})), ring_(std::move(other.ring_)) {}
 
+// A failed release is logged by the client and leaks the memory.
 StagingRing::~StagingRing() {
+    release();
+}
+
+backend::Status StagingRing::release() noexcept {
     if (memory_.empty()) {
-        return;
+        return backend::Status::success;
     }
-    // A failed release is logged by the client; the memory may still be in use, so it leaks.
-    if (device_->release_memory(buffer_) == backend::Status::success) {
-        directmetal_bridge_free_shared(memory_.data(), memory_.size());
+    if (const backend::Status status = device_->release_memory(buffer_);
+        status != backend::Status::success) {
+        return status;
     }
+    directmetal_bridge_free_shared(memory_.data(), memory_.size());
+    memory_ = {};
+    buffer_ = {};
+    return backend::Status::success;
 }
 
 std::optional<StagingRing::Allocation>
 StagingRing::allocate(std::uint64_t size, std::uint64_t alignment, std::uint64_t retire_value) {
+    if (memory_.empty()) {
+        return std::nullopt;
+    }
     const std::optional<std::uint64_t> offset = ring_.allocate(size, alignment, retire_value);
     if (!offset.has_value()) {
         return std::nullopt;
@@ -67,7 +79,9 @@ StagingRing::allocate(std::uint64_t size, std::uint64_t alignment, std::uint64_t
 }
 
 void StagingRing::retire(std::uint64_t completed_value) {
-    ring_.retire(completed_value);
+    if (!memory_.empty()) {
+        ring_.retire(completed_value);
+    }
 }
 
 std::uint64_t StagingRing::capacity() const noexcept {

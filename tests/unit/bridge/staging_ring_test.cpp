@@ -74,4 +74,46 @@ TEST_F(StagingRingTest, RoundsCapacityUpToTheImportAlignment) {
     EXPECT_EQ(ring.value().capacity(), shared_memory_alignment);
 }
 
+TEST_F(StagingRingTest, ReleaseFreesTheMemoryOnce) {
+    auto ring = create(shared_memory_alignment);
+    ASSERT_TRUE(ring.has_value());
+    EXPECT_EQ(ring.value().release(), backend::Status::success);
+    EXPECT_EQ(ring.value().release(), backend::Status::success);
+    EXPECT_EQ(releases, 1);
+    EXPECT_EQ(shared_memory_stats().live, 0u);
+    EXPECT_EQ(ring.value().capacity(), 0u);
+    EXPECT_FALSE(ring.value().allocate(4, 4, 1).has_value());
+}
+
+TEST_F(StagingRingTest, DestructionReleasesAndFrees) {
+    {
+        auto ring = create(shared_memory_alignment);
+        ASSERT_TRUE(ring.has_value());
+        EXPECT_EQ(shared_memory_stats().live, 1u);
+    }
+    EXPECT_EQ(releases, 1);
+    EXPECT_EQ(shared_memory_stats().live, 0u);
+}
+
+TEST_F(StagingRingTest, KeepsTheMemoryWhenReleaseFails) {
+    auto ring = create(shared_memory_alignment);
+    ASSERT_TRUE(ring.has_value());
+    release_reply = status_invalid_device_state;
+    EXPECT_EQ(ring.value().release(), backend::Status::invalid_argument);
+    EXPECT_EQ(shared_memory_stats().live, 1u);
+    release_reply = status_success;
+    EXPECT_EQ(ring.value().release(), backend::Status::success);
+    EXPECT_EQ(releases, 2);
+    EXPECT_EQ(shared_memory_stats().live, 0u);
+}
+
+TEST_F(StagingRingTest, MovedFromRingReleasesNothing) {
+    auto ring = create(shared_memory_alignment);
+    ASSERT_TRUE(ring.has_value());
+    StagingRing moved(std::move(ring).value());
+    EXPECT_EQ(releases, 0);
+    EXPECT_EQ(moved.release(), backend::Status::success);
+    EXPECT_EQ(releases, 1);
+}
+
 } // namespace
