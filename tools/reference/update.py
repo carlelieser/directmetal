@@ -91,6 +91,21 @@ def build_reference(root: Path, artifact: Path, program: str) -> dict:
     return {"test": program, "sources": recorded_sources, "metadata": metadata, "result": x64}
 
 
+# differences() words changes as actual against expected; here the new reference is the actual.
+CHANGE_WORDING = [
+    (": expected ", ": was "),
+    (", got ", ", now "),
+    (": not in the reference", ": added"),
+    (": missing", ": removed"),
+]
+
+
+def reword_change(change: str) -> str:
+    for old, new in CHANGE_WORDING:
+        change = change.replace(old, new)
+    return change
+
+
 def describe_update(path: Path, reference: dict) -> list[str]:
     if not path.is_file():
         return ["new reference"]
@@ -107,8 +122,7 @@ def describe_update(path: Path, reference: dict) -> list[str]:
         and previous_metadata.get(key) != value
     ]
     lines += [
-        change.replace(": expected ", ": was ").replace(", got ", ", now ")
-        for change in differences(previous_result, reference["result"], None)
+        reword_change(change) for change in differences(previous_result, reference["result"], None)
     ]
     return lines or ["results unchanged"]
 

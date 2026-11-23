@@ -66,6 +66,19 @@ class CheckMetadataTest(unittest.TestCase):
             update.check_metadata(metadata, RUN_ID, self.run)
 
 
+class DescribeUpdateTest(unittest.TestCase):
+    def test_words_changes_from_previous_to_new_reference(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory, "reference.json")
+            previous = {"metadata": METADATA, "result": {"kept": 1, "dropped": 2, "changed": 3}}
+            path.write_text(json.dumps(previous))
+            reference = {"metadata": METADATA, "result": {"kept": 1, "added": 4, "changed": 5}}
+            self.assertEqual(
+                update.describe_update(path, reference),
+                ["added: added", "changed: was 3, now 5", "dropped: removed"],
+            )
+
+
 class BuildReferenceTest(unittest.TestCase):
     def setUp(self) -> None:
         self.root = Path(tempfile.mkdtemp())
