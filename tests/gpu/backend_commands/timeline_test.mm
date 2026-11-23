@@ -113,3 +113,57 @@ TEST_F(TimelineTest, LateSignalAfterDestructionRunsNothingTwice) {
 }
 
 } // namespace
+
+namespace {
+
+using namespace directmetal::backend;
+using namespace directmetal::backend::testing;
+
+// A callback slow enough that a wait or destruction racing it would observe it unfinished.
+struct SlowCallback {
+    std::atomic<bool> has_started = false;
+    std::atomic<bool> has_finished = false;
+
+    std::function<void()> callback() {
+        return [this] {
+            has_started = true;
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            has_finished = true;
+        };
+    }
+
+    bool wait_started() const {
+        const auto deadline = std::chrono::steady_clock::now() + patience;
+        while (!has_started.load() && std::chrono::steady_clock::now() < deadline) {
+            std::this_thread::yield();
+        }
+        return has_started.load();
+    }
+};
+
+using RunningCallback = CommandsTest;
+
+TEST_F(RunningCallback, WaitReturnsAfterItFinishes) {
+    const auto timeline = make_timeline(0);
+    SlowCallback slow;
+    timeline->notify(1, slow.callback());
+    std::thread signaler([&] { timeline->signal_cpu(1); });
+    EXPECT_TRUE(slow.wait_started());
+    EXPECT_EQ(timeline->wait(1, std::chrono::nanoseconds{0}), Status::timeout);
+    EXPECT_EQ(timeline->wait(1, patience), Status::success);
+    EXPECT_TRUE(slow.has_finished.load());
+    signaler.join();
+}
+
+TEST_F(RunningCallback, DestructionWaitsForIt) {
+    auto timeline = make_timeline(0);
+    SlowCallback slow;
+    timeline->notify(1, slow.callback());
+    recorder().signal(*timeline, 1);
+    ASSERT_EQ(queue_->submit(), Status::success);
+    ASSERT_TRUE(slow.wait_started());
+    timeline.reset();
+    EXPECT_TRUE(slow.has_finished.load());
+}
+
+} // namespace

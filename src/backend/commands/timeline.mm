@@ -1,7 +1,7 @@
 #include "timeline.hpp"
 
 #include <algorithm>
-#include <iterator>
+#include <cstdint>
 #include <utility>
 
 namespace directmetal::backend::commands {
@@ -20,45 +20,45 @@ bool is_unbounded(std::chrono::nanoseconds timeout) {
     return timeout >= Clock::time_point::max() - Clock::now();
 }
 
-void run_all(std::vector<std::function<void()>>& callbacks) {
-    for (auto& callback : callbacks) {
-        callback();
-    }
-}
-
 } // namespace
 
-TimelineState::TimelineState(id<MTLSharedEvent> event)
-    : event_(event), delivered_value_(event.signaledValue) {}
+TimelineState::TimelineState(id<MTLSharedEvent> event) : event_(event) {}
 
 std::uint64_t TimelineState::completed_value() const noexcept {
     return event_.signaledValue;
 }
 
-bool TimelineState::is_settled(std::uint64_t value) const noexcept {
-    return is_lost_ || delivered_value_ >= value;
+// Callers hold mutex_.
+bool TimelineState::is_reached(std::uint64_t value) const {
+    const bool is_pending = std::ranges::any_of(
+        pending_, [value](const Pending& pending) { return pending.value <= value; });
+    const bool is_running = !running_.empty() && *running_.begin() <= value;
+    return event_.signaledValue >= value && !is_pending && !is_running;
 }
 
-// A value Metal has reached counts as delivered once no callback at or below it is still pending.
+// Callers hold mutex_.
+bool TimelineState::is_failed(std::uint64_t value) const {
+    const bool is_running = !running_.empty() && *running_.begin() <= value;
+    return is_lost_settled_ && !is_running;
+}
+
 Status TimelineState::wait(std::uint64_t value, std::chrono::nanoseconds timeout) {
     std::unique_lock lock(mutex_);
-    const bool has_pending_callback = std::ranges::any_of(
-        pending_, [value](const Pending& pending) { return pending.value <= value; });
-    if (event_.signaledValue >= value && !has_pending_callback) {
-        return Status::success;
-    }
-    if (!is_settled(value)) {
+    const auto settled = [this, value] { return is_reached(value) || is_failed(value); };
+    if (!settled() && timeout > std::chrono::nanoseconds{0}) {
         lock.unlock();
         listen(value);
         lock.lock();
+        if (is_unbounded(timeout)) {
+            changed_.wait(lock, settled);
+        } else {
+            changed_.wait_for(lock, timeout, settled);
+        }
     }
-    const auto settled = [this, value] { return is_settled(value); };
-    if (is_unbounded(timeout)) {
-        changed_.wait(lock, settled);
-    } else if (!changed_.wait_for(lock, std::max(timeout, std::chrono::nanoseconds{0}), settled)) {
-        return Status::timeout;
+    if (is_reached(value)) {
+        return Status::success;
     }
-    return delivered_value_ >= value ? Status::success : Status::device_lost;
+    return is_failed(value) ? Status::device_lost : Status::timeout;
 }
 
 void TimelineState::signal_cpu(std::uint64_t value) noexcept {
@@ -66,36 +66,74 @@ void TimelineState::signal_cpu(std::uint64_t value) noexcept {
 }
 
 void TimelineState::notify(std::uint64_t value, std::function<void()> callback) {
-    bool is_due = false;
+    std::vector<Pending> batch;
     {
         const std::lock_guard lock(mutex_);
-        is_due = is_lost_ || event_.signaledValue >= value;
+        const bool is_due = is_lost_ || event_.signaledValue >= value;
         if (!is_due) {
             pending_.push_back({value, std::move(callback)});
+        } else {
+            running_.insert(value);
+            batch.push_back({value, std::move(callback)});
         }
     }
-    if (is_due) {
-        callback();
+    if (batch.empty()) {
+        listen(value);
         return;
     }
-    listen(value);
+    run(std::move(batch), false);
 }
 
 void TimelineState::release_pending(bool is_lost) {
-    std::vector<std::function<void()>> callbacks;
+    std::vector<Pending> batch;
     {
         const std::lock_guard lock(mutex_);
         is_lost_ = is_lost_ || is_lost;
-        for (Pending& pending : pending_) {
-            callbacks.push_back(std::move(pending.callback));
-        }
-        pending_.clear();
+        batch = take_pending(UINT64_MAX);
     }
-    run_all(callbacks);
+    run(std::move(batch), is_lost);
+}
+
+void TimelineState::wait_idle() {
+    std::unique_lock lock(mutex_);
+    changed_.wait(lock, [this] { return running_.empty(); });
+}
+
+// Callers hold mutex_. Taken callbacks count as running until run() returns.
+std::vector<TimelineState::Pending> TimelineState::take_pending(std::uint64_t up_to) {
+    const auto due = std::ranges::stable_partition(
+        pending_, [up_to](const Pending& pending) { return pending.value > up_to; });
+    std::vector<Pending> batch;
+    for (Pending& pending : due) {
+        running_.insert(pending.value);
+        batch.push_back(std::move(pending));
+    }
+    pending_.erase(due.begin(), due.end());
+    return batch;
+}
+
+void TimelineState::run(std::vector<Pending> batch, bool is_lost) {
+    for (Pending& pending : batch) {
+        pending.callback();
+    }
+    {
+        const std::lock_guard lock(mutex_);
+        for (const Pending& pending : batch) {
+            running_.erase(running_.find(pending.value));
+        }
+        is_lost_settled_ = is_lost_settled_ || is_lost;
+    }
     changed_.notify_all();
 }
 
+// One listener per value, so repeated waits on the same value do not pile up listener blocks.
 void TimelineState::listen(std::uint64_t value) {
+    {
+        const std::lock_guard lock(mutex_);
+        if (!listening_.insert(value).second) {
+            return;
+        }
+    }
     @autoreleasepool {
         std::weak_ptr<TimelineState> weak_state = weak_from_this();
         [event_ notifyListener:shared_listener()
@@ -110,30 +148,23 @@ void TimelineState::listen(std::uint64_t value) {
 
 // Runs on the listener's queue, so deliveries never overlap.
 void TimelineState::deliver() {
-    std::vector<std::function<void()>> callbacks;
-    std::uint64_t reached = 0;
+    std::vector<Pending> batch;
     {
         const std::lock_guard lock(mutex_);
-        reached = event_.signaledValue;
-        const auto due = std::ranges::stable_partition(
-            pending_, [reached](const Pending& pending) { return pending.value > reached; });
-        std::ranges::transform(due, std::back_inserter(callbacks),
-                               [](Pending& pending) { return std::move(pending.callback); });
-        pending_.erase(due.begin(), due.end());
+        const std::uint64_t reached = event_.signaledValue;
+        batch = take_pending(reached);
+        listening_.erase(listening_.begin(), listening_.upper_bound(reached));
     }
-    run_all(callbacks);
-    {
-        const std::lock_guard lock(mutex_);
-        delivered_value_ = std::max(delivered_value_, reached);
-    }
-    changed_.notify_all();
+    run(std::move(batch), false);
 }
 
 MetalTimeline::MetalTimeline(id<MTLSharedEvent> event)
     : state_(std::make_shared<TimelineState>(event)) {}
 
+// Waits for callbacks already running elsewhere, so none outlives the timeline.
 MetalTimeline::~MetalTimeline() {
     state_->release_pending(false);
+    state_->wait_idle();
 }
 
 std::uint64_t MetalTimeline::completed_value() const noexcept {

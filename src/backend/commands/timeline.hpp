@@ -14,13 +14,14 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <set>
 #include <vector>
 
 namespace directmetal::backend::commands {
 
 // The shared state behind a MetalTimeline. Metal listener blocks hold it weakly, so a listener
-// that fires after the timeline is gone does nothing. Waits return only once every notify
-// callback at or below the awaited value has run.
+// that fires after the timeline is gone does nothing. A wait returns only once no notify callback
+// at or below the awaited value is pending or still running.
 class TimelineState : public std::enable_shared_from_this<TimelineState> {
 public:
     explicit TimelineState(id<MTLSharedEvent> event);
@@ -35,6 +36,8 @@ public:
     // Runs every pending callback and wakes every waiter. A lost timeline fails later waits for
     // values it has not reached and runs later callbacks immediately.
     void release_pending(bool is_lost);
+    // Blocks until no callback is running.
+    void wait_idle();
 
 private:
     struct Pending {
@@ -42,7 +45,10 @@ private:
         std::function<void()> callback;
     };
 
-    bool is_settled(std::uint64_t value) const noexcept;
+    bool is_reached(std::uint64_t value) const;
+    bool is_failed(std::uint64_t value) const;
+    std::vector<Pending> take_pending(std::uint64_t up_to);
+    void run(std::vector<Pending> batch, bool is_lost);
     void listen(std::uint64_t value);
     void deliver();
 
@@ -50,8 +56,14 @@ private:
     mutable std::mutex mutex_;
     std::condition_variable changed_;
     std::vector<Pending> pending_;
-    std::uint64_t delivered_value_;
+    // Values of callbacks taken from pending_ that have not returned yet.
+    std::multiset<std::uint64_t> running_;
+    // Values with a registered listener that has not fired yet.
+    std::set<std::uint64_t> listening_;
+    // Set when loss is reported, so later callbacks run at once; is_lost_settled_ is set once the
+    // callbacks released by the loss have returned, and only then do waits fail.
     bool is_lost_ = false;
+    bool is_lost_settled_ = false;
 };
 
 class MetalTimeline final : public Timeline {

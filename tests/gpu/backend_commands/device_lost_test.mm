@@ -65,4 +65,22 @@ TEST_F(DeviceLost, OtherQueuesKeepWorking) {
     EXPECT_EQ(other.value()->progress().wait(1, patience), Status::success);
 }
 
+TEST_F(DeviceLost, WaitReturnsAfterReleasedCallbacksFinish) {
+    std::atomic<bool> has_started = false;
+    std::atomic<bool> has_finished = false;
+    queue_->progress().notify(5, [&] {
+        has_started = true;
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        has_finished = true;
+    });
+    directmetal::backend::commands::testing::fail_next_submit(*queue_);
+    ASSERT_EQ(queue_->submit(), Status::success);
+    const auto deadline = std::chrono::steady_clock::now() + patience;
+    while (!has_started.load() && std::chrono::steady_clock::now() < deadline) {
+        std::this_thread::yield();
+    }
+    ASSERT_EQ(queue_->progress().wait(5, patience), Status::device_lost);
+    EXPECT_TRUE(has_finished.load());
+}
+
 } // namespace
