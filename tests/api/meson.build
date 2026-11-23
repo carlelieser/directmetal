@@ -13,9 +13,9 @@ exit_test_pending = 'D3D11 front end not wired into the exit test yet (Phase 1 w
 # Native runs, in every macOS build (unix, unix-arm64, sanitize). The exit test runs once
 # is_exit_test_wired is set and this block enters programs/ first, which then builds
 # d3d11_clear_readback for macOS against the D3D11 front end and the native bridge (needs
-# has_native_win32_headers from package E and the front end from package I). macOS builds reach
-# this file only once tests/meson.build enters tests/api instead of tests/api/tests. Setting
-# is_exit_test_wired without the native program is a configure error, not a silent skip.
+# has_native_win32_headers from package E and the front end from package I). The staging ring
+# round trip runs here through the native bridge. Setting is_exit_test_wired without the native
+# program is a configure error, not a silent skip.
 if not is_windows
     subdir('tests')
     native_exit_args = ['--mode', 'native', '--reference', exit_reference]
