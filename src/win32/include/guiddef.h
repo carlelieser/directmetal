@@ -42,7 +42,8 @@ inline bool operator==(REFGUID left, REFGUID right) noexcept {
 #define IsEqualCLSID(left, right) IsEqualGUID(left, right)
 
 // Without Microsoft extensions there is no __declspec(uuid). Headers attach an interface's GUID
-// with __CRT_UUID_DECL, which specializes InterfaceGuid; __uuidof accepts a type or an expression.
+// with __CRT_UUID_DECL, which specializes InterfaceGuid; __uuidof accepts a type or an expression,
+// including a pointer or reference to an interface.
 namespace directmetal::win32 {
 
 template <typename Interface> struct InterfaceGuid;
@@ -54,7 +55,8 @@ template <typename Interface> constexpr const GUID& uuid_of() noexcept {
 } // namespace directmetal::win32
 
 #define __uuidof(type_or_expression)                                                               \
-    ::directmetal::win32::uuid_of<::std::remove_cv_t<__typeof__(type_or_expression)>>()
+    ::directmetal::win32::uuid_of<::std::remove_cv_t<                                              \
+        ::std::remove_pointer_t<::std::remove_cvref_t<__typeof__(type_or_expression)>>>>()
 
 #define __CRT_UUID_DECL(type, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8)                           \
     extern "C++" {                                                                                 \

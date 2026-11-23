@@ -21,6 +21,13 @@ TEST(IidTest, ResolvesDocumentedIids) {
     EXPECT_TRUE(IsEqualGUID(IID_ID3D11Device, id3d11device_iid));
 }
 
+TEST(IidTest, UuidofAcceptsPointerAndReferenceExpressions) {
+    ID3D11Device* device = nullptr;
+
+    EXPECT_TRUE(IsEqualGUID(__uuidof(device), id3d11device_iid));
+    EXPECT_TRUE(IsEqualGUID(__uuidof(*device), id3d11device_iid));
+}
+
 TEST(IidTest, DistinguishesInterfaces) {
     EXPECT_FALSE(IsEqualGUID(iid_of<ID3D11Device>(), iid_of<ID3D11DeviceContext>()));
 }
