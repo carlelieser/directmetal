@@ -32,17 +32,22 @@ std::span<const InterfaceEntry> interface_table() noexcept {
     return entries;
 }
 
+// Public references (AddRef/Release) and private references (internal owners such as a device's
+// children). While the public count is non-zero the public references together hold one private
+// reference; the object is destroyed when the private count reaches zero.
 class RefCounts {
 public:
+    // Returns the new public count. Going from 0 to 1 takes the private reference.
     ULONG add_ref() noexcept;
-    // Returns the new public count.
+    // Returns the new public count. Going from 1 to 0 drops the private reference.
     ULONG release() noexcept;
     void add_private_ref() noexcept;
-    // Returns true when both counts reached zero and the object must be destroyed.
+    // Returns true when the private count reached zero and the object must be destroyed.
     bool release_private() noexcept;
 };
 
-// Base implements the COM interfaces; Extra are further interfaces of the same object.
+// Base implements the COM interfaces; Extra are further interfaces of the same object. IUnknown
+// resolves through Base: the overrides below serve every base's IUnknown slots.
 template <typename Base, typename... Extra> class Object : public Base, public Extra... {
 public:
     // E_POINTER for a null out-pointer, E_NOINTERFACE (and *object = nullptr) when unsupported.
@@ -58,6 +63,8 @@ protected:
     virtual ~Object();
     // The derived class's interface table lookup.
     virtual void* find_interface(REFIID iid) noexcept = 0;
+    // Runs when the public count goes from 0 to 1 again; children re-take their device reference.
+    virtual void on_first_public_ref() noexcept {}
     // Runs when the public count reaches zero; children drop their device reference here.
     virtual void on_last_public_release() noexcept {}
 };
