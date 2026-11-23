@@ -21,6 +21,7 @@ bridge_client_tests = executable(
     'bridge_client_tests',
     'chunk_builder.cpp',
     'fake_transport.cpp',
+    'shared_block_allocator_test.cpp',
     'stream_writer_test.cpp',
     dependencies: [bridge_client_dep, gtest_dep],
 )

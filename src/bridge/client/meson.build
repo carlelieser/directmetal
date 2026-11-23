@@ -4,6 +4,7 @@ bridge_client_include = include_directories('include')
 
 bridge_client_lib = static_library(
     'bridge_client',
+    'shared_block_allocator.cpp',
     'stream_writer.cpp',
     include_directories: bridge_client_include,
     dependencies: [bridge_protocol_dep, bridge_codec_dep, memory_dep],
