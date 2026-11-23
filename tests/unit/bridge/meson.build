@@ -16,3 +16,13 @@ bridge_codec_tests = executable(
 )
 
 test('bridge_codec', bridge_codec_tests, protocol: 'gtest', suite: 'unit', timeout: 120)
+
+bridge_client_tests = executable(
+    'bridge_client_tests',
+    'chunk_builder.cpp',
+    'fake_transport.cpp',
+    'stream_writer_test.cpp',
+    dependencies: [bridge_client_dep, gtest_dep],
+)
+
+test('bridge_client', bridge_client_tests, protocol: 'gtest', suite: 'unit', timeout: 60)
