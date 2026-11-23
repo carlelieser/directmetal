@@ -103,6 +103,8 @@ Plan: [docs/plans/phase-1.md](plans/phase-1.md).
 
 ### Phase 2 — DXGI and presentation
 
+Plan: [docs/plans/phase-2.md](plans/phase-2.md); joint schedule with Phase 3: [docs/plans/phases-2-3.md](plans/phases-2-3.md).
+
 - `IDXGIFactory`–`IDXGIFactory7`, adapters from `MTLDevice`, outputs from `NSScreen`, mode lists.
 - Swap chains (`IDXGISwapChain`–`IDXGISwapChain4`) on `CAMetalLayer`: flip/blit models, sync intervals, resize, frame latency waitable objects, fullscreen transitions.
 - HDR10/scRGB output through EDR and colorspace metadata (later in phase).
@@ -110,6 +112,8 @@ Plan: [docs/plans/phase-1.md](plans/phase-1.md).
 **Exit:** API tests present at the display refresh rate and pass resize and fullscreen transitions; Wine's `dlls/dxgi/tests` pass at 90% or better, with every failure tracked as an issue.
 
 ### Phase 3 — Shader compiler infrastructure
+
+Plan: [docs/plans/phase-3.md](plans/phase-3.md).
 
 - DirectMetal IR: typed SSA with structured control flow, resource bindings and I/O signatures.
 - DXBC reader (SM4.0–5.0), signature and reflection parsing (`ID3D11ShaderReflection`).
