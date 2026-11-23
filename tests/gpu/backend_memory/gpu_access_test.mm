@@ -78,12 +78,33 @@ TEST(ImportMemory, GpuReadsAndWritesCallerMemory) {
     EXPECT_EQ(std::memcmp(source_memory.get(), destination_memory.get(), size), 0);
 }
 
+// Maps an inaccessible region aligned to import_alignment. Pages are 4 KiB under Rosetta, so
+// mmap alone may return a misaligned address: map one extra alignment and unmap the excess.
+std::byte* map_inaccessible(std::size_t size) {
+    const std::size_t mapped = size + import_alignment;
+    void* pages = mmap(nullptr, mapped, PROT_NONE, MAP_ANON | MAP_PRIVATE, -1, 0);
+    if (pages == MAP_FAILED) {
+        return nullptr;
+    }
+    const auto start = reinterpret_cast<std::uintptr_t>(pages);
+    const std::uintptr_t aligned = (start + import_alignment - 1) & ~(import_alignment - 1);
+    const std::size_t head = aligned - start;
+    if (head > 0) {
+        munmap(pages, head);
+    }
+    const std::size_t tail = mapped - head - size;
+    if (tail > 0) {
+        munmap(reinterpret_cast<void*>(aligned + size), tail);
+    }
+    return reinterpret_cast<std::byte*>(aligned);
+}
+
 TEST(ImportMemory, RejectsInaccessibleMemory) {
     constexpr std::size_t size = import_alignment;
-    void* pages = mmap(nullptr, size, PROT_NONE, MAP_ANON | MAP_PRIVATE, -1, 0);
-    ASSERT_NE(pages, MAP_FAILED);
+    std::byte* const pages = map_inaccessible(size);
+    ASSERT_NE(pages, nullptr);
     const auto device = make_device();
-    const auto imported = device->import_memory({static_cast<std::byte*>(pages), size});
+    const auto imported = device->import_memory({pages, size});
     ASSERT_FALSE(imported.has_value());
     EXPECT_EQ(imported.status(), Status::invalid_argument);
     munmap(pages, size);
