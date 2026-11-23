@@ -1,3 +1,5 @@
 LIBRARY directmetal.dll
 EXPORTS
     directmetal_bridge_call
+    directmetal_bridge_allocate_shared
+    directmetal_bridge_free_shared
