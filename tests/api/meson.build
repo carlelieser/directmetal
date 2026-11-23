@@ -1,7 +1,44 @@
-# Wine API tests (suite 'api'). The validation canary goes through run_api_test.py, which enables
-# Metal validation in assert mode and fails on any abnormal exit.
+# API tests (suite 'api'). PE builds run the programs under Wine; macOS builds run them natively
+# through the in-process bridge. Exit tests (docs/plans/phase-1.md#exit-test) and the validation
+# canary go through run_api_test.py, which enables Metal validation in assert mode, fails on any
+# abnormal exit and compares the output with the Windows reference.
 fs = import('fs')
 api_runner = files('run_api_test.py')
+exit_reference = files('../reference/d3d11_clear_readback/reference.json')
+
+# Phase 1 wave 4 sets this once the D3D11 front end (package I) is wired into the exit program.
+# Until then the exit tests are registered but report a skip.
+is_exit_test_wired = false
+exit_test_pending = 'D3D11 front end not wired into the exit test yet (Phase 1 wave 4)'
+
+# Native runs, in every macOS build (unix, unix-arm64, sanitize). The exit test runs once
+# is_exit_test_wired is set and this block enters programs/ first, which then builds
+# d3d11_clear_readback for macOS against the D3D11 front end and the native bridge (needs
+# has_native_win32_headers from package E and the front end from package I). macOS builds reach
+# this file only once tests/meson.build enters tests/api instead of tests/api/tests.
+if not is_windows
+    subdir('tests')
+    native_exit_args = ['--mode', 'native', '--reference', exit_reference]
+    if not is_exit_test_wired
+        native_exit_args += ['--program', 'd3d11_clear_readback', '--skip', exit_test_pending]
+    elif not is_variable('d3d11_clear_readback')
+        native_exit_args += [
+            '--program', 'd3d11_clear_readback',
+            '--skip', 'd3d11_clear_readback does not build natively yet',
+        ]
+    else
+        native_exit_args += ['--program', d3d11_clear_readback]
+    endif
+    test(
+        'd3d11_clear_readback_native',
+        python,
+        args: ['-I', api_runner] + native_exit_args,
+        suite: 'api',
+        is_parallel: false,
+        timeout: 180,
+    )
+    subdir_done()
+endif
 
 unix_library = get_option('unix_library')
 if unix_library == ''
@@ -107,6 +144,26 @@ test(
     ],
     suite: 'api',
     should_fail: true,
+    is_parallel: false,
+    timeout: 180,
+)
+
+wine_exit_args = [
+    '--program', d3d11_clear_readback,
+    '--reference', exit_reference,
+    '--unix-library', unix_library,
+    '--call-log-dir', api_call_log_dir / 'd3d11_clear_readback',
+    '--work-dir', meson.current_build_dir() / 'd3d11_clear_readback',
+]
+if not is_exit_test_wired
+    wine_exit_args += ['--skip', exit_test_pending]
+endif
+
+test(
+    'd3d11_clear_readback_wine',
+    python,
+    args: wine_runner_args + wine_exit_args,
+    suite: 'api',
     is_parallel: false,
     timeout: 180,
 )
