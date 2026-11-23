@@ -132,6 +132,7 @@ struct TextureDesc {
     PixelFormat format;
     Extent3D extent;
     std::uint32_t mip_levels;
+    // Cubes, not faces, for cube and cube_array.
     std::uint32_t array_length;
     std::uint32_t sample_count;
     TextureUsage usage;

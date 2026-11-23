@@ -18,17 +18,28 @@ Landed before any package starts. Packages implement or consume them; changing o
 | I4 COM base | `src/frontends/com/include/directmetal/com/` | Front ends |
 | I5 Format queries | `src/formats/include/directmetal/formats/formats.hpp` | Front ends, backend, format GPU test |
 | I6 Runtime | `src/runtime/include/directmetal/runtime/{log,config,hud}.hpp` | Every component |
-| I7 Host dispatch | `src/unix/include/directmetal/host/dispatch.hpp` | Host, native bridge |
+| I7 Host dispatch | `src/unix/include/directmetal/host/dispatch.hpp`; an interim `host::dispatch` in `src/unix/host/` answers `query_version` and `log_call` | Host, native bridge |
+| Backend seams (private) | `src/backend/commands/factory.hpp` (queue and timeline factories, implemented by F); `src/backend/resource_access.hpp` (Metal objects behind `Buffer`, `Texture` and `Device`, queue tracking for deferred frees, implemented by B; `.mm` sources only) | Backend lanes B and F |
 
 Rules that span interfaces:
 
-- Wire structs use fixed-width fields, carry addresses as `u64`, zero reserved fields, and assert size and offsets in every build (win32, win64, macOS).
-- Memory the PE side reads or writes is allocated on the PE side (`directmetal_bridge_allocate_shared`, below 4 GiB under WoW64) and imported by the unix side without copying. Imports require address and size to be multiples of 16 KiB (`shared_memory_alignment`); the PE side may free imported memory only after `release_memory` returns, which waits for all GPU work using it.
+- Wire structs use fixed-width fields, carry addresses as `u64`, zero reserved fields, and assert the size and every field offset in every build (win32, win64, macOS).
+- Shared memory is allocated on the PE side with `directmetal_bridge_allocate_shared` (16 KiB aligned and rounded, below 4 GiB under WoW64). Chunks use such regions directly; `StreamControl` blocks (64-byte aligned) and timeline mirrors (8-byte aligned) are carved from them by the client's small-block sub-allocator (package C), so each does not cost a 64 KiB `VirtualAlloc` granule under WoW64.
+- Only `import_memory` targets must be multiples of 16 KiB (`shared_memory_alignment`). The PE side frees imported memory only after `release_memory` returns. Imported buffers are never named in `destroy_object`.
+- Timeline mirrors may be freed after `destroy_timeline` returns; a stream's `StreamControl`, whose `completed_progress` mirrors its progress timeline, after `close_stream` or `destroy_device` returns. Timelines are never named in `destroy_object`.
+- Teardown (`destroy_device`, `close_stream`, `release_memory`): the client flushes every stream of the device first; the host decodes every queued chunk of every stream on that device, commits recorded but unsubmitted work and waits for the GPU before returning.
+- A queue's progress timeline starts at 0 and the k-th submit signals k (`Queue::last_submitted_value`). `Timeline::notify` callbacks run on a Metal completion thread and only touch atomics and lock-free queues. Deferred frees use both.
+- A stream error is sticky: later chunks are ignored and every wait on the stream's timelines fails with `status_device_removed`. `timeout_infinite` waits without a limit.
+- Chunk framing: `SubmitStreamParams` sequence and size equal the chunk header's; chunks are at most 1 MiB; bytes after the last of `command_count` commands are an error; every opcode has its own payload type and the encoder and decoder share `opcode_layouts`.
 - The unix side creates the Metal device lazily on the first device call, never while `directmetal.so` is being loaded: the first `MTLCreateSystemDefaultDevice` inside Wine takes 50–60 ms.
 - Front ends flush the stream only when a chunk is full, on an explicit flush, before any CPU wait, and at submit.
 - One stream-consumer thread per stream (device context or queue). Stream threads never call into Wine.
-- Handles are assigned by the unix side, synchronously, and are opaque to the PE side.
-- Front-end code never uses `wchar_t` or `long` for wire or ABI data.
+- `initialize` comes before any call except `query_version` and may be repeated. `Host::call` is thread-safe. Handles are assigned by the unix side, synchronously, are opaque to the PE side and are never reused within a process.
+- Validation is layered: front ends validate against the Direct3D rules; the host validates every decoded command against the descriptions of the resources it names and makes the stream's error sticky on a violation; the backend only asserts, in debug builds.
+- Format queries take raw `std::uint32_t` `DXGI_FORMAT` values; front ends pass `static_cast<std::uint32_t>(DXGI_FORMAT)`. Only `src/formats` sources include DirectX-Headers' `dxgiformat.h`, never together with the toolchain's.
+- `PrivateDataStore` returns `PrivateDataResult`; each front end maps it to its API's codes.
+- `STAGING` textures are imported PE buffers, read and written with `copy_texture_to_buffer` and `copy_buffer_to_texture`. `TextureDesc::array_length` counts cubes for cube types.
+- Front-end code never uses `wchar_t` or `long` for wire or ABI data. Front ends build as static libraries, linked into their DLL on Windows and into native executables once native Windows headers exist (`has_native_win32_headers`, set by package E).
 
 ## Packages
 
@@ -38,9 +49,9 @@ Each package owns the listed paths; no two packages in a wave touch the same fil
 
 | Package | Owns | Proves it with | Size |
 | --- | --- | --- | --- |
-| A. Format tables | `src/formats/**`, `tests/unit/formats/**` | Every `DXGI_FORMAT` and `D3DFORMAT` entry; a coverage check that diffs table names against `docs/api/dxgi.json` and `docs/api/d3d9.json`; view-compatibility matrix; substitutions (D24S8, B8G8R8X8, R32G32B32) | L |
-| B. Allocators, backend device and resources | `src/memory/**`, `src/backend/**` except `src/backend/commands/`, `tests/unit/memory/**`, `tests/gpu/backend_memory/**` | Allocator alignment, overlap, coalescing, exhaustion, ring wrap and retire order; placement heaps, heap growth, dedicated allocations, no range reuse before completion, zero-copy import | L |
-| C. Bridge codec and transports | `src/bridge/**`, `tests/unit/bridge/**` | Round trip of every opcode; rejection of truncated, misaligned, oversize and unknown commands with a sticky error; corpus replay; native transport reaching `host::dispatch` | M–L |
+| A. Format tables | `src/formats/**`, `tests/unit/formats/**` | Every DirectX-Headers `DXGI_FORMAT` enumerator through `A4B4G4R4_UNORM`, checked against its `dxgiformat.h` in native builds, and every `D3DFORMAT`; a coverage check that diffs table names against `docs/api/dxgi.json` and `docs/api/d3d9.json`; view-compatibility matrix; substitutions (D24S8, B8G8R8X8, R32G32B32) | L |
+| B. Allocators, backend device and resources (implements `resource_access.hpp`) | `src/memory/**`, `src/backend/**` except `src/backend/commands/`, `tests/unit/memory/**`, `tests/gpu/backend_memory/**` | Allocator alignment, overlap, coalescing, exhaustion, ring wrap and retire order; placement heaps, heap growth, dedicated allocations, no range reuse before completion, zero-copy import | L |
+| C. Bridge codec, transports and shared-memory sub-allocator | `src/bridge/**` except `src/bridge/client/staging_ring*`, `tests/unit/bridge/**` | Round trip of every opcode; rejection of truncated, misaligned, oversize, trailing and unknown commands and of mismatched chunk sequence or size, with a sticky error; small-block sub-allocation of mirrors and control blocks; corpus replay; native transport reaching `host::dispatch` | M–L |
 | D. Windows reference job and exit program | `.github/workflows/reference.yml`, `toolchains/windows-llvm-mingw.ini`, `tools/reference/**`, `tests/api/harness/**`, `tests/api/programs/**`, `tests/reference/**` | Comparator and freshness-check unit tests; one dispatched run whose output is committed | M |
 
 ### Wave 2
@@ -48,8 +59,8 @@ Each package owns the listed paths; no two packages in a wave touch the same fil
 | Package | Owns | Proves it with | Size |
 | --- | --- | --- | --- |
 | E. Native Windows headers and COM base | `src/win32/**`, `subprojects/mingw-w64-headers.wrap`, `src/frontends/com/**`, `tests/unit/com/**` | QueryInterface tables, public and private refcount lifetimes, concurrent AddRef/Release, every documented private-data return code, debug-name callback; `<d3d11.h>` compiling on macOS x86_64 and arm64, win32 and win64 | M–L |
-| F. Backend commands, timelines, submission | `src/backend/commands/**`, `tests/gpu/backend_commands/**` | Clear-then-copy readback per format kind; buffer↔texture copies with pitches; timeline signal, wait and timeout; device-lost path | L |
-| G. Host | `src/unix/**`, `tests/unit/host/**`, `tests/gpu/host/**` | Every control call through `host::Host` with a fake device provider; bad and stale handles; retired sequencing; decode errors; clear and readback through the protocol on the real backend | L |
+| F. Backend commands, timelines, submission (implements `commands/factory.hpp`) | `src/backend/commands/**`, `tests/gpu/backend_commands/**` | Clear-then-copy readback per format kind; buffer↔texture copies with pitches; progress numbering; timeline signal, wait, timeout and notify; device-lost path | L |
+| G. Host | `src/unix/**`, `tests/unit/host/**` | Every control call through `host::Host` with a fake device provider, replacing the interim dispatcher; bad and stale handles; retired sequencing; decode and validation errors; teardown draining; waits failing after a sticky error | L |
 | H. Runtime | `src/runtime/**`, `tests/unit/runtime/**` | Configuration precedence, application sections, malformed lines, unknown keys, `DIRECTMETAL_LOG` grammar, sinks, counter atomicity | M |
 
 ### Wave 3
@@ -59,13 +70,14 @@ Each package owns the listed paths; no two packages in a wave touch the same fil
 | I. D3D11 minimal slice | `src/frontends/d3d11/**` | `D3D11CreateDevice` with a null adapter; `CreateTexture2D`, `CreateRenderTargetView`, `ClearRenderTargetView`, `CopyResource`, `Map`/`Unmap`, `GetImmediateContext`, device private data and `IUnknown` implemented, everything else `DM_STUB`; builds as a PE DLL and a native static library | L |
 | J. Staging rings and WoW64 proof | `src/bridge/client/staging_ring*`, `tests/api/programs/bridge_ring_roundtrip.cpp` | Upload, copy and readback through the ring, natively and under Wine for win64 and win32 | M |
 | K. API runners and gates | `tests/api/run_api_test.py`, `tests/api/meson.build`, `tests/gpu/validation_canary.mm`, `tools/ci/run_local.sh`, `.github/workflows/ci.yml` | Runner unit tests; a validation canary that must abort | M |
+| G2. Host on the real backend | `tests/gpu/host/**` | Clear and readback through the protocol on the Metal backend, after F | S |
 | L. Format GPU check | `tests/gpu/formats/**` | Every format claiming support on the running GPU family is created with its claimed usages, cleared and copied where render-target support is claimed, with no validation errors | M |
 
 ### Wave 4
 
 The integrator wires package I into package K's runners for the exit test, updates the status gate and cites the gates in the roadmap.
 
-Critical path: interfaces → B and C → F and G → I → wave 4.
+Critical path: interfaces → B and C → F and G → I → wave 4. G2 is small and runs first in wave 3; L starts when it lands, so no more than four packages run at once.
 
 ## Exit test
 
