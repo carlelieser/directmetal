@@ -36,7 +36,8 @@ public:
     }
 
     Timeline& progress() noexcept override { return progress_; }
-    void fail_next_submit() noexcept { is_failure_injected_.store(true); }
+    // Only test_seams.mm calls this; see testing::fail_next_submit.
+    void inject_failure_for_testing() noexcept { is_failure_injected_.store(true); }
 
 private:
     Device& device_;

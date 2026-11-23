@@ -9,7 +9,7 @@ backend_commands_tests = executable(
     'subresource_test.mm',
     'timeline_test.mm',
     include_directories: backend_private_include,
-    dependencies: [backend_dep, gtest_dep],
+    dependencies: [backend_dep, backend_commands_testing_dep, gtest_dep],
     objcpp_args: '-fobjc-arc',
 )
 

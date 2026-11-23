@@ -1,6 +1,5 @@
 #include "queue.hpp"
 
-#include "fault_injection.hpp"
 #include "resource_access.hpp"
 
 namespace directmetal::backend::commands {
@@ -27,8 +26,10 @@ Status MetalQueue::submit() noexcept {
             }
             return Status::device_lost;
         }
-        [work.commands encodeSignalEvent:progress_.state()->event() value:value];
         const bool is_injected = is_failure_injected_.exchange(false);
+        if (!is_injected) {
+            [work.commands encodeSignalEvent:progress_.state()->event() value:value];
+        }
         const std::shared_ptr<LossTracker> loss = loss_;
         [work.commands addCompletedHandler:^(id<MTLCommandBuffer> buffer) {
           const bool is_error = buffer.status == MTLCommandBufferStatusError;
@@ -42,11 +43,3 @@ Status MetalQueue::submit() noexcept {
 }
 
 } // namespace directmetal::backend::commands
-
-namespace directmetal::backend::commands::testing {
-
-void fail_next_submit(Queue& queue) noexcept {
-    static_cast<MetalQueue&>(queue).fail_next_submit();
-}
-
-} // namespace directmetal::backend::commands::testing

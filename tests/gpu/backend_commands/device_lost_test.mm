@@ -1,11 +1,11 @@
-#include "commands/fault_injection.hpp"
+#include "commands/test_seams.hpp"
 #include "commands_fixture.hpp"
 
 #include <atomic>
 #include <thread>
 
-// Metal command buffer errors are not provoked: fail_next_submit marks a submit's command buffer
-// failed in the completion path, which then takes the same device-lost route as a real error.
+// Metal command buffer errors are not provoked: fail_next_submit marks a submit failed in the
+// completion path, which then takes the same device-lost route as a real error.
 namespace {
 
 using namespace directmetal::backend;
@@ -23,6 +23,13 @@ TEST_F(DeviceLost, FailedSubmitReleasesWaitersAndRefusesLaterSubmits) {
     EXPECT_EQ(queue_->progress().wait(2, patience), Status::device_lost);
     EXPECT_EQ(queue_->submit(), Status::device_lost);
     EXPECT_EQ(queue_->last_submitted_value(), 1u);
+}
+
+TEST_F(DeviceLost, FailedSubmitDoesNotCompleteProgress) {
+    directmetal::backend::commands::testing::fail_next_submit(*queue_);
+    ASSERT_EQ(queue_->submit(), Status::success);
+    EXPECT_EQ(queue_->progress().wait(1, patience), Status::device_lost);
+    EXPECT_EQ(queue_->progress().completed_value(), 0u);
 }
 
 TEST_F(DeviceLost, RunsPendingAndLaterNotifyCallbacks) {
