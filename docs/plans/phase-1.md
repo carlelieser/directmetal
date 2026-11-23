@@ -90,7 +90,7 @@ Critical path: interfaces → B and C → F and G → I → wave 4. G2 is small 
 - References are regenerated with `gh workflow run reference.yml --ref <branch>` and `tools/reference/update.py --run <id>`, which checks the source hash and writes `tests/reference/<test>/reference.json`. The reference is committed with the test change and reviewed as a diff. `tolerance.json` sits beside it; loosening it needs explicit review.
 - On macOS (suite `api`): natively for x86_64, arm64 and the UBSan build, and under Wine for win64 and win32, all with `MTL_DEBUG_LAYER=1`, `MTL_SHADER_VALIDATION=1` and `MTL_DEBUG_LAYER_ERROR_MODE=assert`. `HRESULT`s must match exactly; readbacks match within 0 for integer and float formats and 1 for 8-bit UNORM and sRGB.
 - A Metal validation assertion aborts the whole Wine process (the PE side sees `0xc0000005`), so the runners treat any abnormal exit as a failure, not only a mismatched result.
-- Status gate: `--require d3d11:tested>=8 --require common:implemented>=3`.
+- Status gate: `d3d11_exit_status_gate` requires `d3d11:tested>=8` and `common:tested>=3` on the exit test's call logs.
 
 ## Decisions
 

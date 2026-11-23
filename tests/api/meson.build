@@ -8,11 +8,11 @@ exit_reference = files('../reference/d3d11_clear_readback/reference.json')
 # Exit tests skip when this is false, for bring-up of a new front end.
 is_exit_test_wired = true
 exit_test_pending = 'D3D11 front end not wired into the exit test'
-exit_status_requirements = ['--require', 'd3d11:tested>=8', '--require', 'common:implemented>=3']
+# The exit program reaches 8 D3D11 entry points and all three IUnknown methods.
+exit_status_requirements = ['--require', 'd3d11:tested>=8', '--require', 'common:tested>=3']
 
 # Native runs, in every macOS build (unix, unix-arm64, sanitize). The exit program links the D3D11
-# front end and the native bridge directly. Setting is_exit_test_wired without the native program
-# is a configure error, not a silent skip.
+# front end and the native bridge directly.
 if not is_windows
     subdir('tests')
     native_harness_dep = declare_dependency(
@@ -26,12 +26,9 @@ if not is_windows
     )
     native_call_logs = meson.current_build_dir() / 'call-logs' / 'd3d11_clear_readback'
     native_exit_args = ['--mode', 'native', '--reference', exit_reference]
+    native_exit_args += ['--program', d3d11_clear_readback, '--call-log-dir', native_call_logs]
     if not is_exit_test_wired
-        native_exit_args += ['--program', 'd3d11_clear_readback', '--skip', exit_test_pending]
-    elif not is_variable('d3d11_clear_readback')
-        error('is_exit_test_wired is set, but d3d11_clear_readback is not built for macOS')
-    else
-        native_exit_args += ['--program', d3d11_clear_readback, '--call-log-dir', native_call_logs]
+        native_exit_args += ['--skip', exit_test_pending]
     endif
     test(
         'd3d11_clear_readback_native',
@@ -54,19 +51,21 @@ if not is_windows
         is_parallel: false,
         timeout: 180,
     )
-    test(
-        'd3d11_exit_status_gate',
-        python,
-        args: [
-            '-I', files('../../tools/api/report_status.py'),
-            '--call-log-dir', native_call_logs,
-            '--output', meson.current_build_dir() / 'exit-status',
-        ] + exit_status_requirements,
-        suite: 'api',
-        priority: -1,
-        is_parallel: false,
-        timeout: 60,
-    )
+    if is_exit_test_wired
+        test(
+            'd3d11_exit_status_gate',
+            python,
+            args: [
+                '-I', files('../../tools/api/report_status.py'),
+                '--call-log-dir', native_call_logs,
+                '--output', meson.current_build_dir() / 'exit-status',
+            ] + exit_status_requirements,
+            suite: 'api',
+            priority: -1,
+            is_parallel: false,
+            timeout: 60,
+        )
+    endif
     subdir_done()
 endif
 
@@ -218,16 +217,18 @@ test(
 )
 
 # Phase 1 exit gate (docs/ROADMAP.md) on the exit test's call logs.
-test(
-    'd3d11_exit_status_gate',
-    python,
-    args: [
-        '-I', files('../../tools/api/report_status.py'),
-        '--call-log-dir', api_call_log_dir / 'd3d11_clear_readback',
-        '--output', meson.current_build_dir() / 'exit-status',
-    ] + exit_status_requirements,
-    suite: 'api',
-    priority: -1,
-    is_parallel: false,
-    timeout: 60,
-)
+if is_exit_test_wired
+    test(
+        'd3d11_exit_status_gate',
+        python,
+        args: [
+            '-I', files('../../tools/api/report_status.py'),
+            '--call-log-dir', api_call_log_dir / 'd3d11_clear_readback',
+            '--output', meson.current_build_dir() / 'exit-status',
+        ] + exit_status_requirements,
+        suite: 'api',
+        priority: -1,
+        is_parallel: false,
+        timeout: 60,
+    )
+endif
