@@ -3,6 +3,8 @@ backend_commands_tests = executable(
     'backend_commands_tests',
     'clear_test.mm',
     'copy_test.mm',
+    'deferred_free_test.mm',
+    'device_lost_test.mm',
     'progress_test.mm',
     'subresource_test.mm',
     'timeline_test.mm',
