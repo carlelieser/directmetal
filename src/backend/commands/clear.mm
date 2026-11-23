@@ -68,18 +68,43 @@ MTLClearColor metal_clear_color(const ClearColor& color) {
                              read(color.bits[3]));
 }
 
-bool has_aspect(ClearAspect aspects, ClearAspect aspect) {
-    return (static_cast<std::uint8_t>(aspects) & static_cast<std::uint8_t>(aspect)) != 0;
+struct FormatAspects {
+    MTLPixelFormat format;
+    ClearAspect aspects;
+};
+
+constexpr auto depth_and_stencil = static_cast<ClearAspect>(0x3);
+
+constexpr std::array<FormatAspects, 7> format_aspects{{
+    {MTLPixelFormatDepth16Unorm, ClearAspect::depth},
+    {MTLPixelFormatDepth32Float, ClearAspect::depth},
+    {MTLPixelFormatStencil8, ClearAspect::stencil},
+    {MTLPixelFormatDepth24Unorm_Stencil8, depth_and_stencil},
+    {MTLPixelFormatDepth32Float_Stencil8, depth_and_stencil},
+    {MTLPixelFormatX32_Stencil8, ClearAspect::stencil},
+    {MTLPixelFormatX24_Stencil8, ClearAspect::stencil},
+}};
+
+std::uint8_t aspects_of(MTLPixelFormat format) {
+    const auto found = std::ranges::find(format_aspects, format, &FormatAspects::format);
+    return found == format_aspects.end() ? 0 : static_cast<std::uint8_t>(found->aspects);
+}
+
+// Requested aspects the format lacks are ignored rather than attached.
+bool has_aspect(const ClearTarget& target, ClearAspect requested, ClearAspect aspect) {
+    const std::uint8_t present = aspects_of(target.texture.pixelFormat);
+    const std::uint8_t wanted = static_cast<std::uint8_t>(requested);
+    return (present & wanted & static_cast<std::uint8_t>(aspect)) != 0;
 }
 
 MTLRenderPassDescriptor* depth_stencil_pass(const ClearTarget& target,
                                             const DepthStencilClear& clear) {
     MTLRenderPassDescriptor* pass = [MTLRenderPassDescriptor renderPassDescriptor];
-    if (has_aspect(clear.aspects, ClearAspect::depth)) {
+    if (has_aspect(target, clear.aspects, ClearAspect::depth)) {
         attach(pass.depthAttachment, target);
         pass.depthAttachment.clearDepth = clear.depth;
     }
-    if (has_aspect(clear.aspects, ClearAspect::stencil)) {
+    if (has_aspect(target, clear.aspects, ClearAspect::stencil)) {
         attach(pass.stencilAttachment, target);
         pass.stencilAttachment.clearStencil = clear.stencil;
     }

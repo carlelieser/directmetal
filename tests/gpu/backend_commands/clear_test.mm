@@ -178,6 +178,22 @@ TEST_F(DepthStencilClearTest, DepthOnlyClearKeepsStencil) {
     expect_cleared(0.75f, 0x11);
 }
 
+TEST_F(CommandsTest, IgnoresStencilOfDepthOnlyFormat) {
+    const auto texture = make_texture(
+        texture_desc(TextureType::tex2d, PixelFormat::depth32_float, {extent, extent, 1}));
+    recorder().clear_depth_stencil(*texture, whole, {0.375f, 0x5a, both_aspects, 0});
+    const auto bytes = read_texture(*texture, {0, 0, {extent, extent, 1}, 4});
+    expect_pixels(bytes, bytes_of<float>({0.375f, 0.375f, 0.375f, 0.375f}), 0);
+}
+
+TEST_F(CommandsTest, IgnoresDepthOfStencilOnlyFormat) {
+    const auto texture =
+        make_texture(texture_desc(TextureType::tex2d, PixelFormat::stencil8, {extent, extent, 1}));
+    recorder().clear_depth_stencil(*texture, whole, {0.375f, 0x5a, both_aspects, 0});
+    const auto bytes = read_texture(*texture, {0, 0, {extent, extent, 1}, 1});
+    expect_pixels(bytes, {0x5a}, 0);
+}
+
 TEST_F(CommandsTest, ClearsStencil) {
     const auto texture =
         make_texture(texture_desc(TextureType::tex2d, PixelFormat::stencil8, {extent, extent, 1}));
