@@ -22,14 +22,14 @@ host_core_lib = static_library(
     'host/texture_rules.cpp',
     'host/work_queue.cpp',
     include_directories: directmetal_unix_include,
-    dependencies: [bridge_protocol_dep, bridge_codec_dep, backend_dep],
+    dependencies: [bridge_protocol_dep, bridge_codec_dep, backend_dep, formats_dep],
     gnu_symbol_visibility: 'hidden',
 )
 
 host_core_dep = declare_dependency(
     link_with: host_core_lib,
     include_directories: directmetal_unix_include,
-    dependencies: [bridge_protocol_dep, bridge_codec_dep, backend_dep],
+    dependencies: [bridge_protocol_dep, bridge_codec_dep, backend_dep, formats_dep],
 )
 
 # Wine pairs directmetal.dll with <dll_path>/x86_64-unix/directmetal.so, so the name is fixed.

@@ -264,7 +264,7 @@ FakeProvider::create(const backend::DeviceRequest& request) {
         return Result<std::unique_ptr<backend::Device>>::failure(create_status);
     }
     return Result<std::unique_ptr<backend::Device>>::success(
-        std::make_unique<FakeDevice>(gpu_, capabilities()));
+        std::make_unique<FakeDevice>(gpu_, device_capabilities));
 }
 
 std::vector<backend::Capabilities> FakeProvider::adapters() {
@@ -274,6 +274,7 @@ std::vector<backend::Capabilities> FakeProvider::adapters() {
 backend::Capabilities FakeProvider::capabilities() {
     backend::Capabilities capabilities{};
     capabilities.family = backend::GpuFamily::apple9;
+    capabilities.has_bc = 1;
     capabilities.max_texture_2d = 16384;
     capabilities.max_texture_3d = 2048;
     capabilities.max_buffer_length = std::uint64_t{1} << 30;

@@ -99,6 +99,8 @@ public:
     static backend::Capabilities capabilities();
 
     backend::DeviceRequest last_request{};
+    // What created devices report.
+    backend::Capabilities device_capabilities = capabilities();
     // create fails with this status unless it is success.
     backend::Status create_status = backend::Status::success;
 

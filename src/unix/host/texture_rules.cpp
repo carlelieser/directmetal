@@ -1,5 +1,7 @@
 #include "texture_rules.hpp"
 
+#include <directmetal/formats/formats.hpp>
+
 #include <algorithm>
 #include <array>
 #include <bit>
@@ -44,7 +46,8 @@ const TypeRule& rule_of(const TextureDesc& desc) noexcept {
 
 bool has_enumerated_fields(const TextureDesc& desc) noexcept {
     const bool is_known_type = static_cast<std::size_t>(desc.type) < type_rules.size();
-    const bool is_known_storage = desc.storage <= backend::StorageMode::memoryless;
+    // Memoryless textures only live inside one render pass, which Phase 1 has no command for.
+    const bool is_known_storage = desc.storage <= backend::StorageMode::gpu_private;
     const bool is_known_usage = (desc.usage & known_usage) == desc.usage;
     const bool is_known_enum = is_known_type && is_known_storage;
     return is_known_enum && is_known_usage && desc.reserved == 0;
@@ -85,8 +88,8 @@ bool has_valid_counts(const TextureDesc& desc, const TypeRule& rule) noexcept {
     if (!rule.is_multisample) {
         return desc.sample_count == 1;
     }
-    const bool is_sample_count =
-        desc.sample_count == 2 || desc.sample_count == 4 || desc.sample_count == 8;
+    // Apple GPUs support 2 and 4 samples for every multisample format; 8 only for some.
+    const bool is_sample_count = desc.sample_count == 2 || desc.sample_count == 4;
     return is_sample_count && desc.mip_levels == 1;
 }
 
@@ -105,6 +108,31 @@ bool suits_format(const TextureDesc& desc, const TypeRule& rule) noexcept {
         (desc.usage & backend::TextureUsage::render_target) != backend::TextureUsage::none;
     const bool is_blocked_target = is_compressed(*layout) && is_render_target;
     return rule.dimensions == 2 && !is_blocked_target;
+}
+
+bool has_usage(const TextureDesc& desc, backend::TextureUsage usage) noexcept {
+    return (desc.usage & usage) != backend::TextureUsage::none;
+}
+
+formats::DeviceFeatures features_of(const backend::Capabilities& capabilities) noexcept {
+    formats::DeviceFeatures features = formats::mac_features(capabilities.family);
+    features.has_bc_compression = capabilities.has_bc != 0;
+    return features;
+}
+
+// What Apple's feature set tables allow for the format on this device: Metal validation aborts
+// the process on anything else.
+bool is_supported(const TextureDesc& desc, const TypeRule& rule,
+                  const backend::Capabilities& capabilities) noexcept {
+    const formats::PixelFormatSupport support =
+        formats::pixel_format_support(desc.format, features_of(capabilities));
+    const bool is_render_allowed =
+        support.is_renderable || !has_usage(desc, backend::TextureUsage::render_target);
+    const bool is_write_allowed =
+        support.is_writable || !has_usage(desc, backend::TextureUsage::shader_write);
+    const bool is_multisample_allowed = support.is_multisample || !rule.is_multisample;
+    const bool is_usage_allowed = is_render_allowed && is_write_allowed;
+    return support.is_texture && is_usage_allowed && is_multisample_allowed;
 }
 
 } // namespace
@@ -126,7 +154,10 @@ bool is_valid_texture_desc(const TextureDesc& desc,
     if (!has_valid_extent(desc, rule) || !is_within_limits(desc, rule, capabilities)) {
         return false;
     }
-    return has_valid_counts(desc, rule) && suits_format(desc, rule);
+    if (!has_valid_counts(desc, rule) || !suits_format(desc, rule)) {
+        return false;
+    }
+    return is_supported(desc, rule, capabilities);
 }
 
 std::uint32_t slice_count(const TextureDesc& desc) noexcept {

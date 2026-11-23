@@ -95,7 +95,6 @@ constexpr std::array layouts = {
     pixel(depth16_unorm, 2, depth),
     pixel(depth32_float, 4, depth),
     pixel(stencil8, 1, stencil),
-    pixel(depth24_unorm_stencil8, 4, depth | stencil),
     pixel(depth32_float_stencil8, 8, depth | stencil),
 };
 

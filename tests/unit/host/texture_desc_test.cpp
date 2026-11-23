@@ -82,12 +82,42 @@ INSTANTIATE_TEST_SUITE_P(
                  }},
         DescCase{"CompressedRenderTarget",
                  [](TextureDesc& desc) { desc.format = PixelFormat::bc1_rgba; }},
+        DescCase{"Memoryless", [](TextureDesc& desc) { desc.storage = StorageMode::memoryless; }},
+        DescCase{"EightSamples",
+                 [](TextureDesc& desc) {
+                     desc.type = TextureType::tex2d_ms;
+                     desc.sample_count = 8;
+                     desc.mip_levels = 1;
+                 }},
+        DescCase{"UnsupportedDepthStencil",
+                 [](TextureDesc& desc) {
+                     desc.format = PixelFormat::depth24_unorm_stencil8;
+                     desc.mip_levels = 1;
+                 }},
+        DescCase{"UnwritableFormat",
+                 [](TextureDesc& desc) {
+                     desc.format = PixelFormat::b5g6r5_unorm;
+                     desc.usage = TextureUsage::shader_write;
+                 }},
         DescCase{"Depth3D",
                  [](TextureDesc& desc) {
                      desc.type = TextureType::tex3d;
                      desc.format = PixelFormat::depth32_float;
                  }}),
     [](const auto& info) { return info.param.name; });
+
+TEST_F(HostTest, RejectsCompressedTexturesWithoutBcSupport) {
+    provider.device_capabilities.has_bc = 0;
+    initialize();
+    device = create_device();
+    TextureDesc compressed = render_target_desc();
+    compressed.format = PixelFormat::bc7_rgbaunorm;
+    compressed.usage = TextureUsage::shader_read;
+    CreateTextureParams params{device, compressed, 0, {}, 0};
+    EXPECT_EQ(call(FunctionCode::create_texture, params), status_invalid_parameter);
+    compressed.format = PixelFormat::rgba8_unorm;
+    EXPECT_FALSE(is_null(create_texture(device, compressed)));
+}
 
 TEST_F(HostTest, AcceptsTextureTypes) {
     initialize();
