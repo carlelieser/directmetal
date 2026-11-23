@@ -128,6 +128,9 @@ INSTANTIATE_TEST_SUITE_P(
         LevelCase{{D3D_FEATURE_LEVEL_10_0, D3D_FEATURE_LEVEL_11_0}, S_OK, D3D_FEATURE_LEVEL_11_0},
         LevelCase{{D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_9_3}, DXGI_ERROR_UNSUPPORTED, {}},
         LevelCase{{D3D_FEATURE_LEVEL_12_0}, DXGI_ERROR_UNSUPPORTED, {}},
+        // Without ID3D11Device1, 11_1 is unknown, as on runtimes before Direct3D 11.1.
+        LevelCase{{D3D_FEATURE_LEVEL_11_1}, E_INVALIDARG, {}},
+        LevelCase{{D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_11_0}, S_OK, D3D_FEATURE_LEVEL_11_0},
         LevelCase{
             {D3D_FEATURE_LEVEL_11_0, static_cast<D3D_FEATURE_LEVEL>(0x1234)}, E_INVALIDARG, {}}));
 

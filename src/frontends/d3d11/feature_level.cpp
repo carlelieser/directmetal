@@ -19,7 +19,8 @@ constexpr std::array known_levels = {
     D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_12_0, D3D_FEATURE_LEVEL_12_1,
 };
 
-constexpr std::array supported_levels = {D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_11_1};
+// 11_1 needs ID3D11Device1, which does not exist yet.
+constexpr std::array supported_levels = {D3D_FEATURE_LEVEL_11_0};
 
 template <typename Levels> bool contains(const Levels& levels, D3D_FEATURE_LEVEL level) noexcept {
     return std::find(levels.begin(), levels.end(), level) != levels.end();
@@ -41,7 +42,8 @@ HRESULT negotiate_feature_level(std::span<const D3D_FEATURE_LEVEL> requested,
         std::find_if(candidates.begin(), candidates.end(),
                      [](D3D_FEATURE_LEVEL level) { return contains(supported_levels, level); });
     if (found == candidates.end()) {
-        return DXGI_ERROR_UNSUPPORTED;
+        // Runtimes without Direct3D 11.1 reject 11_1 as an invalid argument.
+        return contains(candidates, D3D_FEATURE_LEVEL_11_1) ? E_INVALIDARG : DXGI_ERROR_UNSUPPORTED;
     }
     chosen = *found;
     return S_OK;
