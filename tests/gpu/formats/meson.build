@@ -4,6 +4,7 @@ format_gpu_tests = executable(
     'format_gpu_tests',
     'claimed_texture_test.mm',
     'format_fixture.mm',
+    'mip_autogen_test.mm',
     'multisample_test.mm',
     'texture_plan.cpp',
     include_directories: backend_private_include,
