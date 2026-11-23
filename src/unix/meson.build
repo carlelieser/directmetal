@@ -4,7 +4,10 @@ directmetal_unix_include = include_directories('include')
 # native bridge.
 host_core_lib = static_library(
     'host_core',
+    'host/command_rules.cpp',
     'host/dispatch.cpp',
+    'host/pixel_layout.cpp',
+    'host/texture_rules.cpp',
     include_directories: directmetal_unix_include,
     dependencies: [bridge_protocol_dep, backend_dep],
     gnu_symbol_visibility: 'hidden',
