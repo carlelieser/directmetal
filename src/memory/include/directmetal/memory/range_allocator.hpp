@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 #include <optional>
 
 namespace directmetal::memory {
@@ -9,6 +10,9 @@ namespace directmetal::memory {
 class RangeAllocator {
 public:
     explicit RangeAllocator(std::uint64_t capacity);
+    RangeAllocator(RangeAllocator&& other) noexcept;
+    RangeAllocator& operator=(RangeAllocator&& other) noexcept;
+    ~RangeAllocator();
 
     // Returns the offset of a free range, or nullopt when no range fits. alignment is a power of
     // two.
@@ -17,6 +21,10 @@ public:
     void free(std::uint64_t offset);
     std::uint64_t largest_free() const noexcept;
     std::uint64_t capacity() const noexcept;
+
+private:
+    class State;
+    std::unique_ptr<State> state_;
 };
 
 } // namespace directmetal::memory

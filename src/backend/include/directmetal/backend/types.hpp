@@ -3,6 +3,7 @@
 #include <directmetal/backend/pixel_format.hpp>
 
 #include <array>
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -25,11 +26,17 @@ enum class Status : std::int32_t {
     timeout,
 };
 
-// A value or the Status that prevented producing it. Never holds Status::success without a value.
+// A value or the Status that prevented producing it. Built only through success() and failure(),
+// so a successful Result always holds a value.
 template <typename T> class Result {
 public:
-    Result(T value) : value_(std::move(value)) {}
-    Result(Status status) : status_(status) {}
+    static Result success(T value) { return Result(std::move(value)); }
+
+    // status must not be Status::success; it is reported as invalid_argument if it is.
+    static Result failure(Status status) noexcept {
+        assert(status != Status::success);
+        return Result(status == Status::success ? Status::invalid_argument : status);
+    }
 
     bool has_value() const noexcept { return value_.has_value(); }
     Status status() const noexcept { return status_; }
@@ -38,6 +45,9 @@ public:
     T&& value() && { return std::move(*value_); }
 
 private:
+    explicit Result(T value) : value_(std::move(value)) {}
+    explicit Result(Status status) noexcept : status_(status) {}
+
     std::optional<T> value_;
     Status status_ = Status::success;
 };
