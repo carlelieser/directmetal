@@ -55,9 +55,10 @@ Status query_version(HostContext&, QueryVersionParams& params) {
 }
 
 // Allowed before initialize: Phase 0 stubs log their calls without initializing.
-Status log_call(HostContext& context, LogCallParams& params) {
+Status log_call(HostContext& context, LogCallParams& params, CallerAbi abi) {
+    const bool is_wow64 = abi == CallerAbi::wow64 || context.is_wow64.load();
     const bool has_valid_name = params.name_length <= max_name_length &&
-                                is_addressable(context, {params.name, params.name_length});
+                                is_addressable({params.name, params.name_length}, is_wow64);
     if (!has_valid_name || params.reserved != 0) {
         return status_invalid_parameter;
     }
@@ -72,12 +73,13 @@ Status log_call(HostContext& context, LogCallParams& params) {
     return status_success;
 }
 
-// A process is either WoW64 or not, so a repeat must agree with the first call.
-Status initialize(HostContext& context, InitializeParams& params) {
-    if (!is_valid_initialize(params)) {
+// The flag must match the table the call came through, and a process is either WoW64 or not, so a
+// repeat must agree with the first call.
+Status initialize(HostContext& context, InitializeParams& params, CallerAbi abi) {
+    const bool is_wow64 = (params.flags & initialize_flag_wow64) != 0;
+    if (!is_valid_initialize(params) || is_wow64 != (abi == CallerAbi::wow64)) {
         return status_invalid_parameter;
     }
-    const bool is_wow64 = (params.flags & initialize_flag_wow64) != 0;
     const std::lock_guard lock(context.session_mutex);
     if (context.is_initialized.load() && context.is_wow64.load() != is_wow64) {
         return status_invalid_parameter;

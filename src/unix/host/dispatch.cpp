@@ -22,8 +22,8 @@ Host& process_host() {
 
 } // namespace
 
-bridge::Status dispatch(std::uint32_t code, void* params) noexcept {
-    return process_host().call(code, params);
+bridge::Status dispatch(std::uint32_t code, void* params, CallerAbi abi) noexcept {
+    return process_host().call(code, params, abi);
 }
 
 } // namespace directmetal::host

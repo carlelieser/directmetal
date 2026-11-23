@@ -9,8 +9,8 @@
 namespace directmetal::host {
 
 bridge::Status query_version(HostContext& context, bridge::QueryVersionParams& params);
-bridge::Status log_call(HostContext& context, bridge::LogCallParams& params);
-bridge::Status initialize(HostContext& context, bridge::InitializeParams& params);
+bridge::Status log_call(HostContext& context, bridge::LogCallParams& params, CallerAbi abi);
+bridge::Status initialize(HostContext& context, bridge::InitializeParams& params, CallerAbi abi);
 bridge::Status enumerate_adapters(HostContext& context, bridge::EnumerateAdaptersParams& params);
 bridge::Status create_device(HostContext& context, bridge::CreateDeviceParams& params);
 bridge::Status destroy_device(HostContext& context, bridge::DestroyDeviceParams& params);

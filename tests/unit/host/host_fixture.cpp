@@ -74,6 +74,7 @@ void HostTest::TearDown() {
 }
 
 void HostTest::initialize(bool is_wow64) {
+    abi = is_wow64 ? CallerAbi::wow64 : CallerAbi::native;
     InitializeParams params{0, 0, is_wow64 ? initialize_flag_wow64 : 0, 0, 0};
     ASSERT_EQ(call(FunctionCode::initialize, params), status_success);
 }

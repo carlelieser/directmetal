@@ -64,7 +64,35 @@ TEST_F(HostTest, RejectsInvalidInitialize) {
 TEST_F(HostTest, RejectsInitializeChangingWow64) {
     initialize(false);
     InitializeParams params{0, 0, initialize_flag_wow64, 0, 0};
-    EXPECT_EQ(call(FunctionCode::initialize, params), status_invalid_parameter);
+    EXPECT_EQ(host->call(to_index(FunctionCode::initialize), &params, CallerAbi::wow64),
+              status_invalid_parameter);
+}
+
+TEST_F(HostTest, RequiresInitializeFlagToMatchTable) {
+    InitializeParams claims_wow64{0, 0, initialize_flag_wow64, 0, 0};
+    EXPECT_EQ(host->call(to_index(FunctionCode::initialize), &claims_wow64, CallerAbi::native),
+              status_invalid_parameter);
+    InitializeParams claims_native{0, 0, 0, 0, 0};
+    EXPECT_EQ(host->call(to_index(FunctionCode::initialize), &claims_native, CallerAbi::wow64),
+              status_invalid_parameter);
+    CreateDeviceParams device_params{};
+    EXPECT_EQ(call(FunctionCode::create_device, device_params), status_invalid_device_state);
+}
+
+TEST_F(HostTest, RejectsCallsThroughTheOtherTable) {
+    initialize(true);
+    CreateDeviceParams params{};
+    EXPECT_EQ(host->call(to_index(FunctionCode::create_device), &params, CallerAbi::native),
+              status_invalid_parameter);
+    EXPECT_EQ(call(FunctionCode::create_device, params), status_success);
+}
+
+TEST_F(HostTest, LogCallThroughWow64TableChecksAddresses) {
+    constexpr std::string_view name = "Present";
+    LogCallParams params{
+        bridge::to_address(name.data()), static_cast<std::uint32_t>(name.size()), 0, {}};
+    EXPECT_EQ(host->call(to_index(FunctionCode::log_call), &params, CallerAbi::wow64),
+              status_invalid_parameter);
 }
 
 TEST_F(HostTest, EnumeratesProviderAdapters) {

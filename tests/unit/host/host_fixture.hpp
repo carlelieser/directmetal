@@ -55,10 +55,12 @@ protected:
     // Completes outstanding fake GPU work, so tearing the host down never waits forever.
     void TearDown() override;
 
+    // Through the table initialize(is_wow64) chose.
     template <typename Params> bridge::Status call(bridge::FunctionCode code, Params& params) {
-        return host->call(bridge::to_index(code), &params);
+        return host->call(bridge::to_index(code), &params, abi);
     }
 
+    // Initializes through the WoW64 table when is_wow64; later calls use the same table.
     void initialize(bool is_wow64 = false);
     bridge::Handle create_device();
     bridge::Handle create_buffer(bridge::Handle device, std::uint64_t size);
@@ -89,6 +91,7 @@ protected:
     std::unique_ptr<Host> host;
     bridge::Handle device{};
     OpenedStream stream{};
+    CallerAbi abi = CallerAbi::native;
 };
 
 // A device and an open stream, initialized.

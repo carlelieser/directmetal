@@ -21,8 +21,10 @@ namespace directmetal::bridge {
 
 inline constexpr std::uint32_t initialize_flag_wow64 = 0x1;
 
-// Required before any other call except query_version and log_call, which fail with
-// status_invalid_device_state until it succeeds; repeating it is harmless.
+// Must succeed before any call other than query_version and log_call: every other call fails with
+// status_invalid_device_state until it has. initialize_flag_wow64 must be set exactly when the call
+// comes through Wine's WoW64 call table, otherwise status_invalid_parameter; afterwards every call
+// must come through that same table. Repeating it with the same flags is harmless.
 struct alignas(8) InitializeParams {
     // UTF-8 executable name, for logs.
     std::uint64_t client_name;

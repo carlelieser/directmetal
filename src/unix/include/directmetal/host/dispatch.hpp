@@ -17,6 +17,10 @@
 // a violation makes the stream's error sticky.
 namespace directmetal::host {
 
+// Which Wine call table a call came through: the WoW64 table serves 32-bit callers, whose
+// addresses must lie below 4 GiB whatever initialize claims.
+enum class CallerAbi : std::uint8_t { native, wow64 };
+
 // Source of backend devices; tests substitute a fake to run the host without a GPU.
 class DeviceProvider {
 public:
@@ -34,7 +38,10 @@ public:
     ~Host();
 
     // code is a bridge::FunctionCode index; params is that code's parameter struct. Thread-safe.
-    bridge::Status call(std::uint32_t code, void* params) noexcept;
+    // initialize must claim WoW64 exactly when abi is wow64, and later calls must come with the
+    // abi initialize used.
+    bridge::Status call(std::uint32_t code, void* params,
+                        CallerAbi abi = CallerAbi::native) noexcept;
 
 private:
     class State;
@@ -43,6 +50,7 @@ private:
 
 // The process-wide Host backed by the Metal backend, created on first use. The Metal device is
 // created on the first device call, never while directmetal.so is being loaded.
-bridge::Status dispatch(std::uint32_t code, void* params) noexcept;
+bridge::Status dispatch(std::uint32_t code, void* params,
+                        CallerAbi abi = CallerAbi::native) noexcept;
 
 } // namespace directmetal::host
