@@ -11,6 +11,8 @@ import compare  # noqa: E402
 
 TOLERANCES = {
     "R8G8B8A8_UNORM": 1,
+    "R8G8B8A8_UNORM_SRGB": 1,
+    "B8G8R8A8_UNORM": 1,
     "R10G10B10A2_UNORM": 0,
     "R16G16B16A16_FLOAT": 0,
     "R32G32B32A32_FLOAT": 0,
@@ -39,6 +41,21 @@ def output(format_name: str, readback: str, map_result: str = "0x00000000") -> d
 
 def rgb10a2(red: int, green: int, blue: int, alpha: int) -> tuple:
     return (red | green << 10 | blue << 20 | alpha << 30,)
+
+
+def mipped_output(readbacks: list[str]) -> dict:
+    mips = [
+        {
+            "mip": mip,
+            "width": 8 >> mip,
+            "height": 8 >> mip,
+            "map": "0x00000000",
+            "readback": readback,
+        }
+        for mip, readback in enumerate(readbacks)
+    ]
+    case = {"name": "R8G8B8A8_UNORM_MIP1", "format": "R8G8B8A8_UNORM", "mips": mips}
+    return {"cases": [case]}
 
 
 class DifferencesTest(unittest.TestCase):
@@ -140,10 +157,46 @@ class DifferencesTest(unittest.TestCase):
         self.assertNotEqual(compare.differences(reference, actual, None), [])
 
     def test_fails_on_format_without_tolerance(self) -> None:
-        reference = output("B8G8R8A8_UNORM", packed("4B", [(51, 102, 153, 204)]))
-        actual = output("B8G8R8A8_UNORM", packed("4B", [(52, 102, 153, 204)]))
-        with self.assertRaisesRegex(compare.ReferenceToolError, "B8G8R8A8_UNORM"):
-            compare.differences(reference, actual, TOLERANCES)
+        reference = output("R10G10B10A2_UNORM", packed("<I", [rgb10a2(100, 500, 900, 2)]))
+        actual = output("R10G10B10A2_UNORM", packed("<I", [rgb10a2(101, 500, 900, 2)]))
+        tolerances = {key: value for key, value in TOLERANCES.items() if "R10" not in key}
+        with self.assertRaisesRegex(compare.ReferenceToolError, "R10G10B10A2_UNORM"):
+            compare.differences(reference, actual, tolerances)
+
+    def test_accepts_srgb_within_tolerance(self) -> None:
+        reference = output("R8G8B8A8_UNORM_SRGB", packed("4B", [(89, 108, 137, 204)]))
+        within = output("R8G8B8A8_UNORM_SRGB", packed("4B", [(90, 107, 137, 204)]))
+        beyond = output("R8G8B8A8_UNORM_SRGB", packed("4B", [(89, 108, 139, 204)]))
+        self.assert_same(reference, within)
+        self.assert_differs(reference, beyond, "expected [89, 108, 137, 204]")
+
+    def test_bgra8_readbacks_compare_in_memory_order(self) -> None:
+        reference = output("B8G8R8A8_UNORM", packed("4B", [(153, 102, 51, 204)]))
+        swapped = output("B8G8R8A8_UNORM", packed("4B", [(51, 102, 153, 204)]))
+        self.assert_same(reference, output("B8G8R8A8_UNORM", packed("4B", [(152, 102, 51, 204)])))
+        self.assert_differs(reference, swapped, "expected [153, 102, 51, 204]")
+
+    def test_reports_mismatch_in_second_mip_by_position(self) -> None:
+        mip0 = packed("4B", [(51, 102, 153, 204)] * 64)
+        mip1 = [(204, 153, 102, 51)] * 16
+        reference = mipped_output([mip0, packed("4B", mip1)])
+        mip1[6] = (200, 153, 102, 51)
+        actual = mipped_output([mip0, packed("4B", mip1)])
+        self.assertEqual(
+            compare.differences(reference, actual, TOLERANCES),
+            [
+                "cases[R8G8B8A8_UNORM_MIP1].mips[1].readback: pixel (2, 1) "
+                "expected [204, 153, 102, 51], got [200, 153, 102, 51]"
+            ],
+        )
+
+    def test_rejects_invalid_tolerances(self) -> None:
+        reference = output("R8G8B8A8_UNORM", packed("4B", [(51, 102, 153, 204)]))
+        for tolerance in [-1, True, "1", None, float("nan")]:
+            with self.assertRaisesRegex(compare.ReferenceToolError, "not a non-negative number"):
+                compare.differences(
+                    reference, reference, {**TOLERANCES, "R8G8B8A8_UNORM": tolerance}
+                )
 
 
 class CommandLineTest(unittest.TestCase):

@@ -26,17 +26,25 @@ class Location:
     path: str
     # Format of the enclosing case, which decides how its readbacks decode.
     format_name: str | None = None
+    # Width of the enclosing mip, which places readback pixels.
+    width: int | None = None
 
     def child(self, name: str) -> "Location":
         is_nested_key = bool(self.path) and not name.startswith("[")
-        return Location(
-            f"{self.path}.{name}" if is_nested_key else self.path + name, self.format_name
-        )
+        path = f"{self.path}.{name}" if is_nested_key else self.path + name
+        return Location(path, self.format_name, self.width)
+
+    def pixel(self, index: int) -> str:
+        if self.width is None:
+            return f"pixel {index}"
+        return f"pixel ({index % self.width}, {index // self.width})"
 
 
 class Comparator:
     def __init__(self, tolerances: dict[str, float] | None) -> None:
         """With tolerances None, every channel must match exactly."""
+        for format_name, tolerance in (tolerances or {}).items():
+            check_tolerance(format_name, tolerance)
         self.tolerances = tolerances
 
     def tolerance(self, format_name: str) -> float:
@@ -62,7 +70,7 @@ class Comparator:
     def compare_objects(self, location: Location, expected: dict, actual: dict) -> list[str]:
         problems = []
         format_name = expected.get("format", location.format_name)
-        scoped = Location(location.path, format_name)
+        scoped = Location(location.path, format_name, expected.get("width", location.width))
         for key in sorted(expected.keys() | actual.keys()):
             if key not in actual:
                 problems.append(f"{scoped.child(key).path}: missing")
@@ -91,7 +99,7 @@ class Comparator:
             ]
         is_mismatch = self.pixel_mismatch(format_name, expected, actual)
         mismatches = [
-            f"{location.path}: pixel {index} expected {list(expected_pixel)}, "
+            f"{location.path}: {location.pixel(index)} expected {list(expected_pixel)}, "
             f"got {list(actual_pixel)}"
             for index, (expected_pixel, actual_pixel) in enumerate(
                 zip(expected_pixels, actual_pixels, strict=True)
@@ -114,6 +122,15 @@ class Comparator:
             decode_pixels(format_name, expected), decode_pixels(format_name, actual), strict=True
         )
         return [pixel_difference(*pixels) > tolerance for pixels in pairs]
+
+
+def check_tolerance(format_name: str, tolerance: object) -> None:
+    is_number = isinstance(tolerance, int | float) and not isinstance(tolerance, bool)
+    if not is_number or not tolerance >= 0:
+        raise ReferenceToolError(
+            f"tolerance for format {format_name} is {json.dumps(tolerance)}, "
+            "not a non-negative number"
+        )
 
 
 def pixel_difference(expected: tuple, actual: tuple) -> float:
