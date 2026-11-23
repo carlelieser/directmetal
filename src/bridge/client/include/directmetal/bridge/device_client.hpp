@@ -1,6 +1,7 @@
 #pragma once
 
 #include <directmetal/backend/types.hpp>
+#include <directmetal/bridge/commands.hpp>
 #include <directmetal/bridge/control.hpp>
 
 #include <chrono>
