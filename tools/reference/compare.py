@@ -54,7 +54,8 @@ class Comparator:
         is_readback = location.path.endswith(".readback") and location.format_name is not None
         if is_readback and isinstance(expected, str) and isinstance(actual, str):
             return self.compare_readbacks(location, expected, actual)
-        if expected == actual:
+        # JSON's false, 0 and 0.0 are distinct values although Python compares them equal.
+        if type(expected) is type(actual) and expected == actual:
             return []
         return [f"{location.path}: expected {json.dumps(expected)}, got {json.dumps(actual)}"]
 

@@ -110,6 +110,17 @@ class DifferencesTest(unittest.TestCase):
             reference, actual, 'cases[R8G8B8A8_UNORM].mips[0].map: expected "0x00000000"'
         )
 
+    def test_requires_scalars_of_the_same_type(self) -> None:
+        reference = output("R8G8B8A8_UNORM", packed("4B", [(51, 102, 153, 204)]))
+        for expected, actual in [(False, 0), (0, 0.0), (1, True)]:
+            self.assertNotEqual(
+                compare.differences(
+                    {**reference, "value": expected}, {**reference, "value": actual}, None
+                ),
+                [],
+                (expected, actual),
+            )
+
     def test_reports_missing_and_extra_keys(self) -> None:
         reference = output("R8G8B8A8_UNORM", packed("4B", [(51, 102, 153, 204)]))
         actual = json.loads(json.dumps(reference))
