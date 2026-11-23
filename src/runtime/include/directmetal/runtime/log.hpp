@@ -60,7 +60,7 @@ bool set_file(std::string_view path) noexcept;
 // it again re-reads the environment.
 void configure_from_environment() noexcept;
 
-// Formats only when the level is enabled.
+// Formats only when the level is enabled. A throwing formatter drops the message.
 template <typename... Args>
 void print(Component component, Level level, std::format_string<Args...> format,
            Args&&... args) noexcept {
@@ -71,6 +71,9 @@ void print(Component component, Level level, std::format_string<Args...> format,
         write(component, level, std::format(format, std::forward<Args>(args)...));
     } catch (const std::bad_alloc&) {
         write(component, level, "(message dropped: out of memory)");
+    } catch (...) {
+        // A user-defined formatter can throw anything; logging must not terminate the process.
+        write(component, level, "(message dropped: format error)");
     }
 }
 

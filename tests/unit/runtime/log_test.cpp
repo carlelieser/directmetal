@@ -1,5 +1,18 @@
 #include "log_fixture.hpp"
 
+#include <format>
+#include <stdexcept>
+
+struct Unformattable {};
+
+template <> struct std::formatter<Unformattable> {
+    constexpr auto parse(std::format_parse_context& context) { return context.begin(); }
+    template <typename Context>
+    auto format(const Unformattable&, Context&) const -> typename Context::iterator {
+        throw std::runtime_error("cannot format");
+    }
+};
+
 namespace {
 
 using namespace directmetal::log;
@@ -18,6 +31,13 @@ TEST_F(LogFixture, PrintFormatsEnabledMessages) {
     EXPECT_EQ(sink.lines[0].component, Component::d3d11);
     EXPECT_EQ(sink.lines[0].level, Level::warn);
     EXPECT_EQ(sink.lines[0].message, "3 of four");
+}
+
+TEST_F(LogFixture, PrintDropsMessagesWhoseFormatterThrows) {
+    print(Component::d3d11, Level::warn, "value {}", Unformattable{});
+    ASSERT_EQ(sink.lines.size(), 1u);
+    EXPECT_EQ(sink.lines[0].level, Level::warn);
+    EXPECT_EQ(sink.lines[0].message, "(message dropped: format error)");
 }
 
 TEST_F(LogFixture, PrintSkipsDisabledLevels) {
