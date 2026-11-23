@@ -1,6 +1,10 @@
 #define DIRECTMETAL_BRIDGE_API
 #include <directmetal/bridge/client.hpp>
 
+#include <shared_allocation.hpp>
+
+#include <cstdint>
+#include <limits>
 #include <windows.h>
 
 extern "C" LONG NTAPI NtQueryVirtualMemory(HANDLE process, PVOID address, int information_class,
@@ -61,6 +65,23 @@ extern "C" Status __cdecl directmetal_bridge_call(std::uint32_t code, void* para
         return status_invalid_parameter;
     }
     return connection.dispatcher(connection.handle, code, params);
+}
+
+// VirtualAlloc returns zeroed memory aligned to the 64 KiB allocation granularity, which is a
+// multiple of shared_memory_alignment, and stays below 4 GiB in 32-bit processes.
+extern "C" void* __cdecl directmetal_bridge_allocate_shared(std::uint64_t size) noexcept {
+    const std::uint64_t rounded = shared_allocation_size(size);
+    if (rounded == 0 || rounded > std::numeric_limits<SIZE_T>::max()) {
+        return nullptr;
+    }
+    return VirtualAlloc(nullptr, static_cast<SIZE_T>(rounded), MEM_RESERVE | MEM_COMMIT,
+                        PAGE_READWRITE);
+}
+
+extern "C" void __cdecl directmetal_bridge_free_shared(void* memory, std::uint64_t) noexcept {
+    if (memory != nullptr) {
+        VirtualFree(memory, 0, MEM_RELEASE);
+    }
 }
 
 // Connecting dlopens directmetal.so under the loader lock, so its static initializers must stay
