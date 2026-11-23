@@ -59,9 +59,13 @@ void Stream::submit(const bridge::SubmitStreamParams& submission) {
     work_.push_chunk(submission);
 }
 
-void Stream::finish() {
-    const std::uint64_t value = work_.wait_completed(work_.push_commit());
-    queue_->progress().wait(value, std::chrono::nanoseconds::max());
+bool Stream::finish(Unsubmitted unsubmitted) {
+    const Settled settled = work_.wait_completed(work_.push_settle(unsubmitted));
+    if (settled.has_unsubmitted) {
+        return false;
+    }
+    queue_->progress().wait(settled.value, std::chrono::nanoseconds::max());
+    return true;
 }
 
 void Stream::close() noexcept {
@@ -79,8 +83,8 @@ void Stream::run() noexcept {
         case StreamWork::Kind::chunk:
             decode(work.submission);
             break;
-        case StreamWork::Kind::commit:
-            work_.complete(work.ticket, executor_.commit());
+        case StreamWork::Kind::settle:
+            work_.complete(work.ticket, executor_.settle(work.unsubmitted));
             break;
         case StreamWork::Kind::stop:
             return;

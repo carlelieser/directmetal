@@ -33,12 +33,15 @@ constexpr std::array retire_order = {ObjectKind::stream,   ObjectKind::progress_
 
 } // namespace
 
-void finish_streams(HostContext& context, bridge::Handle device) {
+bool finish_streams(HostContext& context, bridge::Handle device, Unsubmitted unsubmitted) {
+    bool is_settled = true;
     for (const TableEntry& entry : context.table.owned_by(device)) {
         if (entry.kind == ObjectKind::stream) {
-            static_cast<const StreamObject*>(entry.object.get())->stream->finish();
+            const auto* stream = static_cast<const StreamObject*>(entry.object.get());
+            is_settled = stream->stream->finish(unsubmitted) && is_settled;
         }
     }
+    return is_settled;
 }
 
 void retire(HostContext& context, const TableEntry& entry) noexcept {
@@ -52,7 +55,7 @@ void retire(HostContext& context, const TableEntry& entry) noexcept {
 }
 
 void destroy_device_objects(HostContext& context, bridge::Handle device) {
-    finish_streams(context, device);
+    finish_streams(context, device, Unsubmitted::commit);
     const std::vector<TableEntry> owned = context.table.owned_by(device);
     for (const ObjectKind kind : retire_order) {
         for (const TableEntry& entry : owned) {

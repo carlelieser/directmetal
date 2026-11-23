@@ -36,9 +36,10 @@ public:
 
     // Queues a chunk for the consumer thread.
     void submit(const bridge::SubmitStreamParams& submission);
-    // Waits until every chunk queued so far is decoded and any recorded work is submitted, then
-    // until the GPU has completed everything submitted.
-    void finish();
+    // Waits until every chunk queued so far is decoded, then until the GPU has completed everything
+    // submitted. Recorded work no submit command has committed is submitted first when unsubmitted
+    // is commit; with keep, it is left recorded and finish returns false without waiting.
+    bool finish(Unsubmitted unsubmitted);
     // Stops the consumer thread; once this returns nothing writes the StreamControl.
     void close() noexcept;
 

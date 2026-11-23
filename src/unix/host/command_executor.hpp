@@ -3,6 +3,7 @@
 #include "handle_table.hpp"
 #include "mirror.hpp"
 #include "objects.hpp"
+#include "work_queue.hpp"
 
 #include <directmetal/backend/commands.hpp>
 #include <directmetal/bridge/stream_decoder.hpp>
@@ -32,9 +33,8 @@ public:
     explicit CommandExecutor(const ExecutorSetup& setup) noexcept : setup_(setup) {}
 
     bridge::Status execute(const bridge::DecodedCommand& command) noexcept override;
-    // Submits recorded but unsubmitted work, if any. Returns the progress value that completes
-    // everything submitted so far.
-    std::uint64_t commit() noexcept;
+    // Submits recorded but unsubmitted work when unsubmitted is commit, and reports what remains.
+    Settled settle(Unsubmitted unsubmitted) noexcept;
 
 private:
     using Handler = bridge::Status (CommandExecutor::*)(const bridge::DecodedCommand&);

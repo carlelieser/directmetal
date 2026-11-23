@@ -10,8 +10,13 @@
 // written by the unix side.
 //
 // Teardown (destroy_device, close_stream, release_memory): the client flushes every stream of the
-// device first. The host then decodes every queued chunk of every stream on that device, commits
-// any recorded but unsubmitted work, and waits for the GPU to complete it before returning.
+// device first. The host then decodes every queued chunk of every stream on that device and waits
+// for the GPU to complete the submitted work before returning. destroy_device and close_stream
+// commit recorded but unsubmitted work first (it signals a progress value the client did not
+// count, which no later wait can observe). release_memory never commits implicitly: while any
+// stream of the device has recorded work no submit command has committed, it fails with
+// status_invalid_device_state and releases nothing; the client records a submit, flushes and
+// calls it again.
 namespace directmetal::bridge {
 
 inline constexpr std::uint32_t initialize_flag_wow64 = 0x1;
@@ -132,7 +137,8 @@ struct alignas(8) CloseStreamParams {
 };
 
 // Tears down as described above for the device that owns the imported buffer, then destroys the
-// buffer. Only after this returns may the PE side free the memory.
+// buffer. Only after this returns successfully may the PE side free the memory;
+// status_invalid_device_state means unsubmitted work remains and the buffer is still imported.
 struct alignas(8) ReleaseMemoryParams {
     Handle buffer;
 };

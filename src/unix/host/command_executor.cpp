@@ -37,11 +37,11 @@ Status CommandExecutor::execute(const DecodedCommand& command) noexcept {
     }
 }
 
-std::uint64_t CommandExecutor::commit() noexcept {
-    if (has_recorded_) {
+Settled CommandExecutor::settle(Unsubmitted unsubmitted) noexcept {
+    if (has_recorded_ && unsubmitted == Unsubmitted::commit) {
         submit_recorded();
     }
-    return setup_.queue->last_submitted_value();
+    return {setup_.queue->last_submitted_value(), has_recorded_};
 }
 
 Status CommandExecutor::nop(const DecodedCommand&) {

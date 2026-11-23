@@ -47,15 +47,43 @@ TEST_F(TeardownTest, ReleaseMemoryWaitsForSubmittedWork) {
     EXPECT_EQ(gpu.live_buffers, 0);
 }
 
-TEST_F(TeardownTest, ReleaseMemoryCommitsRecordedWork) {
+TEST_F(TeardownTest, ReleaseMemoryRefusesUnsubmittedWork) {
+    // Completing at once, so an implicit commit would return instead of hanging the test.
+    gpu.is_auto_complete = true;
     submit(readback(1));
-    auto released = call_async(FunctionCode::release_memory, ReleaseMemoryParams{imported});
+    ReleaseMemoryParams release{imported};
+    EXPECT_EQ(call(FunctionCode::release_memory, release), status_invalid_device_state);
+    EXPECT_EQ(control.retired_sequence, 1u);
+    EXPECT_EQ(gpu.submitted(0), 0u);
+    EXPECT_EQ(gpu.live_buffers, 1);
+    gpu.is_auto_complete = false;
+    submit(chunk(2).add(SubmitCommand{}));
+    auto released = call_async(FunctionCode::release_memory, release);
     EXPECT_EQ(released.wait_for(still_blocked), std::future_status::timeout);
-    EXPECT_EQ(gpu.submitted(0), 1u);
     gpu.complete_all();
     EXPECT_EQ(released.get(), status_success);
-    EXPECT_EQ(control.retired_sequence, 1u);
+    EXPECT_EQ(gpu.submitted(0), 1u);
+    EXPECT_EQ(gpu.live_buffers, 0);
+}
+
+TEST_F(TeardownTest, CloseStreamCommitsRecordedWork) {
+    submit(readback(1));
+    auto closed = call_async(FunctionCode::close_stream, CloseStreamParams{stream.stream});
+    EXPECT_EQ(closed.wait_for(still_blocked), std::future_status::timeout);
+    EXPECT_EQ(gpu.submitted(0), 1u);
+    gpu.complete_all();
+    EXPECT_EQ(closed.get(), status_success);
     EXPECT_EQ(std::atomic_ref(control.completed_progress).load(), 1u);
+}
+
+TEST_F(TeardownTest, DestroyDeviceCommitsRecordedWork) {
+    submit(readback(1));
+    auto destroyed = call_async(FunctionCode::destroy_device, DestroyDeviceParams{device});
+    EXPECT_EQ(destroyed.wait_for(still_blocked), std::future_status::timeout);
+    EXPECT_EQ(gpu.submitted(0), 1u);
+    gpu.complete_all();
+    EXPECT_EQ(destroyed.get(), status_success);
+    EXPECT_EQ(gpu.live_queues, 0);
 }
 
 TEST_F(TeardownTest, CloseStreamDecodesQueuedChunks) {

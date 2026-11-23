@@ -112,7 +112,11 @@ Status release_memory(HostContext& context, ReleaseMemoryParams& params) {
     if (entry.kind != ObjectKind::imported_buffer) {
         return status_invalid_handle;
     }
-    finish_streams(context, entry.owner);
+    // Committing here would signal a progress value the client never counted, and a wait on it
+    // could return before the client's own submit completes.
+    if (!finish_streams(context, entry.owner, Unsubmitted::keep)) {
+        return status_invalid_device_state;
+    }
     retire(context, entry);
     return status_success;
 }

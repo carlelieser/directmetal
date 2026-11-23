@@ -87,7 +87,7 @@ Status close_stream(HostContext& context, CloseStreamParams& params) {
     if (entry.kind != ObjectKind::stream) {
         return status_invalid_handle;
     }
-    finish_streams(context, entry.owner);
+    finish_streams(context, entry.owner, Unsubmitted::commit);
     retire(context, entry);
     return status_success;
 }
