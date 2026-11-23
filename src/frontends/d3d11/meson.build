@@ -2,7 +2,11 @@
 # native test executables and the SDK in macOS builds.
 d3d11_frontend_lib = static_library(
     'd3d11_frontend',
+    'context_pipeline_stubs.cpp',
+    'context_query_stubs.cpp',
+    'context_transfer_stubs.cpp',
     'd3d11.cpp',
+    'device_stubs.cpp',
     dependencies: [frontend_markers_dep, win32_headers_dep],
 )
 
