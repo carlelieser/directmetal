@@ -17,11 +17,32 @@
 // on request (or at once while FakeGpu::is_auto_complete is set).
 namespace directmetal::host::testing {
 
+// Completion callbacks held back while is_deferring is set, standing in for a Metal completion
+// thread that runs them late.
+class DeferredCallbacks {
+public:
+    // False when not deferring: the caller runs callback itself.
+    bool defer(std::function<void()>& callback);
+    // Runs and forgets every deferred callback.
+    void run_all();
+
+    std::atomic<bool> is_deferring = false;
+
+private:
+    std::mutex mutex_;
+    std::vector<std::function<void()>> callbacks_;
+};
+
+struct TimelineHooks {
+    // Counts notify calls when set.
+    std::atomic<int>* notify_count = nullptr;
+    DeferredCallbacks* deferred = nullptr;
+};
+
 class FakeTimeline final : public backend::Timeline {
 public:
-    // notify_count, when set, counts notify calls.
-    explicit FakeTimeline(std::uint64_t initial_value, std::atomic<int>* notify_count = nullptr)
-        : notify_count_(notify_count), completed_(initial_value) {}
+    explicit FakeTimeline(std::uint64_t initial_value, TimelineHooks hooks = {})
+        : hooks_(hooks), completed_(initial_value) {}
     ~FakeTimeline() override;
 
     std::uint64_t completed_value() const noexcept override;
@@ -34,7 +55,7 @@ public:
 
 private:
     std::shared_ptr<int> token_ = std::make_shared<int>(0);
-    std::atomic<int>* notify_count_;
+    TimelineHooks hooks_;
     mutable std::mutex mutex_;
     std::condition_variable has_advanced_;
     std::uint64_t completed_;
@@ -71,6 +92,7 @@ public:
     std::atomic<std::uint64_t> used_bytes = 0;
     // notify calls on timelines created with create_timeline.
     std::atomic<int> timeline_notifies = 0;
+    DeferredCallbacks deferred;
     // Queue submits fail with device_lost while set.
     std::atomic<bool> is_submit_failing = false;
 

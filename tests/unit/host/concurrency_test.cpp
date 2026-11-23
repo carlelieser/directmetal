@@ -1,6 +1,7 @@
 #include "host_fixture.hpp"
 
 #include <algorithm>
+#include <atomic>
 #include <thread>
 #include <vector>
 
@@ -74,6 +75,40 @@ TEST_F(HostTest, ConcurrentDevicesRunIndependentStreams) {
         thread.join();
     }
     EXPECT_EQ(std::count(results.begin(), results.end(), status_success), thread_count);
+    EXPECT_EQ(gpu.live_queues, 0);
+}
+
+// Submits keep arriving while another thread closes the stream: every submit either queues before
+// the close or fails with a stale handle, and the close drains what was queued.
+TEST_F(HostTest, CloseStreamRacesSubmitStream) {
+    initialize();
+    device = create_device();
+    stream = open_stream(device);
+    constexpr std::uint64_t chunk_count = 200;
+    for (std::uint64_t sequence = 1; sequence <= chunk_count; ++sequence) {
+        chunk(sequence).add(SubmitCommand{}).seal();
+    }
+    std::atomic<std::uint64_t> accepted = 0;
+    std::thread submitter([&] {
+        for (Chunk& next : chunks) {
+            SubmitStreamParams params = next.submission(stream.stream);
+            const Status status = call(FunctionCode::submit_stream, params);
+            if (status != status_success) {
+                EXPECT_EQ(status, status_invalid_handle);
+                return;
+            }
+            ++accepted;
+        }
+    });
+    while (accepted.load() < chunk_count / 4) {
+        std::this_thread::yield();
+    }
+    CloseStreamParams close{stream.stream};
+    EXPECT_EQ(call(FunctionCode::close_stream, close), status_success);
+    submitter.join();
+    EXPECT_LE(control.retired_sequence, accepted.load());
+    EXPECT_GE(control.retired_sequence, chunk_count / 4);
+    EXPECT_EQ(std::atomic_ref(control.status).load(), status_success);
     EXPECT_EQ(gpu.live_queues, 0);
 }
 

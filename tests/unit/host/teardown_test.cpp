@@ -1,6 +1,7 @@
 #include "host_fixture.hpp"
 
 #include <future>
+#include <thread>
 
 namespace directmetal::host::testing {
 namespace {
@@ -156,16 +157,41 @@ TEST_F(TeardownTest, DestroyTimelineDetachesMirror) {
     EXPECT_EQ(std::atomic_ref(control.completed_progress).load(), 1u);
 }
 
+// The completion callback for the submit runs only after close_stream has returned, as a late
+// Metal completion thread would; by then the StreamControl may already be freed.
 TEST_F(TeardownTest, CloseStreamDetachesControl) {
-    gpu.is_auto_complete = true;
+    gpu.deferred.is_deferring = true;
     submit(chunk(1).add(SubmitCommand{}));
-    CloseStreamParams close{stream.stream};
-    ASSERT_EQ(call(FunctionCode::close_stream, close), status_success);
-    EXPECT_EQ(control.completed_progress, 1u);
-    control = {};
+    ASSERT_TRUE(wait_retired(1));
+    auto closed = call_async(FunctionCode::close_stream, CloseStreamParams{stream.stream});
+    EXPECT_EQ(closed.wait_for(still_blocked), std::future_status::timeout);
     gpu.complete_all();
-    EXPECT_EQ(control.completed_progress, 0u);
-    EXPECT_EQ(control.retired_sequence, 0u);
+    ASSERT_EQ(closed.get(), status_success);
+    EXPECT_EQ(std::atomic_ref(control.completed_progress).load(), 0u);
+    gpu.deferred.is_deferring = false;
+    gpu.deferred.run_all();
+    EXPECT_EQ(std::atomic_ref(control.completed_progress).load(), 0u);
+}
+
+// Completion callbacks run on another thread while destroy_timeline detaches the mirror; once
+// it has returned, the mirror never changes again.
+TEST_F(TeardownTest, DestroyTimelineWaitsForInFlightMirrorWrites) {
+    for (std::uint64_t round = 0; round < 50; ++round) {
+        std::uint64_t mirror = 0;
+        const Handle timeline = create_timeline(device, 0, &mirror);
+        Chunk& signals = chunk(round + 1);
+        for (std::uint64_t value = 1; value <= 16; ++value) {
+            signals.add(SignalTimelineCommand{timeline, value}).add(SubmitCommand{});
+        }
+        submit(signals);
+        ASSERT_TRUE(wait_retired(round + 1));
+        std::thread completion([this] { gpu.complete_all(); });
+        DestroyTimelineParams destroy{timeline};
+        ASSERT_EQ(call(FunctionCode::destroy_timeline, destroy), status_success);
+        const std::uint64_t after_destroy = std::atomic_ref(mirror).load();
+        completion.join();
+        EXPECT_EQ(std::atomic_ref(mirror).load(), after_destroy) << "round " << round;
+    }
 }
 
 TEST_F(TeardownTest, HostDestructionTearsDownOpenDevices) {

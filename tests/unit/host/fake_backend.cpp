@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <stdexcept>
+#include <thread>
 
 namespace directmetal::host::testing {
 namespace {
@@ -59,7 +60,9 @@ struct PendingSignal {
 
 class FakeQueue final : public backend::Queue, public backend::CommandRecorder {
 public:
-    explicit FakeQueue(FakeGpu& gpu) : gpu_(gpu), progress_(0) { gpu_.add_queue(this); }
+    explicit FakeQueue(FakeGpu& gpu) : gpu_(gpu), progress_(0, {nullptr, &gpu.deferred}) {
+        gpu_.add_queue(this);
+    }
     ~FakeQueue() override { gpu_.remove_queue(this); }
 
     backend::CommandRecorder& recorder() noexcept override { return *this; }
@@ -131,61 +134,6 @@ private:
     std::vector<PendingSignal> recorded_signals_;
     std::vector<PendingSignal> submitted_signals_;
 };
-
-FakeTimeline::~FakeTimeline() {
-    for (auto& waiter : waiting_) {
-        waiter.second();
-    }
-}
-
-std::uint64_t FakeTimeline::completed_value() const noexcept {
-    const std::lock_guard lock(mutex_);
-    return completed_;
-}
-
-backend::Status FakeTimeline::wait(std::uint64_t value, std::chrono::nanoseconds timeout) noexcept {
-    std::unique_lock lock(mutex_);
-    const auto is_reached = [this, value] { return completed_ >= value; };
-    if (timeout == std::chrono::nanoseconds::max()) {
-        has_advanced_.wait(lock, is_reached);
-        return backend::Status::success;
-    }
-    return has_advanced_.wait_for(lock, timeout, is_reached) ? backend::Status::success
-                                                             : backend::Status::timeout;
-}
-
-void FakeTimeline::signal_cpu(std::uint64_t value) noexcept {
-    std::vector<std::function<void()>> ready;
-    {
-        const std::lock_guard lock(mutex_);
-        completed_ = std::max(completed_, value);
-        std::erase_if(waiting_, [&](auto& waiter) {
-            if (waiter.first > completed_) {
-                return false;
-            }
-            ready.push_back(std::move(waiter.second));
-            return true;
-        });
-    }
-    has_advanced_.notify_all();
-    for (auto& callback : ready) {
-        callback();
-    }
-}
-
-void FakeTimeline::notify(std::uint64_t value, std::function<void()> callback) {
-    if (notify_count_ != nullptr) {
-        ++*notify_count_;
-    }
-    {
-        const std::lock_guard lock(mutex_);
-        if (completed_ < value) {
-            waiting_.emplace_back(value, std::move(callback));
-            return;
-        }
-    }
-    callback();
-}
 
 std::vector<std::string> FakeGpu::recorded() const {
     const std::lock_guard lock(mutex_);
@@ -280,8 +228,8 @@ FakeDevice::create_texture(const backend::TextureDesc& desc) {
 
 Result<std::unique_ptr<backend::Timeline>>
 FakeDevice::create_timeline(std::uint64_t initial_value) {
-    return Result<std::unique_ptr<backend::Timeline>>::success(
-        std::make_unique<FakeTimeline>(initial_value, &gpu_.timeline_notifies));
+    return Result<std::unique_ptr<backend::Timeline>>::success(std::make_unique<FakeTimeline>(
+        initial_value, TimelineHooks{&gpu_.timeline_notifies, &gpu_.deferred}));
 }
 
 Result<std::unique_ptr<backend::Queue>> FakeDevice::create_queue() {
