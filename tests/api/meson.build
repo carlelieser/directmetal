@@ -2,7 +2,6 @@
 # through the in-process bridge. Exit tests (docs/plans/phase-1.md#exit-test) and the validation
 # canary go through run_api_test.py, which enables Metal validation in assert mode, fails on any
 # abnormal exit and compares the output with the Windows reference.
-fs = import('fs')
 api_runner = files('run_api_test.py')
 exit_reference = files('../reference/d3d11_clear_readback/reference.json')
 
@@ -38,9 +37,11 @@ if not is_windows
     subdir_done()
 endif
 
+# tools/build.sh builds the unix side here before the PE targets.
+unix_build_dir = meson.project_source_root() / 'build' / 'unix'
 unix_library = get_option('unix_library')
 if unix_library == ''
-    unix_library = meson.project_source_root() / 'build' / 'unix' / 'src' / 'unix' / 'directmetal.so'
+    unix_library = unix_build_dir / 'src' / 'unix' / 'directmetal.so'
 endif
 
 api_call_log_dir = meson.current_build_dir() / 'call-logs'
@@ -122,7 +123,6 @@ subdir('programs')
 # Metal validation, which Wine reports to the PE side as status 0xc0000005, so the program fails.
 # The runner passes only on that failure with the debug layer's message on stderr, which proves
 # its validation settings reach Metal in a Wine process.
-unix_build_dir = fs.parent(fs.parent(fs.parent(unix_library)))
 validation_canary_unixlib = unix_build_dir / 'tests' / 'gpu' / 'validation_canary_unixlib.so'
 wine_runner_args = [
     '-I', api_runner,
