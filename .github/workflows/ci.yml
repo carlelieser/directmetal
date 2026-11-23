@@ -42,10 +42,17 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup-tools
+      # Hosted runners have no usable GPU; the api-native job runs the gpu and api suites.
       - name: Build and test unix (x86_64)
-        run: tools/build.sh --test unix
+        run: |
+          tools/build.sh unix
+          tools/with_gpu_lock.sh meson test -C build/unix --no-suite gpu --no-suite api \
+            --num-processes 2 --print-errorlogs
       - name: Build and test unix-arm64
-        run: tools/build.sh --test unix-arm64
+        run: |
+          tools/build.sh unix-arm64
+          tools/with_gpu_lock.sh meson test -C build/unix-arm64 --no-suite gpu --no-suite api \
+            --num-processes 2 --print-errorlogs
       - name: API tooling unit tests
         run: |
           if [[ -d tools/api/tests ]]; then
@@ -53,6 +60,23 @@ jobs:
           else
             echo "::notice::tools/api/tests does not exist; no API tooling tests to run"
           fi
+      - name: API runner unit tests
+        run: python -I -m unittest discover -s tests/api/tests
+
+  reference:
+    runs-on: macos-26
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.13"
+      - name: Reference tooling unit tests
+        run: python -I -m unittest discover -s tools/reference/tests
+      - name: Check references are fresh
+        run: python -I tools/reference/check_fresh.py
 
   sanitize:
     runs-on: macos-26
@@ -63,7 +87,45 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup-tools
       - name: Build and test with ASan and UBSan
-        run: tools/build.sh --test sanitize
+        run: |
+          tools/build.sh sanitize
+          tools/with_gpu_lock.sh meson test -C build/sanitize --no-suite gpu --no-suite api \
+            --num-processes 2 --print-errorlogs
+
+  api-native:
+    # Self-hosted runners must never execute code from forks.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, macOS, ARM64, apple-gpu, macos-27]
+    timeout-minutes: 45
+    env:
+      # ASan is broken on macOS 27; the hosted sanitize job covers it.
+      DIRECTMETAL_SANITIZERS: undefined
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install tools
+        run: |
+          python3 -m venv "$RUNNER_TEMP/ci-tools"
+          "$RUNNER_TEMP/ci-tools/bin/python" -m pip install --disable-pip-version-check \
+            -r tools/ci/requirements.txt
+          echo "$RUNNER_TEMP/ci-tools/bin" >> "$GITHUB_PATH"
+      - name: Build native targets
+        run: tools/build.sh unix unix-arm64 sanitize
+      - name: Run gpu and api suites natively
+        run: |
+          for target in unix unix-arm64 sanitize; do
+            tools/with_gpu_lock.sh meson test -C "build/$target" --suite gpu --suite api \
+              --num-processes 2 --print-errorlogs
+          done
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure()
+        with:
+          name: api-native-meson-logs
+          path: |
+            build/unix/meson-logs/
+            build/unix-arm64/meson-logs/
+            build/sanitize/meson-logs/
 
   build-pe:
     runs-on: macos-26

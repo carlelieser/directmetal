@@ -12,7 +12,8 @@ export DIRECTMETAL_SANITIZERS="${DIRECTMETAL_SANITIZERS:-undefined}"
 # Homebrew first: macOS ships Python 3.9, and the tools need 3.11 or later.
 export PATH="$DIRECTMETAL_LLVM_MINGW/bin:$DIRECTMETAL_WINE/bin:${DIRECTMETAL_TOOLS_BIN:-/opt/homebrew/bin}:$PATH"
 
-checks=(lint unix unix-arm64 tools-tests sanitize pe wine-api api-status)
+checks=(lint unix unix-arm64 tools-tests reference sanitize api-native pe wine-api api-status)
+native_targets=(unix unix-arm64 sanitize)
 
 run_check() {
     case "$1" in
@@ -22,7 +23,15 @@ run_check() {
                 ruff format --check && ruff check
             ;;
         unix | unix-arm64 | sanitize | wine-api) tools/build.sh --test "$1" ;;
-        tools-tests) python3 -I -m unittest discover -s tools/api/tests ;;
+        tools-tests)
+            python3 -I -m unittest discover -s tools/api/tests &&
+                python3 -I -m unittest discover -s tests/api/tests
+            ;;
+        reference)
+            python3 -I -m unittest discover -s tools/reference/tests &&
+                python3 -I tools/reference/check_fresh.py
+            ;;
+        api-native) run_api_native ;;
         pe) tools/build.sh win64 win32 ;;
         api-status) python3 -I tools/api/report_status.py ;;
         *)
@@ -30,6 +39,24 @@ run_check() {
             return 2
             ;;
     esac
+}
+
+has_api_tests() {
+    meson test -C "build/$1" --list --no-rebuild --suite api 2> /dev/null | grep '^api - ' > /dev/null
+}
+
+# The api suite of every native build, each run holding the GPU lock. Reports a skip while no
+# native build registers api tests.
+run_api_native() {
+    local target is_found=0
+    tools/build.sh "${native_targets[@]}" || return 1
+    for target in "${native_targets[@]}"; do
+        has_api_tests "$target" || continue
+        is_found=1
+        tools/with_gpu_lock.sh meson test -C "build/$target" --suite api \
+            --num-processes "${DIRECTMETAL_TEST_JOBS:-2}" --print-errorlogs || return 1
+    done
+    [[ "$is_found" == 1 ]] || echo "run_local.sh: no native api tests registered; api-native skipped"
 }
 
 main() {
