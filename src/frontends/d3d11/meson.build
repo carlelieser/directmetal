@@ -1,8 +1,9 @@
 # The front end is a static library on both platforms: linked into d3d11.dll in PE builds and into
-# native test executables and the SDK in macOS builds.
+# native test executables and the SDK in macOS builds. The library itself leaves the bridge
+# transport unlinked, so unit tests can link it against a fake transport; d3d11_frontend_dep and the
+# DLL add the real one.
 d3d11_frontend_deps = [
     bridge_client_dep,
-    bridge_transport_dep,
     com_dep,
     formats_dep,
     frontend_markers_dep,
@@ -32,7 +33,7 @@ d3d11_frontend_lib = static_library(
 
 d3d11_frontend_dep = declare_dependency(
     link_whole: d3d11_frontend_lib,
-    dependencies: d3d11_frontend_deps,
+    dependencies: [d3d11_frontend_deps, bridge_transport_dep],
 )
 
 if is_windows
@@ -40,7 +41,7 @@ if is_windows
         'd3d11',
         link_whole: [pe_dll_main, d3d11_frontend_lib],
         name_prefix: '',
-        dependencies: d3d11_frontend_deps,
+        dependencies: [d3d11_frontend_deps, bridge_transport_dep],
         vs_module_defs: 'd3d11.def',
         link_args: pe_link_args,
     )
