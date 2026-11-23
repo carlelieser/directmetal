@@ -135,6 +135,22 @@ struct DeviceFeatures {
 // assumed: Apple's tables leave them to the device.
 DeviceFeatures mac_features(backend::GpuFamily family) noexcept;
 
+// What Metal allows for a texture of a pixel format on a device, from Apple's feature set tables.
+struct PixelFormatSupport {
+    bool is_texture;
+    bool is_filterable;
+    bool is_writable;
+    // Usable as a color, depth or stencil attachment.
+    bool is_renderable;
+    bool is_blendable;
+    bool is_multisample;
+    bool is_resolvable;
+};
+
+// Every field false for a pixel format the tables do not list.
+PixelFormatSupport pixel_format_support(backend::PixelFormat pixel_format,
+                                        const DeviceFeatures& features) noexcept;
+
 // Null for values outside the DXGI_FORMAT enum.
 const FormatInfo* find(DxgiFormat format) noexcept;
 // Every DXGI_FORMAT enumerator except DXGI_FORMAT_FORCE_UINT, in enum order.

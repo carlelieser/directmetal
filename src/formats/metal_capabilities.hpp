@@ -169,4 +169,8 @@ inline constexpr CapabilityRow capability_rows[] = {
     {x32_stencil8, Capability::texture | Capability::msaa},
 };
 
+// The union of the rows for pixel_format whose feature, if any, features has.
+Capability capabilities_of(backend::PixelFormat pixel_format,
+                           const DeviceFeatures& features) noexcept;
+
 } // namespace directmetal::formats::metal

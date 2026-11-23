@@ -48,22 +48,6 @@ const tables::DxgiRow* find_row(DxgiFormat format) noexcept {
     return is_found ? &*row : nullptr;
 }
 
-bool has_feature(const metal::CapabilityRow& row, const DeviceFeatures& features) noexcept {
-    return row.feature == nullptr || features.*row.feature;
-}
-
-metal::Capability capabilities_of(backend::PixelFormat pixel_format,
-                                  const DeviceFeatures& features) noexcept {
-    metal::Capability capabilities = metal::Capability::none;
-    for (const metal::CapabilityRow& row : metal::capability_rows) {
-        const bool is_available = row.pixel_format == pixel_format && has_feature(row, features);
-        if (is_available) {
-            capabilities = capabilities | row.capabilities;
-        }
-    }
-    return capabilities;
-}
-
 } // namespace
 
 const FormatInfo* find(DxgiFormat format) noexcept {
@@ -92,7 +76,7 @@ Support support(DxgiFormat format, const DeviceFeatures& features) noexcept {
     if (row == nullptr) {
         return Support::none;
     }
-    const metal::Capability capabilities = capabilities_of(row->pixel_format, features);
+    const metal::Capability capabilities = metal::capabilities_of(row->pixel_format, features);
     Support result = row->usage & needs_no_capability;
     for (const Requirement& requirement : requirements) {
         if (metal::has_all(capabilities, requirement.capabilities)) {
