@@ -12,7 +12,7 @@ export DIRECTMETAL_SANITIZERS="${DIRECTMETAL_SANITIZERS:-undefined}"
 # Homebrew first: macOS ships Python 3.9, and the tools need 3.11 or later.
 export PATH="$DIRECTMETAL_LLVM_MINGW/bin:$DIRECTMETAL_WINE/bin:${DIRECTMETAL_TOOLS_BIN:-/opt/homebrew/bin}:$PATH"
 
-checks=(lint unix unix-arm64 tools-tests sanitize pe wine-api api-status)
+checks=(lint unix unix-arm64 tools-tests reference sanitize pe wine-api api-status)
 
 run_check() {
     case "$1" in
@@ -22,7 +22,14 @@ run_check() {
                 ruff format --check && ruff check
             ;;
         unix | unix-arm64 | sanitize | wine-api) tools/build.sh --test "$1" ;;
-        tools-tests) python3 -I -m unittest discover -s tools/api/tests ;;
+        tools-tests)
+            python3 -I -m unittest discover -s tools/api/tests &&
+                python3 -I -m unittest discover -s tests/api/tests
+            ;;
+        reference)
+            python3 -I -m unittest discover -s tools/reference/tests &&
+                python3 -I tools/reference/check_fresh.py
+            ;;
         pe) tools/build.sh win64 win32 ;;
         api-status) python3 -I tools/api/report_status.py ;;
         *)
