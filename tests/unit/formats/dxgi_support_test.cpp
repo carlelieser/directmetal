@@ -23,10 +23,10 @@ const FormatInfo& info(DxgiFormat format) {
     return found == nullptr ? missing : *found;
 }
 
-std::set<std::string_view> formats_with(Support flag, GpuFamily family) {
+std::set<std::string_view> formats_with(Support flag, const DeviceFeatures& features) {
     std::set<std::string_view> names;
     for (const FormatInfo& format : all_dxgi_formats()) {
-        if (has(support(format.format, family), flag)) {
+        if (has(support(format.format, features), flag)) {
             names.insert(format.name);
         }
     }
@@ -98,6 +98,43 @@ TEST(DxgiSupport, Float32FilteringStartsAtApple9) {
     }
 }
 
+TEST(DxgiSupport, DeviceFeaturesGrantFloat32FilteringOnApple7) {
+    const DeviceFeatures features{GpuFamily::apple7, true, true, true};
+    for (const DxgiFormat format : {r32_float, 16u, 2u}) {
+        EXPECT_TRUE(
+            has(support(format, features), Support::shader_sample | Support::multisample_resolve))
+            << format;
+    }
+    EXPECT_TRUE(has(support(r24_unorm_x8_typeless, features), Support::shader_sample));
+}
+
+TEST(DxgiSupport, DeviceFeaturesGateBcCompression) {
+    const DeviceFeatures with_bc = mac_features(GpuFamily::apple7);
+    DeviceFeatures without_bc = with_bc;
+    without_bc.has_bc_compression = false;
+    for (const DxgiFormat format : {71u, 80u, 95u, 98u}) {
+        EXPECT_TRUE(has(support(format, with_bc), Support::texture2d | Support::shader_sample))
+            << format;
+        EXPECT_EQ(support(format, without_bc), Support::none) << format;
+    }
+}
+
+TEST(DxgiSupport, DeviceFeaturesGateTypedUavLoads) {
+    DeviceFeatures features = mac_features(GpuFamily::apple10);
+    features.has_read_write_tier2 = false;
+    EXPECT_TRUE(formats_with(Support::typed_uav_load, features).empty());
+    EXPECT_TRUE(has(support(r32_float, features), Support::typed_uav_store));
+}
+
+TEST(DxgiSupport, MacFeaturesFollowTheFamily) {
+    EXPECT_FALSE(mac_features(GpuFamily::apple8).has_float32_filtering);
+    EXPECT_TRUE(mac_features(GpuFamily::apple9).has_float32_filtering);
+    for (const GpuFamily family : {GpuFamily::apple7, GpuFamily::apple10}) {
+        EXPECT_EQ(mac_features(family).family, family);
+        EXPECT_TRUE(mac_features(family).has_bc_compression);
+    }
+}
+
 TEST(DxgiSupport, DepthFilteringFollowsTheMetalTables) {
     EXPECT_TRUE(has(support(56, GpuFamily::apple7), Support::shader_sample));
     EXPECT_FALSE(has(support(r24_unorm_x8_typeless, GpuFamily::apple8), Support::shader_sample));
@@ -135,12 +172,12 @@ TEST(DxgiSupport, TypedUavLoadsMatchTheDirect3DSet) {
         "DXGI_FORMAT_R8_UINT",
         "DXGI_FORMAT_R8_SINT",
     };
-    EXPECT_EQ(formats_with(Support::typed_uav_load, GpuFamily::apple7), expected);
+    EXPECT_EQ(formats_with(Support::typed_uav_load, mac_features(GpuFamily::apple7)), expected);
 }
 
 TEST(DxgiSupport, OnlyR16AndR32UintAreIndexFormats) {
     const std::set<std::string_view> expected = {"DXGI_FORMAT_R16_UINT", "DXGI_FORMAT_R32_UINT"};
-    EXPECT_EQ(formats_with(Support::index_buffer, GpuFamily::apple7), expected);
+    EXPECT_EQ(formats_with(Support::index_buffer, mac_features(GpuFamily::apple7)), expected);
 }
 
 TEST(DxgiSupport, DisplayFormatsAreTheScanoutFormats) {
@@ -149,7 +186,7 @@ TEST(DxgiSupport, DisplayFormatsAreTheScanoutFormats) {
         "DXGI_FORMAT_B8G8R8A8_UNORM",    "DXGI_FORMAT_B8G8R8A8_UNORM_SRGB",
         "DXGI_FORMAT_R10G10B10A2_UNORM", "DXGI_FORMAT_R16G16B16A16_FLOAT",
     };
-    EXPECT_EQ(formats_with(Support::display, GpuFamily::apple7), expected);
+    EXPECT_EQ(formats_with(Support::display, mac_features(GpuFamily::apple7)), expected);
 }
 
 TEST(DxgiSupport, CompressedFormatsAreSampledNotRendered) {

@@ -102,10 +102,27 @@ struct FormatInfo {
 // plane views of depth-stencil families are never cast: Metal cannot view depth as color.
 enum class CastingRules : std::uint8_t { d3d11, d3d12_relaxed };
 
+// Capabilities that Apple's feature set tables leave to the device within a family:
+// MTLDevice.supports32BitFloatFiltering, supportsBCTextureCompression and readWriteTextureSupport.
+struct DeviceFeatures {
+    backend::GpuFamily family;
+    // Filtering and resolving 32-bit float color formats and Depth32Float; every Apple9 GPU.
+    bool has_float32_filtering;
+    // Every Apple9 GPU and every Mac with an Apple7 or Apple8 GPU.
+    bool has_bc_compression;
+    bool has_read_write_tier2;
+};
+
+// The features Apple documents for every Mac in the family. Tier 2 read-write textures are
+// assumed: Apple's tables leave them to the device.
+DeviceFeatures mac_features(backend::GpuFamily family) noexcept;
+
 // Null for values outside the DXGI_FORMAT enum.
 const FormatInfo* find(DxgiFormat format) noexcept;
 // Every DXGI_FORMAT enumerator except DXGI_FORMAT_FORCE_UINT, in enum order.
 std::span<const FormatInfo> all_dxgi_formats() noexcept;
+Support support(DxgiFormat format, const DeviceFeatures& features) noexcept;
+// support(format, mac_features(family)).
 Support support(DxgiFormat format, backend::GpuFamily family) noexcept;
 bool is_view_compatible(DxgiFormat resource, DxgiFormat view, CastingRules rules) noexcept;
 

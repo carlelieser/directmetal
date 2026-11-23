@@ -45,11 +45,15 @@ const tables::DxgiRow* find_row(DxgiFormat format) noexcept {
     return is_found ? &*row : nullptr;
 }
 
+bool has_feature(const metal::CapabilityRow& row, const DeviceFeatures& features) noexcept {
+    return row.feature == nullptr || features.*row.feature;
+}
+
 metal::Capability capabilities_of(backend::PixelFormat pixel_format,
-                                  backend::GpuFamily family) noexcept {
+                                  const DeviceFeatures& features) noexcept {
     metal::Capability capabilities = metal::Capability::none;
     for (const metal::CapabilityRow& row : metal::capability_rows) {
-        const bool is_available = row.pixel_format == pixel_format && row.since <= family;
+        const bool is_available = row.pixel_format == pixel_format && has_feature(row, features);
         if (is_available) {
             capabilities = capabilities | row.capabilities;
         }
@@ -71,12 +75,21 @@ std::span<const FormatInfo> all_dxgi_formats() noexcept {
     return tables::dxgi_format_infos;
 }
 
+DeviceFeatures mac_features(backend::GpuFamily family) noexcept {
+    const bool is_apple9_or_later = family >= backend::GpuFamily::apple9;
+    return {family, is_apple9_or_later, true, true};
+}
+
 Support support(DxgiFormat format, backend::GpuFamily family) noexcept {
+    return support(format, mac_features(family));
+}
+
+Support support(DxgiFormat format, const DeviceFeatures& features) noexcept {
     const tables::DxgiRow* row = find_row(format);
     if (row == nullptr) {
         return Support::none;
     }
-    const metal::Capability capabilities = capabilities_of(row->pixel_format, family);
+    const metal::Capability capabilities = capabilities_of(row->pixel_format, features);
     Support result = row->usage & needs_no_capability;
     for (const Requirement& requirement : requirements) {
         if (metal::has_all(capabilities, requirement.capabilities)) {
