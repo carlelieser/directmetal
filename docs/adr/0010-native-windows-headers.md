@@ -8,7 +8,7 @@ Front-end sources include `<d3d11.h>`, `<dxgi.h>` and `<unknwn.h>`. PE builds ge
 
 ## Decision
 
-- Native builds compile against pinned, unmodified mingw-w64 headers fetched at build time by a Meson wrap, plus a first-party shim for base Windows types. The headers are never vendored, modified, installed or shipped. The shim defines `WCHAR` as `char16_t` on macOS, so wide strings keep their Windows size.
+- Native builds compile against pinned, unmodified mingw-w64 headers fetched at build time by a Meson wrap, plus a first-party shim for base Windows types. The headers are never vendored, modified, installed or shipped. The shim defines `WCHAR` as `char16_t` on macOS, so wide strings keep their Windows size. It is written from Microsoft's documentation; the few mingw-specific names it defines (`__CRT_UUID_DECL`, `__C89_NAMELESS*`, `WINBOOL`) are the hooks the pinned headers use, taken from that usage, not from mingw-w64's sources.
 - Native binaries built against these headers are test executables and are never distributed.
 - `DXGI_FORMAT` and `dxgicommon.h` come from DirectX-Headers, also fetched by a Meson wrap.
 - The Phase 9 native SDK ships headers generated from Microsoft's win32metadata (MIT) instead.

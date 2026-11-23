@@ -1,0 +1,8 @@
+# mingw-w64 at the revision in tools/api/sources.tsv. Its headers are compile-time inputs of native
+# builds only and are never vendored, modified, installed or shipped (ADR 0010).
+[wrap-file]
+directory = mingw-w64-3dc9567fee2f797f0f4452e1d7b6d72390b49cb1
+source_url = https://github.com/mingw-w64/mingw-w64/archive/3dc9567fee2f797f0f4452e1d7b6d72390b49cb1.tar.gz
+source_filename = mingw-w64-3dc9567fee2f797f0f4452e1d7b6d72390b49cb1.tar.gz
+source_hash = 621c10c26a1ac7b94fe8119be9d93acf77cf6a9f622dbfdab593fc7a22f8a82a
+patch_directory = mingw-w64-headers
