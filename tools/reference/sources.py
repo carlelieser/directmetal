@@ -9,6 +9,8 @@ HARNESS_DIR = Path("tests", "api", "harness")
 REFERENCE_DIR = Path("tests", "reference")
 MANIFEST = PROGRAMS_DIR / "manifest.tsv"
 MANIFEST_HEADER = ["program"]
+# Only these are sources; editor and Finder files beside them must not make a reference stale.
+SOURCE_SUFFIXES = {".cpp", ".h", ".hpp"}
 
 
 class ReferenceToolError(Exception):
@@ -30,12 +32,14 @@ def read_manifest(root: Path) -> list[str]:
 
 
 def source_files(root: Path, program: str) -> list[Path]:
-    """Returns, relative to root, the program source followed by every harness file."""
+    """Returns, relative to root, the program source followed by every harness source."""
     program_source = PROGRAMS_DIR / f"{program}.cpp"
     if not (root / program_source).is_file():
         raise ReferenceToolError(f"program {program} has no source {root / program_source}")
     harness = sorted(
-        path.relative_to(root) for path in (root / HARNESS_DIR).rglob("*") if path.is_file()
+        path.relative_to(root)
+        for path in (root / HARNESS_DIR).rglob("*")
+        if path.suffix in SOURCE_SUFFIXES and path.is_file()
     )
     return [program_source, *harness]
 

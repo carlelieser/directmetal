@@ -52,6 +52,12 @@ class CheckFreshTest(unittest.TestCase):
             [f"clear: {added} was added after the reference was recorded"],
         )
 
+    def test_ignores_non_source_files(self) -> None:
+        self.record()
+        self.write("tests/api/harness/.DS_Store", "finder")
+        self.write("tests/api/harness/output.cpp.swp", "editor")
+        self.assertEqual(self.check(), 0)
+
     def test_fails_when_harness_file_is_removed(self) -> None:
         self.record()
         (self.root / "tests/api/harness/output.cpp").unlink()
