@@ -109,10 +109,10 @@ class NativeModeTest(RunnerTestCase):
         arguments = ["--mode", "native", "--program", str(self.program("sys.exit(0)"))]
         self.assertEqual(self.run_runner(arguments).status, 0)
 
-    def test_fails_on_timeout(self) -> None:
+    def test_timeout_is_an_error_not_a_failure(self) -> None:
         with mock.patch.object(run_api_test, "TIMEOUT_SECONDS", 1):
             run = self.run_native(self.program("time.sleep(30)"))
-        self.assertEqual(run.status, 1)
+        self.assertEqual(run.status, 99)
         self.assertIn("timed out after 1 s", run.stderr)
 
 

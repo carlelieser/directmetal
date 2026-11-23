@@ -10,8 +10,8 @@ Under Wine (--mode wine) each run is staged by run_under_wine.py: a fresh direct
 builtin paired with --unix-library. The run directory is deleted on success and kept on failure
 until the next run.
 
-Exit status: 0 pass, 1 test failure, 77 skipped (--skip), 99 setup error. Meson reports 99 as an
-error even for should_fail tests, so a broken setup never passes as an expected failure.
+Exit status: 0 pass, 1 test failure, 77 skipped (--skip), 99 setup error or timeout. Meson reports
+99 as an error whatever the test expects, so neither ever counts as a pass.
 """
 
 import argparse
@@ -35,7 +35,7 @@ from sources import ReferenceToolError  # noqa: E402
 EXIT_PASS = 0
 EXIT_FAILURE = 1
 EXIT_SKIP = 77
-EXIT_SETUP_ERROR = 99
+EXIT_ERROR = 99
 TIMEOUT_SECONDS = 150
 # Wine pairs directmetal.dll with <dll_path>/x86_64-unix/directmetal.so, whatever the input's name.
 UNIX_LIBRARY_NAME = "directmetal.so"
@@ -156,8 +156,6 @@ def signal_name(number: int) -> str:
 
 
 def describe_exit(outcome: Outcome) -> str:
-    if outcome.timeout_error is not None:
-        return outcome.timeout_error
     if outcome.returncode < 0:
         return f"abnormal exit: terminated by {signal_name(-outcome.returncode)}"
     return f"abnormal exit: status {outcome.returncode:#x}, expected 0"
@@ -194,15 +192,22 @@ def problems(outcome: Outcome, expectation: Expectation | None) -> list[str]:
     return found
 
 
+def keep_failed_run(outcome: Outcome, found: list[str]) -> None:
+    for line in found:
+        print(f"run_api_test: {line}", file=sys.stderr)
+    if outcome.run_dir is not None:
+        print(f"run_api_test: kept {outcome.run_dir}", file=sys.stderr)
+
+
 def report(outcome: Outcome, expectation: Expectation | None) -> int:
     sys.stdout.write(outcome.stdout)
     sys.stderr.write(outcome.stderr)
+    if outcome.timeout_error is not None:
+        keep_failed_run(outcome, [outcome.timeout_error])
+        return EXIT_ERROR
     found = problems(outcome, expectation)
-    for line in found:
-        print(f"run_api_test: {line}", file=sys.stderr)
     if found:
-        if outcome.run_dir is not None:
-            print(f"run_api_test: kept {outcome.run_dir}", file=sys.stderr)
+        keep_failed_run(outcome, found)
         return EXIT_FAILURE
     if outcome.run_dir is not None:
         shutil.rmtree(outcome.run_dir)
@@ -248,7 +253,7 @@ def main(arguments: list[str]) -> int:
         outcome = run_wine(options) if options.mode == "wine" else run_native(options)
     except (wine_staging.SetupError, OSError) as error:
         print(f"run_api_test: setup failed: {error}", file=sys.stderr)
-        return EXIT_SETUP_ERROR
+        return EXIT_ERROR
     return report(outcome, expectation)
 
 
