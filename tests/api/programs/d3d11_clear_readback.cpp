@@ -173,6 +173,10 @@ private:
             json.begin_object();
             json.key("mip");
             json.number(mip);
+            json.key("width");
+            json.number(texture_size >> mip);
+            json.key("height");
+            json.number(texture_size >> mip);
             write_hresult(json, "map", readback.result);
             json.key("readback");
             if (SUCCEEDED(readback.result)) {
