@@ -84,12 +84,19 @@ void Stream::run() noexcept {
             decode(work.submission);
             break;
         case StreamWork::Kind::settle:
-            work_.complete(work.ticket, executor_.settle(work.unsubmitted));
+            work_.complete(work.ticket, executor_.settle(settle_mode(work.unsubmitted)));
             break;
         case StreamWork::Kind::stop:
             return;
         }
     }
+}
+
+// A failed stream ignores every later chunk, so no submit command can commit what it recorded
+// before failing; its waits already fail, so committing it shifts no numbering anyone observes.
+Unsubmitted Stream::settle_mode(Unsubmitted requested) const noexcept {
+    const bool is_failed = has_failed_ || decoder_.has_failed();
+    return is_failed ? Unsubmitted::commit : requested;
 }
 
 void Stream::decode(const bridge::SubmitStreamParams& submission) noexcept {

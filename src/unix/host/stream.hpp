@@ -55,6 +55,7 @@ private:
     void run() noexcept;
     void decode(const bridge::SubmitStreamParams& submission) noexcept;
     void publish_failure(const bridge::DecodeFailure& failure) noexcept;
+    Unsubmitted settle_mode(Unsubmitted requested) const noexcept;
 
     std::shared_ptr<DeviceObject> device_;
     // Destroyed before device_: a queue must not outlive its device.

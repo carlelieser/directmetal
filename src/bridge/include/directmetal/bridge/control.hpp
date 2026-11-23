@@ -16,7 +16,8 @@
 // count, which no later wait can observe). release_memory never commits implicitly: while any
 // stream of the device has recorded work no submit command has committed, it fails with
 // status_invalid_device_state and releases nothing; the client records a submit, flushes and
-// calls it again.
+// calls it again. A stream with a sticky error has its recorded work committed, since no later
+// submit can reach it.
 namespace directmetal::bridge {
 
 inline constexpr std::uint32_t initialize_flag_wow64 = 0x1;

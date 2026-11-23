@@ -66,6 +66,18 @@ TEST_F(TeardownTest, ReleaseMemoryRefusesUnsubmittedWork) {
     EXPECT_EQ(gpu.live_buffers, 0);
 }
 
+TEST_F(TeardownTest, ReleaseMemorySettlesFailedStream) {
+    gpu.is_auto_complete = true;
+    submit(readback(1));
+    ASSERT_TRUE(wait_retired(1));
+    submit(chunk(3).add(SubmitCommand{}));
+    ASSERT_TRUE(wait_failed());
+    submit(chunk(2).add(SubmitCommand{}));
+    ReleaseMemoryParams release{imported};
+    EXPECT_EQ(call(FunctionCode::release_memory, release), status_success);
+    EXPECT_EQ(gpu.live_buffers, 0);
+}
+
 TEST_F(TeardownTest, CloseStreamCommitsRecordedWork) {
     submit(readback(1));
     auto closed = call_async(FunctionCode::close_stream, CloseStreamParams{stream.stream});
