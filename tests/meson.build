@@ -4,5 +4,5 @@ if is_windows
 else
     subdir('unit')
     subdir('gpu')
-    subdir('api/tests')
+    subdir('api')
 endif
