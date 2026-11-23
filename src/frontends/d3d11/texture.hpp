@@ -27,10 +27,10 @@ public:
     // Creates the unix-side object; the texture starts with one public reference.
     static HRESULT create(Device& device, const TexturePlan& plan, Texture2D*& texture);
 
-    void STDMETHODCALLTYPE GetType(D3D11_RESOURCE_DIMENSION*) noexcept override;
+    void STDMETHODCALLTYPE GetType(D3D11_RESOURCE_DIMENSION* pResourceDimension) noexcept override;
     void STDMETHODCALLTYPE SetEvictionPriority(UINT) noexcept override;
     UINT STDMETHODCALLTYPE GetEvictionPriority() noexcept override;
-    void STDMETHODCALLTYPE GetDesc(D3D11_TEXTURE2D_DESC*) noexcept override;
+    void STDMETHODCALLTYPE GetDesc(D3D11_TEXTURE2D_DESC* pDesc) noexcept override;
 
     const D3D11_TEXTURE2D_DESC& desc() const noexcept;
     const formats::FormatInfo& format() const noexcept;

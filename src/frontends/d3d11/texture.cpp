@@ -71,8 +71,11 @@ Texture2D::~Texture2D() {
     directmetal_bridge_free_shared(staging_->memory, staging_->layout.size());
 }
 
-void STDMETHODCALLTYPE Texture2D::GetType(D3D11_RESOURCE_DIMENSION*) noexcept {
-    DM_STUB_VOID("ID3D11Resource::GetType");
+void STDMETHODCALLTYPE Texture2D::GetType(D3D11_RESOURCE_DIMENSION* pResourceDimension) noexcept {
+    DM_IMPL("ID3D11Resource::GetType");
+    if (pResourceDimension != nullptr) {
+        *pResourceDimension = D3D11_RESOURCE_DIMENSION_TEXTURE2D;
+    }
 }
 
 void STDMETHODCALLTYPE Texture2D::SetEvictionPriority(UINT) noexcept {
@@ -83,8 +86,11 @@ UINT STDMETHODCALLTYPE Texture2D::GetEvictionPriority() noexcept {
     DM_STUB_RETURN("ID3D11Resource::GetEvictionPriority", 0);
 }
 
-void STDMETHODCALLTYPE Texture2D::GetDesc(D3D11_TEXTURE2D_DESC*) noexcept {
-    DM_STUB_VOID("ID3D11Texture2D::GetDesc");
+void STDMETHODCALLTYPE Texture2D::GetDesc(D3D11_TEXTURE2D_DESC* pDesc) noexcept {
+    DM_IMPL("ID3D11Texture2D::GetDesc");
+    if (pDesc != nullptr) {
+        *pDesc = desc_;
+    }
 }
 
 const D3D11_TEXTURE2D_DESC& Texture2D::desc() const noexcept {

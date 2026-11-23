@@ -186,10 +186,6 @@ void STDMETHODCALLTYPE ContextQueryStubs::Flush() noexcept {
     DM_STUB_VOID("ID3D11DeviceContext::Flush");
 }
 
-D3D11_DEVICE_CONTEXT_TYPE STDMETHODCALLTYPE ContextQueryStubs::GetType() noexcept {
-    DM_STUB_RETURN("ID3D11DeviceContext::GetType", D3D11_DEVICE_CONTEXT_TYPE{});
-}
-
 UINT STDMETHODCALLTYPE ContextQueryStubs::GetContextFlags() noexcept {
     DM_STUB_RETURN("ID3D11DeviceContext::GetContextFlags", 0);
 }

@@ -18,8 +18,13 @@ void release_device(Device& device) noexcept {
     device.Release();
 }
 
-HRESULT Device::create(std::unique_ptr<BridgeDevice> bridge, Device*& device) {
-    auto* created = new Device(std::move(bridge));
+ID3D11Device* device_interface(Device& device) noexcept {
+    return &device;
+}
+
+HRESULT Device::create(std::unique_ptr<BridgeDevice> bridge, const DeviceSettings& settings,
+                       Device*& device) {
+    auto* created = new Device(std::move(bridge), settings);
     DeviceContext* context = nullptr;
     try {
         context = new DeviceContext(*created);
@@ -34,7 +39,8 @@ HRESULT Device::create(std::unique_ptr<BridgeDevice> bridge, Device*& device) {
     return S_OK;
 }
 
-Device::Device(std::unique_ptr<BridgeDevice> bridge) noexcept : bridge_(std::move(bridge)) {}
+Device::Device(std::unique_ptr<BridgeDevice> bridge, const DeviceSettings& settings) noexcept
+    : bridge_(std::move(bridge)), settings_(settings) {}
 
 Device::~Device() = default;
 
@@ -100,6 +106,21 @@ Device::GetImmediateContext(ID3D11DeviceContext** ppImmediateContext) noexcept {
     }
     immediate_->AddRef();
     *ppImmediateContext = immediate_.get();
+}
+
+D3D_FEATURE_LEVEL STDMETHODCALLTYPE Device::GetFeatureLevel() noexcept {
+    DM_IMPL("ID3D11Device::GetFeatureLevel");
+    return settings_.feature_level;
+}
+
+UINT STDMETHODCALLTYPE Device::GetCreationFlags() noexcept {
+    DM_IMPL("ID3D11Device::GetCreationFlags");
+    return settings_.creation_flags;
+}
+
+HRESULT STDMETHODCALLTYPE Device::GetDeviceRemovedReason() noexcept {
+    DM_IMPL("ID3D11Device::GetDeviceRemovedReason");
+    return bridge_->is_lost() ? DXGI_ERROR_DEVICE_REMOVED : S_OK;
 }
 
 BridgeDevice& Device::bridge() const noexcept {

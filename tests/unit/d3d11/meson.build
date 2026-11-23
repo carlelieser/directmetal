@@ -5,6 +5,7 @@ d3d11_tests = executable(
     'context_test.cpp',
     'create_device_test.cpp',
     'fake_bridge.cpp',
+    'object_methods_test.cpp',
     'render_target_view_test.cpp',
     'staging_layout_test.cpp',
     'texture_test.cpp',

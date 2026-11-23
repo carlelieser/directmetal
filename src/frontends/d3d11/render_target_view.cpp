@@ -79,12 +79,19 @@ RenderTargetView::RenderTargetView(Texture2D& texture, const RenderTargetPlan& p
 
 RenderTargetView::~RenderTargetView() = default;
 
-void STDMETHODCALLTYPE RenderTargetView::GetResource(ID3D11Resource**) noexcept {
-    DM_STUB_VOID("ID3D11View::GetResource");
+void STDMETHODCALLTYPE RenderTargetView::GetResource(ID3D11Resource** ppResource) noexcept {
+    DM_IMPL("ID3D11View::GetResource");
+    if (ppResource != nullptr) {
+        texture_->AddRef();
+        *ppResource = texture_.get();
+    }
 }
 
-void STDMETHODCALLTYPE RenderTargetView::GetDesc(D3D11_RENDER_TARGET_VIEW_DESC*) noexcept {
-    DM_STUB_VOID("ID3D11RenderTargetView::GetDesc");
+void STDMETHODCALLTYPE RenderTargetView::GetDesc(D3D11_RENDER_TARGET_VIEW_DESC* pDesc) noexcept {
+    DM_IMPL("ID3D11RenderTargetView::GetDesc");
+    if (pDesc != nullptr) {
+        *pDesc = plan_.desc;
+    }
 }
 
 Texture2D& RenderTargetView::texture() const noexcept {

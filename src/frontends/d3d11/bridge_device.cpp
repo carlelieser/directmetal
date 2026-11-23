@@ -69,6 +69,11 @@ const formats::DeviceFeatures& BridgeDevice::features() const noexcept {
     return features_;
 }
 
+bool BridgeDevice::is_lost() noexcept {
+    const std::lock_guard lock(mutex_);
+    return writer_->status() < 0;
+}
+
 backend::Result<bridge::Handle> BridgeDevice::create_texture(const backend::TextureDesc& desc) {
     return client_.create_texture(desc);
 }

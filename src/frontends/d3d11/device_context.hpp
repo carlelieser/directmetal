@@ -22,6 +22,7 @@ public:
                                         ID3D11Resource* pSrcResource) noexcept override;
     void STDMETHODCALLTYPE ClearRenderTargetView(ID3D11RenderTargetView* pRenderTargetView,
                                                  const FLOAT ColorRGBA[4]) noexcept override;
+    D3D11_DEVICE_CONTEXT_TYPE STDMETHODCALLTYPE GetType() noexcept override;
 
 protected:
     void* find_interface(REFIID iid) noexcept override;

@@ -65,9 +65,6 @@ public:
                                            LPSTR, UINT*, LPSTR, UINT*, LPSTR,
                                            UINT*) noexcept override;
     HRESULT STDMETHODCALLTYPE CheckFeatureSupport(D3D11_FEATURE, void*, UINT) noexcept override;
-    D3D_FEATURE_LEVEL STDMETHODCALLTYPE GetFeatureLevel() noexcept override;
-    UINT STDMETHODCALLTYPE GetCreationFlags() noexcept override;
-    HRESULT STDMETHODCALLTYPE GetDeviceRemovedReason() noexcept override;
     HRESULT STDMETHODCALLTYPE SetExceptionMode(UINT) noexcept override;
     UINT STDMETHODCALLTYPE GetExceptionMode() noexcept override;
 };

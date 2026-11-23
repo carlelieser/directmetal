@@ -152,18 +152,6 @@ HRESULT STDMETHODCALLTYPE DeviceStubs::CheckFeatureSupport(D3D11_FEATURE, void*,
     DM_STUB("ID3D11Device::CheckFeatureSupport");
 }
 
-D3D_FEATURE_LEVEL STDMETHODCALLTYPE DeviceStubs::GetFeatureLevel() noexcept {
-    DM_STUB_RETURN("ID3D11Device::GetFeatureLevel", D3D_FEATURE_LEVEL{});
-}
-
-UINT STDMETHODCALLTYPE DeviceStubs::GetCreationFlags() noexcept {
-    DM_STUB_RETURN("ID3D11Device::GetCreationFlags", 0);
-}
-
-HRESULT STDMETHODCALLTYPE DeviceStubs::GetDeviceRemovedReason() noexcept {
-    DM_STUB("ID3D11Device::GetDeviceRemovedReason");
-}
-
 HRESULT STDMETHODCALLTYPE DeviceStubs::SetExceptionMode(UINT) noexcept {
     DM_STUB("ID3D11Device::SetExceptionMode");
 }

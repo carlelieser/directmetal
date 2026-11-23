@@ -42,12 +42,12 @@ HRESULT check_driver(D3D_DRIVER_TYPE type, HMODULE software, UINT sdk_version) n
     return rule == driver_rules.end() ? E_INVALIDARG : rule->result;
 }
 
-HRESULT open_device(Device*& device) {
+HRESULT open_device(const DeviceSettings& settings, Device*& device) {
     auto bridge = BridgeDevice::open();
     if (!bridge.has_value()) {
         return to_hresult(bridge.status());
     }
-    return Device::create(std::move(bridge).value(), device);
+    return Device::create(std::move(bridge).value(), settings, device);
 }
 
 // Hands the new device's reference to the application, or releases it when not requested.
@@ -71,7 +71,7 @@ using namespace directmetal::d3d11;
 
 // DXGI is absent in Phase 1, so an explicit adapter is rejected.
 extern "C" HRESULT WINAPI D3D11CreateDevice(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE DriverType,
-                                            HMODULE Software, UINT,
+                                            HMODULE Software, UINT Flags,
                                             const D3D_FEATURE_LEVEL* pFeatureLevels,
                                             UINT FeatureLevels, UINT SDKVersion,
                                             ID3D11Device** ppDevice,
@@ -95,7 +95,8 @@ extern "C" HRESULT WINAPI D3D11CreateDevice(IDXGIAdapter* pAdapter, D3D_DRIVER_T
     }
     Device* device = nullptr;
     if (SUCCEEDED(result)) {
-        result = directmetal::com::guard("D3D11CreateDevice", [&] { return open_device(device); });
+        result = directmetal::com::guard("D3D11CreateDevice",
+                                         [&] { return open_device({level, Flags}, device); });
     }
     if (FAILED(result)) {
         return result;

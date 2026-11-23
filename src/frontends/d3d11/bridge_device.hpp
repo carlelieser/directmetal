@@ -29,6 +29,8 @@ public:
     ~BridgeDevice();
 
     const formats::DeviceFeatures& features() const noexcept;
+    // True once the stream has a sticky error: every later wait fails with device_lost.
+    bool is_lost() noexcept;
     backend::Result<bridge::Handle> create_texture(const backend::TextureDesc& desc);
     // memory comes from directmetal_bridge_allocate_shared.
     backend::Result<bridge::Handle> import_memory(std::span<std::byte> memory);

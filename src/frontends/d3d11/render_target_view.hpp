@@ -30,8 +30,8 @@ public:
     // Starts with one public reference.
     RenderTargetView(Texture2D& texture, const RenderTargetPlan& plan) noexcept;
 
-    void STDMETHODCALLTYPE GetResource(ID3D11Resource**) noexcept override;
-    void STDMETHODCALLTYPE GetDesc(D3D11_RENDER_TARGET_VIEW_DESC*) noexcept override;
+    void STDMETHODCALLTYPE GetResource(ID3D11Resource** ppResource) noexcept override;
+    void STDMETHODCALLTYPE GetDesc(D3D11_RENDER_TARGET_VIEW_DESC* pDesc) noexcept override;
 
     Texture2D& texture() const noexcept;
     const backend::SubresourceRange& range() const noexcept;

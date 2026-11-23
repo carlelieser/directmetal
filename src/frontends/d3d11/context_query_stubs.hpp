@@ -65,7 +65,6 @@ public:
     void STDMETHODCALLTYPE CSGetConstantBuffers(UINT, UINT, ID3D11Buffer**) noexcept override;
     void STDMETHODCALLTYPE ClearState() noexcept override;
     void STDMETHODCALLTYPE Flush() noexcept override;
-    D3D11_DEVICE_CONTEXT_TYPE STDMETHODCALLTYPE GetType() noexcept override;
     UINT STDMETHODCALLTYPE GetContextFlags() noexcept override;
     HRESULT STDMETHODCALLTYPE FinishCommandList(WINBOOL, ID3D11CommandList**) noexcept override;
 };

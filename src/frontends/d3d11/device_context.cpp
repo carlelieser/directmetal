@@ -120,6 +120,11 @@ void STDMETHODCALLTYPE DeviceContext::ClearRenderTargetView(
     });
 }
 
+D3D11_DEVICE_CONTEXT_TYPE STDMETHODCALLTYPE DeviceContext::GetType() noexcept {
+    DM_IMPL("ID3D11DeviceContext::GetType");
+    return D3D11_DEVICE_CONTEXT_IMMEDIATE;
+}
+
 void* DeviceContext::find_interface(REFIID iid) noexcept {
     return com::find_in_table(
         com::interface_table<DeviceContext, IUnknown, ID3D11DeviceChild, ID3D11DeviceContext>(),
