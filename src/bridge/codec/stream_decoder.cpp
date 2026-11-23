@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <new>
 
 namespace directmetal::bridge {
 namespace {
@@ -70,6 +71,13 @@ std::uint32_t inline_length_of(Opcode opcode, const std::byte* payload) noexcept
     return label.length;
 }
 
+// The decoder's only read of shared memory. The PE side may still write the chunk while it is
+// copied; that race is accepted because every byte is validated after the copy and nothing reads
+// the shared chunk again.
+void copy_from_shared(std::byte* destination, std::uint64_t address, std::uint32_t size) noexcept {
+    std::memcpy(destination, from_address<const std::byte>(address), size);
+}
+
 } // namespace
 
 std::string_view DecodedCommand::label() const noexcept {
@@ -90,8 +98,15 @@ Status StreamDecoder::decode(const SubmitStreamParams& submission, CommandSink& 
     if (has_failed()) {
         return failure_.status;
     }
+    if (const Status status = validate_submission(submission); status < 0) {
+        return fail(status, framing_failure_opcode, submission.sequence);
+    }
+    if (!reserve_copy(submission.chunk_size)) {
+        return fail(status_no_memory, framing_failure_opcode, submission.sequence);
+    }
+    copy_from_shared(copy_.data(), submission.chunk_address, submission.chunk_size);
     Chunk chunk{};
-    if (const Status status = validate_framing(submission, chunk); status < 0) {
+    if (const Status status = read_header(submission, chunk); status < 0) {
         return fail(status, framing_failure_opcode, submission.sequence);
     }
     if (const Status status = walk(chunk, nullptr); status < 0) {
@@ -101,8 +116,7 @@ Status StreamDecoder::decode(const SubmitStreamParams& submission, CommandSink& 
     return walk(chunk, &sink);
 }
 
-Status StreamDecoder::validate_framing(const SubmitStreamParams& submission,
-                                       Chunk& chunk) noexcept {
+Status StreamDecoder::validate_submission(const SubmitStreamParams& submission) const noexcept {
     const bool has_valid_size =
         submission.chunk_size >= sizeof(ChunkHeader) && submission.chunk_size <= max_chunk_size;
     const bool is_aligned = submission.chunk_address % command_alignment == 0;
@@ -110,12 +124,23 @@ Status StreamDecoder::validate_framing(const SubmitStreamParams& submission,
     if (!has_valid_size || !is_addressable || submission.reserved != 0) {
         return status_invalid_parameter;
     }
-    if (submission.sequence != next_sequence_) {
-        return status_invalid_parameter;
+    return submission.sequence == next_sequence_ ? status_success : status_invalid_parameter;
+}
+
+bool StreamDecoder::reserve_copy(std::uint32_t size) noexcept {
+    try {
+        if (copy_.size() < size) {
+            copy_.resize(size);
+        }
+        return true;
+    } catch (const std::bad_alloc&) {
+        return false;
     }
+}
+
+Status StreamDecoder::read_header(const SubmitStreamParams& submission, Chunk& chunk) noexcept {
     ChunkHeader header{};
-    const auto* data = from_address<const std::byte>(submission.chunk_address);
-    std::memcpy(&header, data, sizeof(header));
+    std::memcpy(&header, copy_.data(), sizeof(header));
     if (header.magic != chunk_magic || header.reserved != 0) {
         return status_invalid_parameter;
     }
@@ -127,7 +152,7 @@ Status StreamDecoder::validate_framing(const SubmitStreamParams& submission,
     if (!is_submitted_chunk || header.size % command_alignment != 0) {
         return status_invalid_parameter;
     }
-    chunk = {data, header.size, header.command_count, header.sequence};
+    chunk = {copy_.data(), header.size, header.command_count, header.sequence};
     return status_success;
 }
 

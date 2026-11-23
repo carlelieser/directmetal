@@ -71,6 +71,35 @@ TEST(StreamDecoder, SinkFailureIsStickyAndStopsTheChunk) {
     EXPECT_EQ(sink.commands.size(), 3u);
 }
 
+// Rewrites a later command in shared memory while the first one executes, as a racing PE side
+// could.
+class MutatingSink : public RecordingSink {
+public:
+    MutatingSink(std::byte* chunk, std::size_t offset) : chunk_(chunk), offset_(offset) {}
+
+    Status execute(const DecodedCommand& command) noexcept override {
+        if (commands.empty()) {
+            const auto unknown = static_cast<std::uint16_t>(0x7777);
+            std::memcpy(chunk_ + offset_, &unknown, sizeof(unknown));
+        }
+        return RecordingSink::execute(command);
+    }
+
+private:
+    std::byte* chunk_;
+    std::size_t offset_;
+};
+
+TEST(StreamDecoder, IgnoresSharedMemoryChangesAfterSubmission) {
+    const GuardedChunk chunk(sample_chunk());
+    // The label (32 bytes) and destroy_object (16 bytes) precede clear_texture.
+    MutatingSink sink(chunk.data(), sizeof(ChunkHeader) + 32 + 16);
+    StreamDecoder decoder;
+    EXPECT_EQ(decoder.decode(chunk.submission(), sink), status_success);
+    ASSERT_EQ(sink.commands.size(), static_cast<std::size_t>(Opcode::count));
+    expect_samples(sink.commands, 0);
+}
+
 // Each case corrupts a valid chunk or its submission.
 struct Malformation {
     std::string name;

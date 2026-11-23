@@ -10,10 +10,12 @@
 #include <cstdint>
 #include <cstring>
 #include <string_view>
+#include <vector>
 
-// The unix side's reader of the command stream. A chunk's framing is validated in full before any
-// of its commands reaches the sink, so a malformed chunk executes nothing. Each command is copied
-// out of shared memory before it is validated, so the PE side cannot change it afterwards.
+// The unix side's reader of the command stream. Each chunk is copied out of shared memory once,
+// into a buffer the decoder owns, and only the copy is validated and executed, so the PE side
+// cannot change a chunk after submitting it. The copy's framing is validated in full before any
+// of its commands reaches the sink, so a malformed chunk executes nothing.
 namespace directmetal::bridge {
 
 // DecodeFailure::opcode when the chunk framing, not a command, is malformed.
@@ -75,7 +77,9 @@ public:
 private:
     struct Chunk;
 
-    Status validate_framing(const SubmitStreamParams& submission, Chunk& chunk) noexcept;
+    Status validate_submission(const SubmitStreamParams& submission) const noexcept;
+    bool reserve_copy(std::uint32_t size) noexcept;
+    Status read_header(const SubmitStreamParams& submission, Chunk& chunk) noexcept;
     Status walk(const Chunk& chunk, CommandSink* sink) noexcept;
     static Status read_command(const Chunk& chunk, std::uint32_t& offset, DecodedCommand& command,
                                std::uint32_t& opcode) noexcept;
@@ -84,6 +88,8 @@ private:
 
     DecodeFailure failure_{status_success, 0, 0};
     std::uint64_t next_sequence_ = 1;
+    // The current chunk, copied from shared memory; grows to the largest chunk seen.
+    std::vector<std::byte> copy_;
 };
 
 } // namespace directmetal::bridge
