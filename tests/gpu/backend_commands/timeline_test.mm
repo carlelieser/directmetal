@@ -10,8 +10,6 @@ using namespace directmetal::backend::testing;
 using namespace std::chrono_literals;
 
 constexpr std::chrono::nanoseconds no_wait{0};
-// timeout_infinite of the bridge protocol, as the host passes it on.
-constexpr std::chrono::nanoseconds unbounded = std::chrono::nanoseconds::max();
 
 using TimelineTest = CommandsTest;
 
@@ -40,7 +38,7 @@ TEST_F(TimelineTest, WaitTimesOut) {
 TEST_F(TimelineTest, UnboundedWaitReturnsOnSignal) {
     const auto timeline = make_timeline(0);
     std::atomic<Status> result = Status::invalid_argument;
-    std::thread waiter([&] { result = timeline->wait(3, unbounded); });
+    std::thread waiter([&] { result = timeline->wait(3, wait_forever); });
     std::this_thread::sleep_for(20ms);
     EXPECT_EQ(result.load(), Status::invalid_argument);
     timeline->signal_cpu(3);
