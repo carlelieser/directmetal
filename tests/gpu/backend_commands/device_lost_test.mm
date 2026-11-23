@@ -83,4 +83,14 @@ TEST_F(DeviceLost, WaitReturnsAfterReleasedCallbacksFinish) {
     EXPECT_TRUE(has_finished.load());
 }
 
+TEST_F(DeviceLost, RefusedSubmitReleasesTimelinesItSignals) {
+    directmetal::backend::commands::testing::fail_next_submit(*queue_);
+    ASSERT_EQ(queue_->submit(), Status::success);
+    ASSERT_EQ(queue_->progress().wait(2, patience), Status::device_lost);
+    const auto timeline = make_timeline(0);
+    recorder().signal(*timeline, 1);
+    ASSERT_EQ(queue_->submit(), Status::device_lost);
+    EXPECT_EQ(timeline->wait(1, patience), Status::device_lost);
+}
+
 } // namespace

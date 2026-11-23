@@ -16,12 +16,15 @@ MetalQueue::~MetalQueue() {
     }
 }
 
-// A refused submit discards the recorded work.
+// A refused submit discards the recorded work and releases the timelines it would signal as lost.
 Status MetalQueue::submit() noexcept {
     @autoreleasepool {
         RecordedWork work = recorder_.finish();
         const std::uint64_t value = submitted_value_.load(std::memory_order_relaxed) + 1;
         if (!loss_->begin_submit(value, work.signaled)) {
+            for (const auto& timeline : work.signaled) {
+                timeline->release_pending(true);
+            }
             return Status::device_lost;
         }
         [work.commands encodeSignalEvent:progress_.state()->event() value:value];
