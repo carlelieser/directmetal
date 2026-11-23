@@ -1,8 +1,8 @@
 // Metal validation canary: proves that API validation is active in assert mode by encoding a blit
 // copy larger than its source buffer. The debug layer rejects the copy on the CPU while it is
-// encoded and aborts the process, so the tests built from this file are registered should_fail.
-// The command buffer is never committed, so nothing reaches the GPU when validation is off; the
-// canary then returns normally and its test fails.
+// encoded and aborts the process; the tests require that abort and its message. The command
+// buffer is never committed, so nothing reaches the GPU when validation is off; the canary then
+// returns normally and its test fails.
 //
 // Built as a native executable, and as a stand-in for directmetal.so that encodes the copy on its
 // first unix call from a Wine process and otherwise forwards to host::dispatch. Wine turns the
@@ -11,6 +11,7 @@
 #import <Metal/Metal.h>
 
 #include <cstdio>
+#include <cstdlib>
 
 namespace {
 
@@ -83,9 +84,7 @@ static_assert(std::size(__wine_unix_call_wow64_funcs) ==
 #else
 
 int main() {
-    // 77 makes Meson report a skip rather than a failure where no GPU is available.
-    constexpr int exit_skip = 77;
-    return encode_oversized_copy() ? 0 : exit_skip;
+    return encode_oversized_copy() ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 #endif

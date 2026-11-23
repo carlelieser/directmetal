@@ -121,8 +121,9 @@ test(
 subdir('programs')
 
 # The validation canary's unix library stands in for directmetal.so. Its first unix call trips
-# Metal validation, which Wine reports to the PE side as status 0xc0000005, so the program fails;
-# this proves the runner's validation settings reach Metal in a Wine process.
+# Metal validation, which Wine reports to the PE side as status 0xc0000005, so the program fails.
+# The runner passes only on that failure with the debug layer's message on stderr, which proves
+# its validation settings reach Metal in a Wine process.
 unix_build_dir = fs.parent(fs.parent(fs.parent(unix_library)))
 validation_canary_unixlib = unix_build_dir / 'tests' / 'gpu' / 'validation_canary_unixlib.so'
 wine_runner_args = [
@@ -141,9 +142,9 @@ test(
         '--program-arg', 'unix',
         '--unix-library', validation_canary_unixlib,
         '--work-dir', meson.current_build_dir() / 'validation_canary_wine',
+        '--expect-abort-stderr', 'failed assertion `Copy From Buffer Validation',
     ],
     suite: 'api',
-    should_fail: true,
     is_parallel: false,
     timeout: 180,
 )

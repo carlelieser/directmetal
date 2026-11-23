@@ -6,7 +6,8 @@ foreach component : ['backend_memory', 'backend_commands', 'host', 'formats']
     subdir(component)
 endforeach
 
-# Proves validation is really active: the canary's invalid blit encode must abort the process.
+# Proves validation is really active: the canary's invalid blit encode must abort the process with
+# the debug layer's message, which run_api_test.py checks (it also sets the validation variables).
 # tests/api runs the unix library variant in place of directmetal.so under Wine.
 validation_canary = executable(
     'validation_canary',
@@ -17,10 +18,14 @@ validation_canary = executable(
 
 test(
     'validation_canary',
-    validation_canary,
+    python,
+    args: [
+        '-I', files('../api/run_api_test.py'),
+        '--mode', 'native',
+        '--program', validation_canary,
+        '--expect-abort-stderr', 'failed assertion `Copy From Buffer Validation',
+    ],
     suite: 'gpu',
-    env: gpu_test_env,
-    should_fail: true,
     is_parallel: false,
     timeout: 60,
 )
