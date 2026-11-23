@@ -7,6 +7,7 @@
 #include <directmetal/bridge/client.hpp>
 #include <directmetal/runtime/log.hpp>
 
+#include <new>
 #include <span>
 
 namespace directmetal::d3d11 {
@@ -58,7 +59,16 @@ Texture2D::~Texture2D() {
     }
     BridgeDevice& bridge = device().bridge();
     if (!staging_.has_value()) {
-        bridge.record(bridge::DestroyObjectCommand{handle_});
+        try {
+            bridge.record(bridge::DestroyObjectCommand{handle_});
+        } catch (const std::bad_alloc&) {
+            // destroy_device destroys every object of the device, so the texture is only kept
+            // until then.
+            log::print(log::Component::d3d11, log::Level::error,
+                       "Texture2D: out of memory recording the destruction of texture {}; it is "
+                       "kept until its device is destroyed",
+                       handle_.value);
+        }
         return;
     }
     if (bridge.release_memory(handle_) != backend::Status::success) {

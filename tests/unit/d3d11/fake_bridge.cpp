@@ -76,7 +76,9 @@ Status submit_stream(const SubmitStreamParams& params) {
         }
         offset += command.size;
     }
-    std::atomic_ref<std::uint64_t>(state().control->retired_sequence).store(params.sequence);
+    if (state().is_retiring) {
+        std::atomic_ref<std::uint64_t>(state().control->retired_sequence).store(params.sequence);
+    }
     return status_success;
 }
 

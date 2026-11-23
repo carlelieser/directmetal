@@ -2,6 +2,7 @@
 # against fake_bridge.cpp, which stands in for the bridge transport and the unix side.
 d3d11_tests = executable(
     'd3d11_tests',
+    'allocation_failure_test.cpp',
     'context_test.cpp',
     'create_device_test.cpp',
     'fake_bridge.cpp',

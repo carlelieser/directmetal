@@ -26,6 +26,8 @@ struct State {
     // Results the next calls of each kind return.
     Status initialize_status = directmetal::bridge::status_success;
     Status create_texture_status = directmetal::bridge::status_success;
+    // False keeps every submitted chunk unretired, so the stream must allocate a new one.
+    bool is_retiring = true;
     int shared_allocations = 0;
     int shared_frees = 0;
     int devices_created = 0;
