@@ -16,8 +16,8 @@ class Texture2D;
 // to the integer type with saturation, others the float bits.
 backend::ClearColor to_clear_color(const FLOAT color[4], formats::ComponentKind kind) noexcept;
 
-// CopyResource's requirements: equal dimensions, mip levels, array size and sample count, and
-// formats of one typeless family.
+// CopyResource's requirements: equal dimensions, mip levels, array size and sampling, and the same
+// format or formats of one typeless family.
 bool is_copy_compatible(const D3D11_TEXTURE2D_DESC& destination,
                         const D3D11_TEXTURE2D_DESC& source) noexcept;
 

@@ -115,6 +115,24 @@ TEST_F(ContextTest, IncompatibleCopiesRecordNothing) {
     source->Release();
 }
 
+// Formats outside any typeless family copy only to the same format: R11G11B10_FLOAT into a B5G6R5
+// staging texture would write twice its size.
+TEST_F(ContextTest, FormatsWithoutAFamilyCopyOnlyToThemselves) {
+    ID3D11Texture2D* source = create_texture(render_target_desc(DXGI_FORMAT_R11G11B10_FLOAT));
+    ID3D11Texture2D* narrower = create_texture(staging_desc(DXGI_FORMAT_B5G6R5_UNORM));
+    ID3D11Texture2D* same = create_texture(staging_desc(DXGI_FORMAT_R11G11B10_FLOAT));
+    context_->CopyResource(narrower, source);
+    context_->CopyResource(same, source);
+    D3D11_MAPPED_SUBRESOURCE mapped{};
+    ASSERT_EQ(context_->Map(same, 0, D3D11_MAP_READ, 0, &mapped), S_OK);
+    const auto copies = fake_bridge::commands_of<CopyTextureToBufferCommand>();
+    ASSERT_EQ(copies.size(), 1u);
+    EXPECT_EQ(copies[0].region.row_pitch, 256u);
+    same->Release();
+    narrower->Release();
+    source->Release();
+}
+
 TEST_F(ContextTest, MapRejectsInvalidRequests) {
     ID3D11Texture2D* target = create_texture(render_target_desc(DXGI_FORMAT_R8G8B8A8_UNORM));
     ID3D11Texture2D* staging = create_texture(staging_desc(DXGI_FORMAT_R8G8B8A8_UNORM));

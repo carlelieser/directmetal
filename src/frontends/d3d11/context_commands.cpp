@@ -58,6 +58,18 @@ bridge::BufferTextureRegion readback_region(const Texture2D& destination, const 
     return region;
 }
 
+// Family 0 means the format has no typeless family and copies only to itself.
+bool is_same_format_family(DXGI_FORMAT destination, DXGI_FORMAT source) noexcept {
+    if (destination == source) {
+        return true;
+    }
+    const formats::FormatInfo* destination_format =
+        formats::find(static_cast<std::uint32_t>(destination));
+    const formats::FormatInfo* source_format = formats::find(static_cast<std::uint32_t>(source));
+    const formats::DxgiFormat family = source_format->typeless_family;
+    return family != 0 && destination_format->typeless_family == family;
+}
+
 } // namespace
 
 backend::ClearColor to_clear_color(const FLOAT color[4], formats::ComponentKind kind) noexcept {
@@ -78,13 +90,9 @@ bool is_copy_compatible(const D3D11_TEXTURE2D_DESC& destination,
     if (!is_same_size || !is_same_layout) {
         return false;
     }
-    const formats::FormatInfo* destination_format =
-        formats::find(static_cast<std::uint32_t>(destination.Format));
-    const formats::FormatInfo* source_format =
-        formats::find(static_cast<std::uint32_t>(source.Format));
-    const bool is_same_family =
-        destination_format->typeless_family == source_format->typeless_family;
-    return is_same_family && destination.SampleDesc.Count == source.SampleDesc.Count;
+    const bool is_same_sampling = destination.SampleDesc.Count == source.SampleDesc.Count &&
+                                  destination.SampleDesc.Quality == source.SampleDesc.Quality;
+    return is_same_sampling && is_same_format_family(destination.Format, source.Format);
 }
 
 std::uint64_t record_readback(BridgeDevice& bridge, const Texture2D& destination,
