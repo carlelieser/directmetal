@@ -6,6 +6,7 @@ bridge_protocol_dep = declare_dependency(
 # Private to the bridge: rules shared by the PE and native transports.
 bridge_transport_include = include_directories('transport')
 
+subdir('codec')
 subdir('client')
 
 # bridge_transport_dep provides directmetal_bridge_call, directmetal_bridge_allocate_shared and
