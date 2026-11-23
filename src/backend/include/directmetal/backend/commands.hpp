@@ -22,6 +22,8 @@ class Texture {
 public:
     virtual ~Texture() = default;
     virtual const TextureDesc& desc() const noexcept = 0;
+    // Bytes of heap or dedicated memory Metal reported for placing the texture; 0 for memoryless.
+    virtual std::uint64_t allocation_size() const noexcept = 0;
     virtual void set_label(std::string_view label) = 0;
 };
 

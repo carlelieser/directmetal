@@ -41,6 +41,7 @@ constexpr std::array status_mappings = {
     StatusMapping{status_no_memory, backend::Status::out_of_memory},
     StatusMapping{status_invalid_parameter, backend::Status::invalid_argument},
     StatusMapping{status_invalid_handle, backend::Status::invalid_argument},
+    StatusMapping{status_invalid_device_state, backend::Status::invalid_argument},
     StatusMapping{status_not_implemented, backend::Status::unsupported},
     StatusMapping{status_not_supported, backend::Status::unsupported},
     StatusMapping{status_revision_mismatch, backend::Status::unsupported},

@@ -82,6 +82,8 @@ struct alignas(8) ClearDepthStencilCommand {
     backend::DepthStencilClear clear;
 };
 
+// source_offset, destination_offset and size are multiples of 4, as Metal on macOS requires; front
+// ends emulate unaligned buffer copies (for example through a staging buffer).
 struct alignas(8) CopyBufferCommand {
     Handle source;
     std::uint64_t source_offset;

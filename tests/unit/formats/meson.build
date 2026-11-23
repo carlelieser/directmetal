@@ -4,6 +4,7 @@ formats_tests = executable(
     'd3d9_formats_test.cpp',
     'dxgi_formats_test.cpp',
     'dxgi_support_test.cpp',
+    'pixel_format_support_test.cpp',
     'view_compatibility_test.cpp',
     dependencies: [formats_dep, gtest_dep],
 )

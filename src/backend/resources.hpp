@@ -40,6 +40,9 @@ public:
     ~MetalTexture() override;
 
     const TextureDesc& desc() const noexcept override { return desc_; }
+    std::uint64_t allocation_size() const noexcept override {
+        return placed_.allocation.requirement.size;
+    }
     void set_label(std::string_view label) override;
     id<MTLTexture> metal() const noexcept { return texture_; }
 

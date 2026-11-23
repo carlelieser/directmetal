@@ -10,13 +10,22 @@
 // written by the unix side.
 //
 // Teardown (destroy_device, close_stream, release_memory): the client flushes every stream of the
-// device first. The host then decodes every queued chunk of every stream on that device, commits
-// any recorded but unsubmitted work, and waits for the GPU to complete it before returning.
+// device first. The host then decodes every queued chunk of every stream on that device and waits
+// for the GPU to complete the submitted work before returning. destroy_device and close_stream
+// commit recorded but unsubmitted work first (it signals a progress value the client did not
+// count, which no later wait can observe). release_memory never commits implicitly: while any
+// stream of the device has recorded work no submit command has committed, it fails with
+// status_invalid_device_state and releases nothing; the client records a submit, flushes and
+// calls it again. A stream with a sticky error has its recorded work committed, since no later
+// submit can reach it.
 namespace directmetal::bridge {
 
 inline constexpr std::uint32_t initialize_flag_wow64 = 0x1;
 
-// Required before any other call except query_version; repeating it is harmless.
+// Must succeed before any call other than query_version and log_call: every other call fails with
+// status_invalid_device_state until it has. initialize_flag_wow64 must be set exactly when the call
+// comes through Wine's WoW64 call table, otherwise status_invalid_parameter; afterwards every call
+// must come through that same table. Repeating it with the same flags is harmless.
 struct alignas(8) InitializeParams {
     // UTF-8 executable name, for logs.
     std::uint64_t client_name;
@@ -33,6 +42,8 @@ struct alignas(8) EnumerateAdaptersParams {
     backend::Capabilities adapter; // out
 };
 
+// heap_block_size is 0 for the default or a multiple of shared_memory_alignment of at most 1 GiB;
+// dedicated_threshold is 0 for the default.
 struct alignas(8) DeviceOptions {
     std::uint64_t heap_block_size;
     std::uint64_t dedicated_threshold;
@@ -76,7 +87,9 @@ struct alignas(8) CreateTextureParams {
     Handle device;
     backend::TextureDesc desc;
     std::uint32_t reserved;
-    Handle texture;                // out
+    Handle texture; // out
+    // Bytes of device memory the texture occupies, as Metal reports for placing it; 0 for
+    // memoryless textures.
     std::uint64_t allocation_size; // out
 };
 
@@ -95,6 +108,8 @@ struct alignas(8) DestroyTimelineParams {
     Handle timeline;
 };
 
+// In Phase 1 a device has at most one open stream: a second open_stream fails with
+// status_invalid_device_state until close_stream returns for the first.
 struct alignas(8) OpenStreamParams {
     Handle device;
     // 64-byte-aligned PE-side StreamControl (commands.hpp); its completed_progress mirrors the
@@ -104,10 +119,12 @@ struct alignas(8) OpenStreamParams {
     Handle progress_timeline; // out
 };
 
-// Queues a chunk for the stream's consumer thread and returns without waiting for it. sequence and
-// chunk_size must equal the chunk's ChunkHeader sequence and size, and chunk_size is at most
-// max_chunk_size; anything else makes the stream's error sticky. Sequences start at 1 and increase
-// by 1 per chunk; StreamControl::retired_sequence (commands.hpp) reports how far decoding got.
+// Queues a chunk for the stream's consumer thread and returns without waiting for it to be decoded.
+// sequence and chunk_size must equal the chunk's ChunkHeader sequence and size, and chunk_size is
+// at most max_chunk_size; anything else makes the stream's error sticky. Sequences start at 1 and
+// increase by 1 per chunk; StreamControl::retired_sequence (commands.hpp) reports how far decoding
+// got. At most 64 chunks wait for the consumer thread; submit_stream blocks until one is taken when
+// that many are queued.
 struct alignas(8) SubmitStreamParams {
     Handle stream;
     std::uint64_t chunk_address;
@@ -117,7 +134,10 @@ struct alignas(8) SubmitStreamParams {
 };
 
 // Returns status_success or status_timeout. Once the stream that signals the timeline (or whose
-// progress timeline it is) has a sticky error, every wait fails with status_device_removed.
+// progress timeline it is) has a sticky error, every wait fails with status_device_removed. The
+// host applies this per device, which is the same thing while a device has one stream (Phase 1).
+// A wait still running when destroy_timeline, close_stream or destroy_device retires its timeline
+// ends with status_invalid_handle.
 struct alignas(8) WaitTimelineParams {
     Handle timeline;
     std::uint64_t value;
@@ -131,7 +151,8 @@ struct alignas(8) CloseStreamParams {
 };
 
 // Tears down as described above for the device that owns the imported buffer, then destroys the
-// buffer. Only after this returns may the PE side free the memory.
+// buffer. Only after this returns successfully may the PE side free the memory;
+// status_invalid_device_state means unsubmitted work remains and the buffer is still imported.
 struct alignas(8) ReleaseMemoryParams {
     Handle buffer;
 };

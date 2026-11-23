@@ -35,21 +35,27 @@ TEST_P(UnixCallTable, QueryVersionRejectsNonZeroReserved) {
     EXPECT_EQ(call(FunctionCode::query_version, nullptr), status_invalid_parameter);
 }
 
-TEST_P(UnixCallTable, LogCallWritesNameToStderr) {
+// The WoW64 table refuses 64-bit addresses, which is covered in tests/unit/host; these two run on
+// the native table only.
+Status native_call(FunctionCode code, void* params) {
+    return __wine_unix_call_funcs[to_index(code)](params);
+}
+
+TEST(NativeCallTable, LogCallWritesNameToStderr) {
     constexpr std::string_view name = "D3D11CreateDevice";
     LogCallParams params{to_address(name.data()), static_cast<std::uint32_t>(name.size()), 0, {}};
     testing::internal::CaptureStderr();
-    const Status status = call(FunctionCode::log_call, &params);
+    const Status status = native_call(FunctionCode::log_call, &params);
     EXPECT_EQ(testing::internal::GetCapturedStderr(), "directmetal: call D3D11CreateDevice\n");
     EXPECT_EQ(status, status_success);
 }
 
-TEST_P(UnixCallTable, LogCallRepliesWithHostSystem) {
+TEST(NativeCallTable, LogCallRepliesWithHostSystem) {
     constexpr std::string_view name = "D3D11CreateDevice";
     LogCallParams params{to_address(name.data()), static_cast<std::uint32_t>(name.size()), 0, {}};
     std::memset(params.host_system, 'x', sizeof(params.host_system));
     testing::internal::CaptureStderr();
-    const Status status = call(FunctionCode::log_call, &params);
+    const Status status = native_call(FunctionCode::log_call, &params);
     testing::internal::GetCapturedStderr();
     utsname host{};
     ASSERT_EQ(uname(&host), 0);
@@ -77,13 +83,6 @@ TEST_P(UnixCallTable, LogCallRejectsOverlongName) {
     const std::string name(max_name_length + 1, 'x');
     LogCallParams params{to_address(name.data()), max_name_length + 1, 0, {}};
     EXPECT_EQ(call(FunctionCode::log_call, &params), status_invalid_parameter);
-}
-
-TEST_P(UnixCallTable, UnimplementedControlCallsReportNotImplemented) {
-    for (auto code = to_index(FunctionCode::initialize); code < to_index(FunctionCode::count);
-         ++code) {
-        EXPECT_EQ(GetParam().entries[code](nullptr), status_not_implemented) << "code " << code;
-    }
 }
 
 INSTANTIATE_TEST_SUITE_P(Tables, UnixCallTable,
