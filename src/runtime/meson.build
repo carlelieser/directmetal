@@ -1,6 +1,8 @@
 runtime_lib = static_library(
     'runtime',
     'log.cpp',
+    'log_spec.cpp',
+    'text.cpp',
     include_directories: include_directories('include'),
 )
 
