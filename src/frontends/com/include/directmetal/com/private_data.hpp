@@ -2,10 +2,13 @@
 
 #include <unknwn.h>
 
+#include <cstddef>
 #include <cstdint>
 #include <functional>
+#include <mutex>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace directmetal::com {
 
@@ -33,6 +36,28 @@ public:
     // Called with the new name whenever a debug name is set, outside the store's lock; forwards
     // labels to the backend.
     void on_debug_name_changed(std::function<void(std::string_view)> callback);
+
+private:
+    // Holds either bytes or, for set_interface, one reference to object.
+    struct Entry {
+        GUID guid;
+        std::vector<std::byte> bytes;
+        IUnknown* object;
+    };
+    using DebugNameCallback = std::function<void(std::string_view)>;
+
+    // Replaces or, for a null replacement, removes the entry for `guid`; returns the interface
+    // the old entry held, for the caller to release outside the lock.
+    IUnknown* replace(REFGUID guid, Entry* replacement);
+    void store(Entry entry);
+    const Entry* find(REFGUID guid) const noexcept;
+    std::string debug_name_locked() const;
+
+    mutable std::mutex mutex_;
+    std::vector<Entry> entries_;
+    DebugNameCallback debug_name_callback_;
+    // Which of the two debug-name GUIDs was set last; debug_name prefers it.
+    bool is_wide_name_preferred_ = false;
 };
 
 } // namespace directmetal::com
