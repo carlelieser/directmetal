@@ -156,6 +156,26 @@ TEST_F(TextureTest, ReleasingADefaultTextureDestroysItOnTheStream) {
     EXPECT_EQ(fake_bridge::commands_of<directmetal::bridge::DestroyObjectCommand>().size(), 1u);
 }
 
+// Feature level 11 resources are at most 2048 MB; layout arithmetic must not wrap at 4 GiB.
+TEST_F(TextureTest, ResourcesOver2048MegabytesAreOutOfMemory) {
+    D3D11_TEXTURE2D_DESC staging = staging_desc(DXGI_FORMAT_R32G32B32A32_FLOAT);
+    staging.Width = 16384;
+    staging.Height = 16384;
+    ID3D11Texture2D* texture = nullptr;
+    EXPECT_EQ(device_->CreateTexture2D(&staging, nullptr, &texture), E_OUTOFMEMORY);
+    EXPECT_EQ(texture, nullptr);
+    D3D11_TEXTURE2D_DESC target = render_target_desc(DXGI_FORMAT_R32G32B32A32_FLOAT);
+    target.Width = 16384;
+    target.Height = 16384;
+    EXPECT_EQ(device_->CreateTexture2D(&target, nullptr, &texture), E_OUTOFMEMORY);
+    EXPECT_TRUE(fake_bridge::state().imported_sizes.empty());
+    EXPECT_TRUE(fake_bridge::state().textures.empty());
+    staging.Height = 8192;
+    EXPECT_EQ(device_->CreateTexture2D(&staging, nullptr, nullptr), S_FALSE);
+    staging.Height = 8193;
+    EXPECT_EQ(device_->CreateTexture2D(&staging, nullptr, nullptr), E_OUTOFMEMORY);
+}
+
 TEST_F(TextureTest, StagingTextureIsImportedAndReleased) {
     ID3D11Texture2D* texture = create_texture(staging_desc(DXGI_FORMAT_R8G8B8A8_UNORM));
     ASSERT_EQ(fake_bridge::state().imported_sizes.size(), 1u);

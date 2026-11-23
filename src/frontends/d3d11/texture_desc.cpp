@@ -1,6 +1,7 @@
 #include "texture_desc.hpp"
 
 #include "hresult.hpp"
+#include "staging_layout.hpp"
 
 #include <algorithm>
 #include <array>
@@ -147,7 +148,11 @@ HRESULT plan_texture2d(const D3D11_TEXTURE2D_DESC& desc, const formats::DeviceFe
     plan.desc = desc;
     plan.desc.MipLevels = desc.MipLevels == 0 ? full_mip_chain(desc) : desc.MipLevels;
     plan.format = format;
-    return S_OK;
+    // The description is legal, so exceeding the size limit is a lack of memory, not an argument
+    // error.
+    const bool is_too_large =
+        StagingLayout::required_bytes(plan.desc, *format) > StagingLayout::max_resource_bytes;
+    return is_too_large ? E_OUTOFMEMORY : S_OK;
 }
 
 bool is_staging(const D3D11_TEXTURE2D_DESC& desc) noexcept {

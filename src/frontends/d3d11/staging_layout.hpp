@@ -19,10 +19,17 @@ struct SubresourceLayout {
 };
 
 // Subresources in Direct3D order (D3D11CalcSubresource: mip + slice * mip levels), rows aligned to
-// staging_row_alignment. desc.MipLevels must already be resolved.
+// staging_row_alignment. desc.MipLevels must already be resolved and the texture must fit
+// max_resource_bytes, which keeps every pitch within 32 bits.
 class StagingLayout {
 public:
     static constexpr std::uint32_t staging_row_alignment = 256;
+    // The largest resource Direct3D 11 allows at feature level 11.
+    static constexpr std::uint64_t max_resource_bytes = std::uint64_t{2048} * 1024 * 1024;
+
+    // Bytes the layout needs before import rounding, computed in 64 bits for any valid desc.
+    static std::uint64_t required_bytes(const D3D11_TEXTURE2D_DESC& desc,
+                                        const formats::FormatInfo& format) noexcept;
 
     StagingLayout(const D3D11_TEXTURE2D_DESC& desc, const formats::FormatInfo& format);
 

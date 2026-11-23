@@ -15,7 +15,8 @@ struct TexturePlan {
 };
 
 // E_INVALIDARG for descriptions Direct3D rejects, E_NOTIMPL for valid ones outside the implemented
-// slice: DEFAULT render targets and STAGING textures with CPU read access.
+// slice (DEFAULT render targets and STAGING textures with CPU read access), E_OUTOFMEMORY for
+// textures larger than StagingLayout::max_resource_bytes.
 HRESULT plan_texture2d(const D3D11_TEXTURE2D_DESC& desc, const formats::DeviceFeatures& features,
                        TexturePlan& plan) noexcept;
 
