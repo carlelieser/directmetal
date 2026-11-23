@@ -1,4 +1,5 @@
 #include <directmetal/bridge/client.hpp>
+#include <directmetal/bridge/device_client.hpp>
 
 #include <gtest/gtest.h>
 
@@ -38,6 +39,11 @@ TEST(NativeTransport, PassesNewControlCallsToHostDispatch) {
         EXPECT_EQ(directmetal_bridge_call(code, nullptr), status_not_implemented)
             << "code " << code;
     }
+}
+
+TEST(NativeTransport, CarriesClientCallsToHostDispatch) {
+    EXPECT_EQ(query_version().value(), protocol_version);
+    EXPECT_EQ(DeviceClient::create(0, {}).status(), directmetal::backend::Status::unsupported);
 }
 
 TEST(NativeTransport, RejectsUnknownCodes) {

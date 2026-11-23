@@ -28,7 +28,13 @@ public:
     Handle handle() const noexcept;
     // Reads the PE-side mirror without a transition.
     std::uint64_t completed() const noexcept;
+    // Returns without a transition when the mirror has reached value. A negative timeout does not
+    // wait and nanoseconds::max() waits without a limit.
     backend::Status wait(std::uint64_t value, std::chrono::nanoseconds timeout) const noexcept;
+
+private:
+    Handle timeline_;
+    std::uint64_t* mirror_;
 };
 
 struct ImportedMemory {
@@ -64,7 +70,14 @@ public:
     // close_stream, release_memory and destroy require every stream of the device to be flushed
     // first; they return once all recorded work has been submitted and completed on the GPU.
     void close_stream(Handle stream) noexcept;
+    // Repeating it is harmless.
     void destroy() noexcept;
+
+private:
+    DeviceClient(Handle device, const backend::Capabilities& capabilities) noexcept;
+
+    Handle device_;
+    backend::Capabilities capabilities_;
 };
 
 } // namespace directmetal::bridge

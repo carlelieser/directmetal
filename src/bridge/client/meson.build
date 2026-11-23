@@ -4,14 +4,16 @@ bridge_client_include = include_directories('include')
 
 bridge_client_lib = static_library(
     'bridge_client',
+    'control_call.cpp',
+    'device_client.cpp',
     'shared_block_allocator.cpp',
     'stream_writer.cpp',
     include_directories: bridge_client_include,
-    dependencies: [bridge_protocol_dep, bridge_codec_dep, memory_dep],
+    dependencies: [bridge_protocol_dep, bridge_codec_dep, memory_dep, runtime_dep],
 )
 
 bridge_client_dep = declare_dependency(
     link_with: bridge_client_lib,
     include_directories: bridge_client_include,
-    dependencies: [bridge_protocol_dep, bridge_codec_dep, memory_dep],
+    dependencies: [bridge_protocol_dep, bridge_codec_dep, memory_dep, runtime_dep],
 )
