@@ -34,6 +34,19 @@ if not is_windows
         is_parallel: false,
         timeout: 180,
     )
+    bridge_ring_roundtrip = executable(
+        'bridge_ring_roundtrip',
+        'programs/bridge_ring_roundtrip.cpp',
+        dependencies: [bridge_client_dep, bridge_transport_dep],
+    )
+    test(
+        'bridge_ring_roundtrip_native',
+        python,
+        args: ['-I', api_runner, '--mode', 'native', '--program', bridge_ring_roundtrip],
+        suite: 'api',
+        is_parallel: false,
+        timeout: 180,
+    )
     subdir_done()
 endif
 
