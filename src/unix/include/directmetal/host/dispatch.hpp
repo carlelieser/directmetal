@@ -11,8 +11,8 @@
 // Both Wine call tables and the native bridge enter through dispatch(). Stream threads are plain
 // pthreads that never call into Wine.
 //
-// Handles are never reused within a process: each slot carries a generation that is incremented on
-// reuse, and a 24-bit generation per 32-bit index does not wrap in practice. Every decoded command
+// Handles are never reused within a process: each slot carries a 24-bit generation that is
+// incremented on reuse, and a slot whose generation is exhausted is retired. Every decoded command
 // is validated against the descriptions of the resources it names before it reaches the backend;
 // a violation makes the stream's error sticky.
 namespace directmetal::host {
