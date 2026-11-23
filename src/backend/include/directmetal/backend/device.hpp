@@ -15,6 +15,8 @@
 // backend returns its heap range only once that submit's progress value has completed.
 // Threading: Device::create_*, resource destructors and memory_stats are thread-safe; a Queue and
 // its recorder belong to one thread at a time; Timeline is thread-safe.
+// Validation: callers pass valid arguments. Front ends validate against the Direct3D rules and the
+// host validates every decoded command; the backend only asserts, in debug builds.
 namespace directmetal::backend {
 
 struct MemoryStats {

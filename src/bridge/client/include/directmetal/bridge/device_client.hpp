@@ -7,14 +7,22 @@
 #include <cstddef>
 #include <cstdint>
 #include <span>
+#include <string_view>
+#include <vector>
 
 // Typed wrappers over the control calls. Bridge failures map to backend::Status; the NTSTATUS
 // that caused them is logged.
 namespace directmetal::bridge {
 
+// Must succeed before any other call except query_version; repeating it is harmless.
+backend::Status initialize(std::string_view client_name, bool is_wow64) noexcept;
+backend::Result<std::uint32_t> query_version() noexcept;
+backend::Result<std::vector<backend::Capabilities>> enumerate_adapters();
+
 class TimelineClient {
 public:
-    TimelineClient(Handle timeline, const std::uint64_t& mirror) noexcept;
+    // mirror is the shared memory passed to create_timeline (or StreamControl::completed_progress).
+    TimelineClient(Handle timeline, std::uint64_t* mirror) noexcept;
 
     Handle handle() const noexcept;
     // Reads the PE-side mirror without a transition.
