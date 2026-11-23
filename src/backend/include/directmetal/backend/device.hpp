@@ -33,7 +33,8 @@ public:
     virtual const Capabilities& capabilities() const noexcept = 0;
     virtual Result<std::unique_ptr<Buffer>> create_buffer(const BufferDesc& desc) = 0;
     // Wraps caller-owned memory without copying. Its address and size are multiples of
-    // import_alignment. The memory must outlive the returned Buffer.
+    // import_alignment. The memory must outlive the returned Buffer. Memory Metal rejects, such
+    // as inaccessible pages, returns Status::invalid_argument.
     virtual Result<std::unique_ptr<Buffer>> import_memory(std::span<std::byte> memory) = 0;
     virtual Result<std::unique_ptr<Texture>> create_texture(const TextureDesc& desc) = 0;
     virtual Result<std::unique_ptr<Timeline>> create_timeline(std::uint64_t initial_value) = 0;

@@ -82,7 +82,7 @@ Result<std::unique_ptr<Buffer>> MetalDevice::import_memory(std::span<std::byte> 
                                                options:MTLResourceStorageModeShared
                                            deallocator:nil];
         if (buffer == nil) {
-            return fail<Buffer>(Status::out_of_memory);
+            return fail<Buffer>(Status::invalid_argument);
         }
         return Result<std::unique_ptr<Buffer>>::success(
             std::make_unique<resources::MetalBuffer>(buffer));

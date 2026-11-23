@@ -9,6 +9,8 @@
 #include <numeric>
 #include <vector>
 
+#include <sys/mman.h>
+
 namespace {
 
 using namespace directmetal::backend;
@@ -74,6 +76,17 @@ TEST(ImportMemory, GpuReadsAndWritesCallerMemory) {
       [blit copyFromBuffer:middle sourceOffset:0 toBuffer:to destinationOffset:0 size:size];
     });
     EXPECT_EQ(std::memcmp(source_memory.get(), destination_memory.get(), size), 0);
+}
+
+TEST(ImportMemory, RejectsInaccessibleMemory) {
+    constexpr std::size_t size = import_alignment;
+    void* pages = mmap(nullptr, size, PROT_NONE, MAP_ANON | MAP_PRIVATE, -1, 0);
+    ASSERT_NE(pages, MAP_FAILED);
+    const auto device = make_device();
+    const auto imported = device->import_memory({static_cast<std::byte*>(pages), size});
+    ASSERT_FALSE(imported.has_value());
+    EXPECT_EQ(imported.status(), Status::invalid_argument);
+    munmap(pages, size);
 }
 
 TEST(HeapResources, RoundTripThroughPrivateTexture) {
