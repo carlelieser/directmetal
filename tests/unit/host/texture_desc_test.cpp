@@ -66,6 +66,11 @@ INSTANTIATE_TEST_SUITE_P(
                      desc.extent.height = 1;
                      desc.array_length = 2;
                  }},
+        DescCase{"TooManyCubes",
+                 [](TextureDesc& desc) {
+                     desc.type = TextureType::cube_array;
+                     desc.array_length = 342;
+                 }},
         DescCase{"NonSquareCube",
                  [](TextureDesc& desc) {
                      desc.type = TextureType::cube;
@@ -136,6 +141,8 @@ TEST_F(HostTest, AcceptsTextureTypes) {
     TextureDesc cube = render_target_desc();
     cube.type = TextureType::cube_array;
     cube.array_length = 2;
+    EXPECT_FALSE(is_null(create_texture(device, cube)));
+    cube.array_length = 341;
     EXPECT_FALSE(is_null(create_texture(device, cube)));
     TextureDesc volume = render_target_desc();
     volume.type = TextureType::tex3d;

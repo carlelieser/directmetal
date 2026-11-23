@@ -78,7 +78,9 @@ bool is_within_limits(const TextureDesc& desc, const TypeRule& rule,
 }
 
 bool has_valid_counts(const TextureDesc& desc, const TypeRule& rule) noexcept {
-    const bool is_array_length = desc.array_length >= 1 && desc.array_length <= max_array_length;
+    // array_length counts cubes, and Metal's limit counts their faces.
+    const std::uint32_t array_limit = rule.is_cube ? max_array_length / 6 : max_array_length;
+    const bool is_array_length = desc.array_length >= 1 && desc.array_length <= array_limit;
     const bool is_valid_array = rule.is_array ? is_array_length : desc.array_length == 1;
     // Metal has no mipmapped 1D textures.
     const std::uint32_t mip_limit = rule.dimensions == 1 ? 1 : full_mip_chain(desc.extent);
