@@ -40,6 +40,8 @@ public:
     std::optional<Allocation> allocate(std::uint64_t size, std::uint64_t alignment,
                                        std::uint64_t retire_value);
     void retire(std::uint64_t completed_value);
+    // Bytes imported: the requested capacity rounded up to shared_memory_alignment.
+    std::uint64_t capacity() const noexcept;
 
 private:
     StagingRing(DeviceClient& device, std::span<std::byte> memory, Handle buffer);

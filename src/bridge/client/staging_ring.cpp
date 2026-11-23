@@ -70,4 +70,8 @@ void StagingRing::retire(std::uint64_t completed_value) {
     ring_.retire(completed_value);
 }
 
+std::uint64_t StagingRing::capacity() const noexcept {
+    return memory_.size();
+}
+
 } // namespace directmetal::bridge

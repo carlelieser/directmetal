@@ -23,6 +23,7 @@ bridge_client_tests = executable(
     'device_client_test.cpp',
     'fake_transport.cpp',
     'shared_block_allocator_test.cpp',
+    'staging_ring_test.cpp',
     'status_mapping_test.cpp',
     'stream_writer_test.cpp',
     dependencies: [bridge_client_dep, runtime_dep, gtest_dep],
