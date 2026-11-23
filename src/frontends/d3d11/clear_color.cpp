@@ -1,12 +1,49 @@
 #include "clear_color.hpp"
 
 #include <algorithm>
+#include <array>
 #include <bit>
 #include <cmath>
 #include <cstdint>
 
 namespace directmetal::d3d11 {
 namespace {
+
+// Bits per channel of the integer render-target formats; unlisted integer formats have 32.
+struct IntegerChannels {
+    DXGI_FORMAT format;
+    std::uint8_t color_bits;
+    std::uint8_t alpha_bits;
+};
+
+constexpr std::array integer_channels = {
+    IntegerChannels{DXGI_FORMAT_R16G16B16A16_UINT, 16, 16},
+    IntegerChannels{DXGI_FORMAT_R16G16B16A16_SINT, 16, 16},
+    IntegerChannels{DXGI_FORMAT_R10G10B10A2_UINT, 10, 2},
+    IntegerChannels{DXGI_FORMAT_R8G8B8A8_UINT, 8, 8},
+    IntegerChannels{DXGI_FORMAT_R8G8B8A8_SINT, 8, 8},
+    IntegerChannels{DXGI_FORMAT_R16G16_UINT, 16, 16},
+    IntegerChannels{DXGI_FORMAT_R16G16_SINT, 16, 16},
+    IntegerChannels{DXGI_FORMAT_R8G8_UINT, 8, 8},
+    IntegerChannels{DXGI_FORMAT_R8G8_SINT, 8, 8},
+    IntegerChannels{DXGI_FORMAT_R16_UINT, 16, 16},
+    IntegerChannels{DXGI_FORMAT_R16_SINT, 16, 16},
+    IntegerChannels{DXGI_FORMAT_R8_UINT, 8, 8},
+    IntegerChannels{DXGI_FORMAT_R8_SINT, 8, 8},
+};
+
+constexpr std::size_t alpha_channel = 3;
+
+std::uint8_t channel_width(formats::DxgiFormat format, std::size_t channel) noexcept {
+    const auto found = std::find_if(
+        integer_channels.begin(), integer_channels.end(), [format](const IntegerChannels& item) {
+            return static_cast<formats::DxgiFormat>(item.format) == format;
+        });
+    if (found == integer_channels.end()) {
+        return 32;
+    }
+    return channel == alpha_channel ? found->alpha_bits : found->color_bits;
+}
 
 struct Range {
     double lowest;
@@ -51,7 +88,8 @@ backend::ClearColor to_clear_color(const FLOAT color[4],
     for (std::size_t channel = 0; channel < clear.bits.size(); ++channel) {
         const bool is_float = clear.kind == backend::ClearKind::float_value;
         clear.bits[channel] = is_float ? std::bit_cast<std::uint32_t>(color[channel])
-                                       : integer_bits(color[channel], clear.kind, 32);
+                                       : integer_bits(color[channel], clear.kind,
+                                                      channel_width(format.format, channel));
     }
     return clear;
 }

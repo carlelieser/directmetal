@@ -71,6 +71,28 @@ TEST_F(ContextTest, SintClearsSaturate) {
     EXPECT_EQ(static_cast<std::int32_t>(command.color.bits[3]), INT32_MAX);
 }
 
+// Integer clears saturate to the channel's own range, not to 32 bits.
+TEST_F(ContextTest, IntegerClearsClampToTheFormatsChannelRange) {
+    const FLOAT unsigned_color[4] = {300.0f, -1.0f, 254.9f, 0.0f};
+    const ClearTextureCommand r8 = clear(DXGI_FORMAT_R8_UINT, unsigned_color);
+    EXPECT_EQ(r8.color.bits[0], 255u);
+    EXPECT_EQ(r8.color.bits[1], 0u);
+    EXPECT_EQ(r8.color.bits[2], 254u);
+    fake_bridge::state().commands.clear();
+    const FLOAT signed_color[4] = {-40000.0f, 40000.0f, -5.5f, 0.0f};
+    const ClearTextureCommand r16 = clear(DXGI_FORMAT_R16G16_SINT, signed_color);
+    EXPECT_EQ(static_cast<std::int32_t>(r16.color.bits[0]), -32768);
+    EXPECT_EQ(static_cast<std::int32_t>(r16.color.bits[1]), 32767);
+    EXPECT_EQ(static_cast<std::int32_t>(r16.color.bits[2]), -5);
+    fake_bridge::state().commands.clear();
+    const FLOAT packed_color[4] = {2000.0f, 5.0f, 1023.5f, 7.0f};
+    const ClearTextureCommand packed = clear(DXGI_FORMAT_R10G10B10A2_UINT, packed_color);
+    EXPECT_EQ(packed.color.bits[0], 1023u);
+    EXPECT_EQ(packed.color.bits[1], 5u);
+    EXPECT_EQ(packed.color.bits[2], 1023u);
+    EXPECT_EQ(packed.color.bits[3], 3u);
+}
+
 TEST_F(ContextTest, CopyResourceReadsEverySubresourceIntoTheStagingLayout) {
     D3D11_TEXTURE2D_DESC desc = render_target_desc(DXGI_FORMAT_R8G8B8A8_UNORM);
     desc.MipLevels = 2;
