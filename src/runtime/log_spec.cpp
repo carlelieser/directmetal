@@ -88,8 +88,8 @@ std::size_t apply_spec(std::string_view spec) noexcept {
         const ParsedEntry parsed = parse_entry(entry);
         if (!parsed.directive) {
             ++rejected;
-            print(Component::runtime, Level::warn, "log spec: ignoring \"{}\": {}", entry,
-                  parsed.problem);
+            print(Component::runtime, Level::warn, "log spec: ignoring \"{}\": {}",
+                  text::excerpt(entry), parsed.problem);
         }
     });
     for_each_entry(spec, [](std::string_view entry) {

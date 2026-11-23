@@ -280,6 +280,51 @@ TEST_F(ConfigTest, AccessorsRejectUnknownKeysAndWrongTypes) {
     EXPECT_EQ(sink.lines[0].message, "config: no boolean option \"count\"");
 }
 
+TEST_F(ConfigTest, WarningsEchoAtMostAnExcerptOfALongLine) {
+    from_file("[*]\n" + std::string(1 << 20, 'x') + "\n");
+    from_overrides(std::string(5000, 'k') + "=1");
+    from_overrides("count=" + std::string(5000, '9'));
+    ASSERT_EQ(sink.lines.size(), 3u);
+    for (const auto& line : sink.lines) {
+        EXPECT_LT(line.message.size(), 300u);
+        EXPECT_TRUE(line.message.find("...\"") != std::string::npos) << line.message;
+    }
+}
+
+TEST_F(ConfigTest, ExcerptDoesNotSplitAUtf8Character) {
+    std::string line = "a";
+    for (int index = 0; index < 300; ++index) {
+        line += "\xC3\xA9";
+    }
+    from_file("[*]\n" + line + "\n");
+    ASSERT_EQ(sink.lines.size(), 1u);
+    const std::string& message = sink.lines[0].message;
+    const std::size_t marker = message.find("...");
+    ASSERT_NE(marker, std::string::npos);
+    EXPECT_EQ(static_cast<unsigned char>(message[marker - 1]), 0xA9);
+}
+
+TEST_F(ConfigTest, InvalidIntegerDefaultIsReportedNotReadAsZeroSilently) {
+    constexpr std::array<OptionSpec, 1> broken = {{
+        {"count", "not a number", "", OptionType::integer, {}},
+    }};
+    const Config config = Config::resolve({"game.exe", std::nullopt, std::nullopt}, broken);
+    EXPECT_EQ(config.get_int("count"), 0);
+    ASSERT_EQ(sink.lines.size(), 1u);
+    EXPECT_EQ(sink.lines[0].level, log::Level::error);
+    EXPECT_EQ(sink.lines[0].message,
+              "config: option \"count\" holds \"not a number\", not an integer");
+}
+
+TEST_F(ConfigTest, EveryTestRegistryDefaultIsValid) {
+    for (const OptionSpec& option : test_registry) {
+        const Sources sources{"x", std::nullopt,
+                              std::string(option.key) + "=" + std::string(option.default_value)};
+        Config::resolve(sources, test_registry);
+    }
+    EXPECT_TRUE(sink.lines.empty());
+}
+
 TEST(ConfigRegistry, EveryDefaultIsValidForItsType) {
     std::set<std::string> keys;
     for (const OptionSpec& option : options()) {

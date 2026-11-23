@@ -73,7 +73,8 @@ public:
     std::string_view get_string(std::string_view key) const;
 
 private:
-    std::string_view value_of(std::string_view key, OptionType type) const;
+    // Nullopt, after logging an error, for an unknown key or another type.
+    std::optional<std::string_view> value_of(std::string_view key, OptionType type) const;
 
     std::span<const OptionSpec> registry_ = options();
     // Parallel to registry_; empty means every option is at its default.

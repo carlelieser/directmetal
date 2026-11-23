@@ -48,7 +48,7 @@ std::optional<Assignment> parse_assignment(std::string_view entry, std::string w
     const std::string_view key = text::trim(parts.head);
     if (!parts.has_separator || key.empty()) {
         log::print(Component::runtime, Level::warn, "{}: expected key=value, got \"{}\"", where,
-                   entry);
+                   text::excerpt(entry));
         return std::nullopt;
     }
     return Assignment{Scope::everywhere,
@@ -81,7 +81,7 @@ private:
         }
         if (!section_) {
             log::print(Component::runtime, Level::warn, "{}: \"{}\" is outside any section", where,
-                       line);
+                       text::excerpt(line));
             return;
         }
         std::optional<Assignment> assignment = parse_assignment(line, where);
@@ -96,7 +96,8 @@ private:
     void begin_section(std::string_view line, const std::string& where) {
         section_ = parse_section(line);
         if (!section_) {
-            log::print(Component::runtime, Level::warn, "{}: unknown section \"{}\"", where, line);
+            log::print(Component::runtime, Level::warn, "{}: unknown section \"{}\"", where,
+                       text::excerpt(line));
             section_ = Section{};
         }
     }

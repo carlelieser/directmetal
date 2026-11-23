@@ -44,14 +44,15 @@ std::optional<Setting> validate(const Assignment& assignment,
     const std::optional<std::size_t> index = find_option(registry, assignment.key);
     if (!index) {
         log::print(Component::runtime, Level::warn, "{}: unknown option \"{}\"", assignment.where,
-                   assignment.key);
+                   text::excerpt(assignment.key));
         return std::nullopt;
     }
     const OptionSpec& option = registry[*index];
     std::optional<std::string> value = canonical_value(option, assignment.value);
     if (!value) {
         log::print(Component::runtime, Level::warn, "{}: invalid {} value \"{}\" for option \"{}\"",
-                   assignment.where, type_name(option.type), assignment.value, option.key);
+                   assignment.where, type_name(option.type), text::excerpt(assignment.value),
+                   option.key);
         return std::nullopt;
     }
     return Setting{assignment.scope, assignment.application, *index, std::move(*value)};
@@ -116,7 +117,7 @@ Config Config::resolve(const Sources& sources, std::span<const OptionSpec> regis
     return config;
 }
 
-std::string_view Config::value_of(std::string_view key, OptionType type) const {
+std::optional<std::string_view> Config::value_of(std::string_view key, OptionType type) const {
     const std::optional<std::size_t> index = find_option(registry_, key);
     // A choice is read as a string.
     const bool is_compatible =
@@ -124,25 +125,36 @@ std::string_view Config::value_of(std::string_view key, OptionType type) const {
                   (type == OptionType::string && registry_[*index].type == OptionType::choice));
     if (!is_compatible) {
         log::print(Component::runtime, Level::error, "config: no {} option \"{}\"", type_name(type),
-                   key);
-        return {};
+                   text::excerpt(key));
+        return std::nullopt;
     }
     return values_.empty() ? registry_[*index].default_value : std::string_view(values_[*index]);
 }
 
 bool Config::get_bool(std::string_view key) const {
-    return value_of(key, OptionType::boolean) == "true";
+    return value_of(key, OptionType::boolean).value_or("") == "true";
 }
 
 std::int64_t Config::get_int(std::string_view key) const {
-    const std::string_view value = value_of(key, OptionType::integer);
+    const std::optional<std::string_view> found = value_of(key, OptionType::integer);
+    if (!found) {
+        return 0;
+    }
+    const std::string_view value = *found;
     std::int64_t number = 0;
-    std::from_chars(value.data(), value.data() + value.size(), number);
+    const char* const end = value.data() + value.size();
+    const auto [parsed_end, error] = std::from_chars(value.data(), end, number);
+    if (error != std::errc{} || parsed_end != end) {
+        log::print(Component::runtime, Level::error,
+                   "config: option \"{}\" holds \"{}\", not an integer", text::excerpt(key),
+                   text::excerpt(value));
+        return 0;
+    }
     return number;
 }
 
 std::string_view Config::get_string(std::string_view key) const {
-    return value_of(key, OptionType::string);
+    return value_of(key, OptionType::string).value_or("");
 }
 
 } // namespace directmetal::config
