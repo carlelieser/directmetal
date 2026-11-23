@@ -65,6 +65,7 @@ const directmetal::UnixCallEntry __wine_unix_call_funcs[] = {
     directmetal::not_implemented, directmetal::not_implemented, directmetal::not_implemented,
     directmetal::not_implemented, directmetal::not_implemented, directmetal::not_implemented,
     directmetal::not_implemented, directmetal::not_implemented, directmetal::not_implemented,
+    directmetal::not_implemented,
 };
 const directmetal::UnixCallEntry __wine_unix_call_wow64_funcs[] = {
     directmetal::query_version,   directmetal::log_call,        directmetal::not_implemented,
@@ -72,6 +73,7 @@ const directmetal::UnixCallEntry __wine_unix_call_wow64_funcs[] = {
     directmetal::not_implemented, directmetal::not_implemented, directmetal::not_implemented,
     directmetal::not_implemented, directmetal::not_implemented, directmetal::not_implemented,
     directmetal::not_implemented, directmetal::not_implemented, directmetal::not_implemented,
+    directmetal::not_implemented,
 };
 }
 

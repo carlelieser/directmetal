@@ -45,9 +45,15 @@ public:
     // Returns once GPU work using the buffer has completed; the memory may then be freed.
     backend::Status release_memory(Handle buffer) noexcept;
     backend::Result<Handle> create_texture(const backend::TextureDesc& desc);
-    // mirror is PE-side memory the unix side keeps equal to the completed value.
+    // mirror is 8-byte-aligned shared memory the unix side keeps equal to the completed value; it
+    // may be freed once destroy_timeline returns.
     backend::Result<Handle> create_timeline(std::uint64_t initial_value, std::uint64_t& mirror);
+    void destroy_timeline(Handle timeline) noexcept;
+    // control is 64-byte-aligned shared memory; it may be freed once close_stream or destroy
+    // returns.
     backend::Result<OpenedStream> open_stream(StreamControl& control);
+    // close_stream, release_memory and destroy require every stream of the device to be flushed
+    // first; they return once all recorded work has been submitted and completed on the GPU.
     void close_stream(Handle stream) noexcept;
     void destroy() noexcept;
 };

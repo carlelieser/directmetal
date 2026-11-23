@@ -12,6 +12,10 @@
 // the wire have fixed layouts, asserted below, so i686 and x86_64 builds agree byte for byte.
 namespace directmetal::backend {
 
+// Device::import_memory requires address and size to be multiples of this: the page size of native
+// arm64 and of the kernel under Rosetta 2. Metal documents page alignment for no-copy buffers.
+inline constexpr std::uint64_t import_alignment = 16 * 1024;
+
 enum class Status : std::int32_t {
     success,
     out_of_memory,

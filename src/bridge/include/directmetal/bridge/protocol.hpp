@@ -1,5 +1,7 @@
 #pragma once
 
+#include <directmetal/backend/types.hpp>
+
 #include <cstddef>
 #include <cstdint>
 
@@ -8,9 +10,10 @@
 // identical bytes. Control-call parameters are in control.hpp and the command stream in
 // commands.hpp.
 //
-// Shared memory: anything the PE side reads or writes together with the unix side (stream chunks,
-// StreamControl, timeline mirrors, staging memory) is allocated on the PE side with
-// directmetal_bridge_allocate_shared and imported by the unix side without copying.
+// Shared memory: anything both sides access (stream chunks, StreamControl, timeline mirrors,
+// staging memory) is allocated on the PE side with directmetal_bridge_allocate_shared. Only
+// import_memory targets must be multiples of shared_memory_alignment; StreamControl needs 64-byte
+// and mirrors 8-byte alignment, and the client carves them from shared regions.
 namespace directmetal::bridge {
 
 inline constexpr std::uint32_t protocol_version = 3;
@@ -32,6 +35,7 @@ enum class FunctionCode : std::uint32_t {
     wait_timeline,
     close_stream,
     release_memory,
+    destroy_timeline,
     count,
 };
 
@@ -54,9 +58,8 @@ inline constexpr Status status_device_removed = static_cast<Status>(0xC00002B6);
 inline constexpr std::uint32_t max_name_length = 256;
 // WaitTimelineParams::timeout_ns value that never times out.
 inline constexpr std::uint64_t timeout_infinite = UINT64_MAX;
-// import_memory requires address and size to be multiples of this: the page size of native arm64
-// and of the kernel under Rosetta 2. Metal documents page alignment for no-copy buffers.
-inline constexpr std::uint64_t shared_memory_alignment = 16 * 1024;
+// import_memory requires address and size to be multiples of this.
+inline constexpr std::uint64_t shared_memory_alignment = backend::import_alignment;
 inline constexpr std::uint32_t host_system_size = 16;
 
 // An object owned by the unix side. The unix side assigns values; the PE side treats them as

@@ -25,9 +25,11 @@ extern "C" {
 DIRECTMETAL_BRIDGE_API directmetal::bridge::Status DIRECTMETAL_CDECL
 directmetal_bridge_call(std::uint32_t code, void* params) noexcept;
 
-// Zeroed memory the unix side can import (ImportMemoryParams), aligned to and rounded up to
-// shared_memory_alignment. Below 4 GiB in 32-bit processes. Null on failure. Imported memory may
-// be freed only after release_memory returns for its buffer.
+// Zeroed memory aligned to and rounded up to shared_memory_alignment, below 4 GiB in 32-bit
+// processes; null on failure. Stream chunks use it directly. StreamControl blocks and timeline
+// mirrors are carved from such regions by the client's small-block sub-allocator, so each does not
+// cost a 64 KiB VirtualAlloc granule under WoW64. Imported memory may be freed only after
+// release_memory returns for its buffer.
 DIRECTMETAL_BRIDGE_API void* DIRECTMETAL_CDECL
 directmetal_bridge_allocate_shared(std::uint64_t size) noexcept;
 

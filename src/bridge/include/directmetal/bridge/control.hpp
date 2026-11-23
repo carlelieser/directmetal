@@ -8,10 +8,15 @@
 
 // Parameters of the synchronous control calls, one struct per FunctionCode. Fields marked out are
 // written by the unix side.
+//
+// Teardown (destroy_device, close_stream, release_memory): the client flushes every stream of the
+// device first. The host then decodes every queued chunk of every stream on that device, commits
+// any recorded but unsubmitted work, and waits for the GPU to complete it before returning.
 namespace directmetal::bridge {
 
 inline constexpr std::uint32_t initialize_flag_wow64 = 0x1;
 
+// Required before any other call except query_version; repeating it is harmless.
 struct alignas(8) InitializeParams {
     // UTF-8 executable name, for logs.
     std::uint64_t client_name;
@@ -41,7 +46,8 @@ struct alignas(8) CreateDeviceParams {
     backend::Capabilities capabilities; // out
 };
 
-// Drains every stream of the device before destroying it.
+// Tears down as described above, then destroys every object of the device. Every stream's
+// StreamControl may be freed once this returns.
 struct alignas(8) DestroyDeviceParams {
     Handle device;
 };
@@ -52,11 +58,11 @@ struct alignas(8) CreateBufferParams {
     Handle buffer; // out
 };
 
-// Imports PE-allocated memory from directmetal_bridge_allocate_shared as a buffer without copying.
-// address and size must be multiples of shared_memory_alignment, otherwise
-// status_invalid_parameter. is_zero_copy is 1 for every accepted import; a copying path for
-// unaligned application memory is reserved for later phases. The memory must stay allocated until
-// release_memory returns for the buffer; destroy_object on an imported buffer is a stream error.
+// Imports memory from directmetal_bridge_allocate_shared as a buffer without copying. address and
+// size must be multiples of shared_memory_alignment, otherwise status_invalid_parameter.
+// is_zero_copy is 1 for every accepted import; a copying path for unaligned application memory is
+// reserved for later phases. The memory stays allocated until release_memory returns for the
+// buffer; destroy_object on an imported buffer is a stream error.
 struct alignas(8) ImportMemoryParams {
     Handle device;
     std::uint64_t address;
@@ -77,20 +83,30 @@ struct alignas(8) CreateTextureParams {
 struct alignas(8) CreateTimelineParams {
     Handle device;
     std::uint64_t initial_value;
-    // PE-side std::uint64_t the unix side keeps equal to the completed value; 0 for none.
+    // 8-byte-aligned PE-side std::uint64_t the unix side keeps equal to the completed value; 0 for
+    // none. It may be freed once destroy_timeline returns.
     std::uint64_t mirror_address;
     Handle timeline; // out
 };
 
+// Synchronous: once it returns, the unix side no longer writes the timeline's mirror. Timelines
+// are destroyed only this way, never with destroy_object.
+struct alignas(8) DestroyTimelineParams {
+    Handle timeline;
+};
+
 struct alignas(8) OpenStreamParams {
     Handle device;
-    // PE-allocated StreamControl (commands.hpp).
+    // 64-byte-aligned PE-side StreamControl (commands.hpp); its completed_progress mirrors the
+    // progress timeline. It may be freed once close_stream or destroy_device returns.
     std::uint64_t control_address;
     Handle stream;            // out
     Handle progress_timeline; // out
 };
 
-// Queues a chunk for the stream's consumer thread and returns without waiting for it.
+// Queues a chunk for the stream's consumer thread and returns without waiting for it. sequence and
+// chunk_size must equal the chunk's ChunkHeader sequence and size, and chunk_size is at most
+// max_chunk_size; anything else makes the stream's error sticky.
 struct alignas(8) SubmitStreamParams {
     Handle stream;
     std::uint64_t chunk_address;
@@ -108,52 +124,72 @@ struct alignas(8) WaitTimelineParams {
     std::uint64_t timeout_ns;
 };
 
-// Waits for queued chunks to be decoded, then closes the stream.
+// Tears down the stream as described above, then closes it.
 struct alignas(8) CloseStreamParams {
     Handle stream;
 };
 
-// Waits until all GPU work that references the imported buffer has completed, then destroys it.
-// Only after this returns may the PE side free the memory.
+// Tears down as described above for the device that owns the imported buffer, then destroys the
+// buffer. Only after this returns may the PE side free the memory.
 struct alignas(8) ReleaseMemoryParams {
     Handle buffer;
 };
 
 static_assert(sizeof(InitializeParams) == 24);
+static_assert(offsetof(InitializeParams, client_name) == 0);
+static_assert(offsetof(InitializeParams, client_name_length) == 8);
 static_assert(offsetof(InitializeParams, flags) == 12);
+static_assert(offsetof(InitializeParams, log_level) == 16);
+static_assert(offsetof(InitializeParams, reserved) == 20);
 static_assert(sizeof(EnumerateAdaptersParams) == 176);
+static_assert(offsetof(EnumerateAdaptersParams, index) == 0);
+static_assert(offsetof(EnumerateAdaptersParams, reserved) == 4);
 static_assert(offsetof(EnumerateAdaptersParams, adapter) == 8);
 static_assert(sizeof(DeviceOptions) == 16);
+static_assert(offsetof(DeviceOptions, heap_block_size) == 0);
+static_assert(offsetof(DeviceOptions, dedicated_threshold) == 8);
 static_assert(sizeof(CreateDeviceParams) == 200);
+static_assert(offsetof(CreateDeviceParams, registry_id) == 0);
 static_assert(offsetof(CreateDeviceParams, options) == 8);
 static_assert(offsetof(CreateDeviceParams, device) == 24);
 static_assert(offsetof(CreateDeviceParams, capabilities) == 32);
 static_assert(sizeof(DestroyDeviceParams) == 8);
 static_assert(sizeof(CreateBufferParams) == 32);
+static_assert(offsetof(CreateBufferParams, device) == 0);
 static_assert(offsetof(CreateBufferParams, desc) == 8);
 static_assert(offsetof(CreateBufferParams, buffer) == 24);
 static_assert(sizeof(ImportMemoryParams) == 40);
+static_assert(offsetof(ImportMemoryParams, device) == 0);
 static_assert(offsetof(ImportMemoryParams, address) == 8);
 static_assert(offsetof(ImportMemoryParams, size) == 16);
 static_assert(offsetof(ImportMemoryParams, buffer) == 24);
 static_assert(offsetof(ImportMemoryParams, is_zero_copy) == 32);
+static_assert(offsetof(ImportMemoryParams, reserved) == 36);
 static_assert(sizeof(CreateTextureParams) == 64);
+static_assert(offsetof(CreateTextureParams, device) == 0);
 static_assert(offsetof(CreateTextureParams, desc) == 8);
 static_assert(offsetof(CreateTextureParams, reserved) == 44);
 static_assert(offsetof(CreateTextureParams, texture) == 48);
 static_assert(offsetof(CreateTextureParams, allocation_size) == 56);
 static_assert(sizeof(CreateTimelineParams) == 32);
+static_assert(offsetof(CreateTimelineParams, device) == 0);
+static_assert(offsetof(CreateTimelineParams, initial_value) == 8);
 static_assert(offsetof(CreateTimelineParams, mirror_address) == 16);
 static_assert(offsetof(CreateTimelineParams, timeline) == 24);
+static_assert(sizeof(DestroyTimelineParams) == 8);
 static_assert(sizeof(OpenStreamParams) == 32);
+static_assert(offsetof(OpenStreamParams, device) == 0);
 static_assert(offsetof(OpenStreamParams, control_address) == 8);
 static_assert(offsetof(OpenStreamParams, stream) == 16);
 static_assert(offsetof(OpenStreamParams, progress_timeline) == 24);
 static_assert(sizeof(SubmitStreamParams) == 32);
+static_assert(offsetof(SubmitStreamParams, stream) == 0);
 static_assert(offsetof(SubmitStreamParams, chunk_address) == 8);
 static_assert(offsetof(SubmitStreamParams, chunk_size) == 16);
+static_assert(offsetof(SubmitStreamParams, reserved) == 20);
 static_assert(offsetof(SubmitStreamParams, sequence) == 24);
 static_assert(sizeof(WaitTimelineParams) == 24);
+static_assert(offsetof(WaitTimelineParams, timeline) == 0);
 static_assert(offsetof(WaitTimelineParams, value) == 8);
 static_assert(offsetof(WaitTimelineParams, timeout_ns) == 16);
 static_assert(sizeof(CloseStreamParams) == 8);
