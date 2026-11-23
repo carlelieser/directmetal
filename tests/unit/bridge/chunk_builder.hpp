@@ -33,7 +33,7 @@ public:
 
     std::vector<std::byte> build() const;
     // Bytes the decoder passes through unchecked: payload fields other than reserved fields and
-    // set_label's length, and label text.
+    // set_label's length. Label text is checked as UTF-8.
     const std::vector<ByteRange>& free_ranges() const noexcept { return free_ranges_; }
 
 private:

@@ -71,6 +71,30 @@ TEST(StreamDecoder, SinkFailureIsStickyAndStopsTheChunk) {
     EXPECT_EQ(sink.commands.size(), 3u);
 }
 
+TEST(StreamDecoder, AcceptsWellFormedUtf8Labels) {
+    for (const std::string_view text :
+         {"\xC3\xA9", "\xE2\x82\xAC", "\xF0\x9F\x98\x80", "\xED\x9F\xBF", "\xF4\x8F\xBF\xBF"}) {
+        const GuardedChunk chunk(ChunkBuilder().add_label({1}, text).build());
+        StreamDecoder decoder;
+        RecordingSink sink;
+        EXPECT_EQ(decoder.decode(chunk.submission(), sink), status_success) << text;
+    }
+}
+
+// Overlong, surrogate, beyond U+10FFFF, truncated and stray continuation sequences.
+TEST(StreamDecoder, RejectsLabelsThatAreNotUtf8) {
+    for (const std::string_view text :
+         {"\xFF", "a\xC0\x80", "\xE0\x80\xAF", "\xED\xA0\x80", "\xF4\x90\x80\x80", "\xE2\x82",
+          "\xE2\x82\x41", "\x80", "\xC3\xA9\xA9"}) {
+        const GuardedChunk chunk(ChunkBuilder().add_label({1}, text).build());
+        StreamDecoder decoder;
+        RecordingSink sink;
+        EXPECT_EQ(decoder.decode(chunk.submission(), sink), status_invalid_parameter) << text;
+        EXPECT_EQ(decoder.failure().opcode, static_cast<std::uint32_t>(Opcode::set_label));
+        EXPECT_TRUE(sink.commands.empty());
+    }
+}
+
 // Rewrites a later command in shared memory while the first one executes, as a racing PE side
 // could.
 class MutatingSink : public RecordingSink {

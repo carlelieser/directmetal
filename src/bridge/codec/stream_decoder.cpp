@@ -220,7 +220,8 @@ Status StreamDecoder::validate_payload(DecodedCommand& command, std::uint32_t si
         return status_invalid_parameter;
     }
     command.label_length_ = inline_length;
-    return status_success;
+    const std::string_view label = command.label();
+    return utf8_prefix_length(label) == label.size() ? status_success : status_invalid_parameter;
 }
 
 Status StreamDecoder::fail(Status status, std::uint32_t opcode, std::uint64_t sequence) noexcept {

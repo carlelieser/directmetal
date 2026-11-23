@@ -30,7 +30,8 @@ public:
         record_payload(opcode_of<Command>, &command, sizeof(Command));
     }
 
-    // label longer than max_label_length is truncated at a UTF-8 code point boundary.
+    // label is cut before its first byte that is not well-formed UTF-8, and to at most
+    // max_label_length bytes at a code point boundary.
     void record_label(Handle object, std::string_view label);
     Status flush() noexcept;
     // Sequence of the next chunk to be submitted.

@@ -3,6 +3,7 @@ bridge_codec_include = include_directories('include')
 
 bridge_codec_lib = static_library(
     'bridge_codec',
+    'label_text.cpp',
     'stream_decoder.cpp',
     include_directories: bridge_codec_include,
     dependencies: bridge_protocol_dep,

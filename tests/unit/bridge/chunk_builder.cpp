@@ -54,11 +54,7 @@ ChunkBuilder& ChunkBuilder::add_label(Handle object, std::string_view text) {
     std::vector<std::byte> payload;
     append(payload, &label, sizeof(label));
     append(payload, text.data(), text.size());
-    const std::size_t text_begin =
-        sizeof(ChunkHeader) + commands_.size() + sizeof(CommandHeader) + sizeof(SetLabelCommand);
-    add_raw(Opcode::set_label, payload.data(), static_cast<std::uint32_t>(payload.size()));
-    free_ranges_.push_back({text_begin, text_begin + text.size()});
-    return *this;
+    return add_raw(Opcode::set_label, payload.data(), static_cast<std::uint32_t>(payload.size()));
 }
 
 ChunkBuilder& ChunkBuilder::add_raw(Opcode opcode, const void* payload,

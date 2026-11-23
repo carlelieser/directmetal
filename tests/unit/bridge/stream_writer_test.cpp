@@ -160,6 +160,17 @@ TEST_F(StreamWriterTest, TruncatesLongLabelsAtCodePoints) {
     EXPECT_EQ(sink.commands[1].label(), std::string(max_label_length - 1, 'y'));
 }
 
+TEST_F(StreamWriterTest, TruncatesLabelsAtInvalidUtf8) {
+    StreamWriter writer(stream, control);
+    writer.record_label(label_object, "ab\xFF"
+                                      "cd");
+    writer.record_label(label_object, "\xE2\x82");
+    EXPECT_EQ(writer.flush(), status_success);
+    ASSERT_EQ(sink.commands.size(), 2u);
+    EXPECT_EQ(sink.commands[0].label(), "ab");
+    EXPECT_EQ(sink.commands[1].label(), "");
+}
+
 TEST_F(StreamWriterTest, ReportsStickyStreamErrors) {
     StreamWriter writer(stream, control);
     writer.record(samples.destroy_object);

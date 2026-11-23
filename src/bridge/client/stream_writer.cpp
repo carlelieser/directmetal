@@ -14,19 +14,9 @@ constexpr std::size_t no_chunk = SIZE_MAX;
 // Chunk::sequence of the chunk being recorded; never retired.
 constexpr std::uint64_t recording = UINT64_MAX;
 
-bool is_continuation_byte(char value) noexcept {
-    return (static_cast<unsigned char>(value) & 0xC0) == 0x80;
-}
-
+// The longest well-formed UTF-8 prefix of at most max_label_length bytes.
 std::uint32_t truncated_length(std::string_view label) noexcept {
-    if (label.size() <= max_label_length) {
-        return static_cast<std::uint32_t>(label.size());
-    }
-    std::uint32_t length = max_label_length;
-    while (length > 0 && is_continuation_byte(label[length])) {
-        --length;
-    }
-    return length;
+    return static_cast<std::uint32_t>(utf8_prefix_length(label.substr(0, max_label_length)));
 }
 
 } // namespace

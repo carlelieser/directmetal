@@ -4,6 +4,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <string_view>
 
 // Size rules of the command stream, shared by StreamWriter and StreamDecoder on top of
 // opcode_layouts.
@@ -37,6 +38,10 @@ inline constexpr std::uint32_t max_command_size = compute_max_command_size();
 // The smallest chunk that holds any single command.
 inline constexpr std::uint32_t min_chunk_size =
     align_command(static_cast<std::uint32_t>(sizeof(ChunkHeader))) + max_command_size;
+
+// Bytes of the longest prefix of text that is well-formed UTF-8. Labels must be well-formed in
+// full, so the host can pass them to Metal as strings.
+std::size_t utf8_prefix_length(std::string_view text) noexcept;
 
 static_assert(sizeof(ChunkHeader) % command_alignment == 0);
 static_assert(command_size(Opcode::set_label, max_label_length) ==
