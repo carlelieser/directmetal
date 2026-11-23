@@ -90,7 +90,7 @@ Critical path: interfaces → B and C → F and G → I → wave 4. G2 is small 
 - References are regenerated with `gh workflow run reference.yml --ref <branch>` and `tools/reference/update.py --run <id>`, which checks the source hash and writes `tests/reference/<test>/reference.json`. The reference is committed with the test change and reviewed as a diff. `tolerance.json` sits beside it; loosening it needs explicit review.
 - On macOS (suite `api`): natively for x86_64, arm64 and the UBSan build, and under Wine for win64 and win32, all with `MTL_DEBUG_LAYER=1`, `MTL_SHADER_VALIDATION=1` and `MTL_DEBUG_LAYER_ERROR_MODE=assert`. `HRESULT`s must match exactly; readbacks match within 0 for integer and float formats and 1 for 8-bit UNORM and sRGB.
 - A Metal validation assertion aborts the whole Wine process (the PE side sees `0xc0000005`), so the runners treat any abnormal exit as a failure, not only a mismatched result.
-- Status gate: `--require d3d11:tested>=8 --require common:implemented>=3`.
+- Status gate: `d3d11_exit_status_gate` requires `d3d11:tested>=8` and `common:tested>=3` on the exit test's call logs.
 
 ## Decisions
 
@@ -117,3 +117,12 @@ Critical path: interfaces → B and C → F and G → I → wave 4. G2 is small 
 | 64-bit atomics in shared blocks from 32-bit processes | `std::atomic_ref` on 8-byte-aligned fields, asserted lock-free |
 | Stream threads at DLL detach | Never joined in `DllMain`; drained on `destroy_device` and `close_stream` |
 | Large format tables against the 300-line file limit | Tables split by format family |
+| `submit_stream` blocks when 64 chunks are queued | No cycle in Phase 1. Once the GPU waits on CPU-signalled timelines, a PE thread blocked in `submit_stream` while the GPU waits on that thread's signal would deadlock; revisit backpressure before then |
+| Completion callbacks that destroy or wait on their own timeline deadlock | Callbacks only touch atomics and lock-free queues; never destroy, wait on or block a timeline from a callback |
+
+## Deferred decisions
+
+- Device loss is tracked per queue in Phase 1. Direct3D device removal is device-wide; a device-owned loss tracker arrives with deferred contexts in Phase 4.
+- Each PE DLL that statically links the runtime has its own log levels, log file and HUD counters. One module must own runtime state before a second front end ships.
+- The runtime does not expose the executable name, so front ends initialize the bridge with an empty client name.
+- Follow-up issues from the format GPU check: #29, #30, #31, #32.
