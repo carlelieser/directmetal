@@ -1,6 +1,6 @@
 # 0009 — Front-end placement
 
-Status: accepted. Refines [ADR 0008](0008-wine-bridge-module.md).
+Status: accepted. Refines [ADR 0008](0008-wine-bridge-module.md). Supersedes the consequence in [ADR 0002](0002-delivery-model.md) that 32-bit applications require WoW64 pointer thunks in the bridge.
 
 ## Context
 
