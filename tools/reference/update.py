@@ -7,6 +7,7 @@ for every program in the manifest and prints how each reference changed.
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -26,6 +27,7 @@ from sources import (  # noqa: E402
 
 WORKFLOW_NAME = "Reference"
 RUN_FIELDS = "conclusion,headSha,url,workflowName"
+RUN_URL = re.compile(r"https://github\.com/(?P<repository>[^/]+/[^/]+)/actions/runs/\d+")
 
 
 def gh(arguments: list[str]) -> str:
@@ -35,25 +37,43 @@ def gh(arguments: list[str]) -> str:
     return result.stdout
 
 
-def view_run(run_id: str) -> dict:
-    run = json.loads(gh(["run", "view", run_id, "--json", RUN_FIELDS]))
+def parse_run(run_id: str, text: str) -> dict:
+    """Checks gh's description of a run and adds the repository named by its URL."""
+    try:
+        run = json.loads(text)
+    except ValueError as error:
+        raise ReferenceToolError(f"gh run view {run_id} printed invalid JSON: {error}") from error
+    missing = [field for field in RUN_FIELDS.split(",") if not isinstance(run.get(field), str)]
+    if missing:
+        raise ReferenceToolError(f"gh run view {run_id} lacks {', '.join(missing)}")
     if run["workflowName"] != WORKFLOW_NAME:
         raise ReferenceToolError(
             f"run {run_id} is a {run['workflowName']} run, not {WORKFLOW_NAME}"
         )
     if run["conclusion"] != "success":
         raise ReferenceToolError(f"run {run_id} concluded {run['conclusion']}, not success")
-    return run
+    match = RUN_URL.fullmatch(run["url"])
+    if match is None:
+        raise ReferenceToolError(f"run {run_id} has an unexpected URL {run['url']}")
+    return {**run, "repository": match["repository"]}
+
+
+def view_run(run_id: str) -> dict:
+    return parse_run(run_id, gh(["run", "view", run_id, "--json", RUN_FIELDS]))
 
 
 def check_metadata(metadata: dict, run_id: str, run: dict) -> None:
-    if str(metadata.get("run_id")) != run_id:
-        raise ReferenceToolError(f"artifact of run {run_id} records run {metadata.get('run_id')}")
-    if metadata.get("commit") != run["headSha"]:
-        raise ReferenceToolError(
-            f"artifact of run {run_id} records commit {metadata.get('commit')}, "
-            f"but the run checked out {run['headSha']}"
-        )
+    expectations = [
+        ("run_id", run_id, "run"),
+        ("repository", run["repository"], "repository"),
+        ("commit", run["headSha"], "commit"),
+    ]
+    for key, expected, description in expectations:
+        recorded = metadata.get(key)
+        if str(recorded) != expected:
+            raise ReferenceToolError(
+                f"artifact of run {run_id} records {description} {recorded}, expected {expected}"
+            )
 
 
 def build_reference(root: Path, artifact: Path, program: str) -> dict:
@@ -75,15 +95,20 @@ def describe_update(path: Path, reference: dict) -> list[str]:
     if not path.is_file():
         return ["new reference"]
     previous = read_json(path)
+    previous_metadata = previous.get("metadata")
+    previous_result = previous.get("result")
+    is_well_formed = isinstance(previous_metadata, dict) and isinstance(previous_result, dict)
+    if not is_well_formed:
+        raise ReferenceToolError(f"reference {path} lacks a metadata or result object")
     lines = [
-        f"metadata.{key}: {json.dumps(previous['metadata'].get(key))} -> {json.dumps(value)}"
+        f"metadata.{key}: {json.dumps(previous_metadata.get(key))} -> {json.dumps(value)}"
         for key, value in sorted(reference["metadata"].items())
         if key not in {"run_id", "run_attempt", "commit", "ref"}
-        and previous["metadata"].get(key) != value
+        and previous_metadata.get(key) != value
     ]
     lines += [
         change.replace(": expected ", ": was ").replace(", got ", ", now ")
-        for change in differences(previous["result"], reference["result"], None)
+        for change in differences(previous_result, reference["result"], None)
     ]
     return lines or ["results unchanged"]
 
@@ -114,7 +139,7 @@ def main(argv: list[str]) -> int:
             name = f"reference-{options.run}"
             gh(["run", "download", options.run, "--name", name, "--dir", directory])
             import_artifact(options.root, Path(directory), options.run, run)
-    except (ReferenceToolError, ValueError, KeyError) as error:
+    except ReferenceToolError as error:
         print(f"update: {error}", file=sys.stderr)
         return 1
     print(f"imported {run['url']}")
