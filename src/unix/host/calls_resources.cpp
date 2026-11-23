@@ -7,7 +7,6 @@
 
 #include <cstddef>
 #include <memory>
-#include <mutex>
 #include <span>
 
 namespace directmetal::host {
@@ -48,9 +47,7 @@ Status create_buffer(HostContext& context, CreateBufferParams& params) {
     if (!is_valid_buffer_desc(params.desc, device->device->capabilities())) {
         return status_invalid_parameter;
     }
-    std::unique_lock lock(device->creation_mutex);
     auto created = device->device->create_buffer(params.desc);
-    lock.unlock();
     if (!created.has_value()) {
         return to_bridge(created.status());
     }
@@ -80,29 +77,22 @@ Status import_memory(HostContext& context, ImportMemoryParams& params) {
                   params.buffer);
 }
 
-// allocation_size is the device's used_bytes growth, measured with creation serialized; it is
-// only approximate while a stream destroys a resource of the same device.
 Status create_texture(HostContext& context, CreateTextureParams& params) {
     const auto device = find_device(context, params.device);
     if (device == nullptr) {
         return status_invalid_handle;
     }
-    backend::Device& backend_device = *device->device;
-    const bool is_valid = is_valid_texture_desc(params.desc, backend_device.capabilities());
+    const bool is_valid = is_valid_texture_desc(params.desc, device->device->capabilities());
     if (!is_valid || params.reserved != 0) {
         return status_invalid_parameter;
     }
-    std::unique_lock lock(device->creation_mutex);
-    const std::uint64_t used_before = backend_device.memory_stats().used_bytes;
-    auto created = backend_device.create_texture(params.desc);
-    const std::uint64_t used_after = backend_device.memory_stats().used_bytes;
-    lock.unlock();
+    auto created = device->device->create_texture(params.desc);
     if (!created.has_value()) {
         return to_bridge(created.status());
     }
+    params.allocation_size = created.value()->allocation_size();
     auto texture =
         std::make_shared<TextureObject>(TextureObject{std::move(created).value(), params.desc});
-    params.allocation_size = used_after > used_before ? used_after - used_before : 0;
     return insert(context, {{}, ObjectKind::texture, params.device, std::move(texture)},
                   params.texture);
 }

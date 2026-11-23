@@ -20,8 +20,6 @@ struct DeviceObject {
     // Set before a stream of the device publishes a sticky error; waits on the device's timelines
     // then fail.
     std::atomic<bool> has_failed_stream = false;
-    // Serializes resource creation so allocation sizes can be measured.
-    std::mutex creation_mutex;
 };
 
 struct BufferObject {

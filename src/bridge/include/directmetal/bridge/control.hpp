@@ -83,9 +83,8 @@ struct alignas(8) CreateTextureParams {
     backend::TextureDesc desc;
     std::uint32_t reserved;
     Handle texture; // out
-    // The growth of the device's used memory across the creation, measured with creation
-    // serialized per device. It is exact while each device has one stream (Phase 1); a resource
-    // destroyed concurrently by another stream of the device would skew it.
+    // Bytes of device memory the texture occupies, as Metal reports for placing it; 0 for
+    // memoryless textures.
     std::uint64_t allocation_size; // out
 };
 

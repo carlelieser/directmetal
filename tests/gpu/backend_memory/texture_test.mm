@@ -1,5 +1,6 @@
 #include "device_fixture.hpp"
 #include "resource_access.hpp"
+#include "texture_descriptor.hpp"
 
 #include <array>
 
@@ -109,6 +110,20 @@ TEST(Textures, MemorylessTexturesAreDedicatedAndUseNoBytes) {
     EXPECT_EQ(stats.dedicated_count, 1u);
     EXPECT_EQ(stats.used_bytes, 0u);
     EXPECT_EQ(stats.heap_count, 0u);
+    EXPECT_EQ(texture->allocation_size(), 0u);
+}
+
+TEST(Textures, ReportTheirAllocationSize) {
+    const auto device = make_device();
+    const TextureDesc desc = texture_2d(rgba8, 64, gpu);
+    const auto texture = make_texture(*device, desc);
+    ASSERT_NE(texture, nullptr);
+    MTLTextureDescriptor* descriptor = resources::texture_descriptor(desc);
+    const MTLSizeAndAlign need =
+        [resources::metal_device(*device) heapTextureSizeAndAlignWithDescriptor:descriptor];
+    EXPECT_EQ(texture->allocation_size(), need.size);
+    EXPECT_GE(texture->allocation_size(), 64u * 64u * 4u);
+    EXPECT_EQ(device->memory_stats().used_bytes, texture->allocation_size());
 }
 
 TEST(Textures, LargeTexturesAreDedicated) {

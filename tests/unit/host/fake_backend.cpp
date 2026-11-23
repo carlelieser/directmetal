@@ -33,14 +33,12 @@ class FakeTexture final : public backend::Texture {
 public:
     FakeTexture(FakeGpu& gpu, const backend::TextureDesc& desc) : gpu_(gpu), desc_(desc) {
         ++gpu_.live_textures;
-        gpu_.used_bytes += texture_bytes;
     }
-    ~FakeTexture() override {
-        --gpu_.live_textures;
-        gpu_.used_bytes -= texture_bytes;
-    }
+    ~FakeTexture() override { --gpu_.live_textures; }
 
     const backend::TextureDesc& desc() const noexcept override { return desc_; }
+    // Not reflected in memory_stats, so only the texture's own report gives this size.
+    std::uint64_t allocation_size() const noexcept override { return texture_bytes; }
     void set_label(std::string_view label) override { gpu_.record("label " + std::string(label)); }
 
     static constexpr std::uint64_t texture_bytes = 4096;
