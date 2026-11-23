@@ -5,7 +5,9 @@ These rules apply to every change. Architecture decisions live in the [ADRs](adr
 ## Languages and boundaries
 
 - C++20, with Objective-C++ confined to the Metal backend ([ADR 0003](adr/0003-language.md)).
-- Wine dependencies and the PE↔unix boundary follow [ADR 0002](adr/0002-delivery-model.md) and [ADR 0008](adr/0008-wine-bridge-module.md).
+- Wine dependencies and the PE↔unix boundary follow [ADR 0002](adr/0002-delivery-model.md), [ADR 0008](adr/0008-wine-bridge-module.md) and [ADR 0009](adr/0009-front-end-placement.md).
+- Front-end code builds for both PE and macOS. Never use `wchar_t` or `long` for wire or ABI data: their sizes differ between the two. Data crossing the bridge uses fixed-width types, carries addresses as `std::uint64_t` and asserts its layout.
+- The unix-side namespace is `host`, not `unix`, which is a predefined macro in GNU language modes.
 - Python 3.12 for tooling under `tools/`.
 
 ## License
