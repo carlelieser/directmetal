@@ -142,6 +142,9 @@ public:
 };
 
 TEST_F(LogFileTest, ReplacingTheSinkOrFileWaitsForWritesInFlight) {
+    // Lines written while no sink is installed go to a file, not to stderr.
+    const fs::path background = directory / "background.log";
+    ASSERT_TRUE(set_file(background.string()));
     std::atomic<bool> is_done{false};
     std::vector<std::thread> writers;
     for (int index = 0; index < 2; ++index) {
@@ -152,7 +155,6 @@ TEST_F(LogFileTest, ReplacingTheSinkOrFileWaitsForWritesInFlight) {
             }
         });
     }
-    testing::internal::CaptureStderr();
     std::deque<RetirableSink> retired_sinks;
     for (int round = 0; round < 100; ++round) {
         RetirableSink& retirable = retired_sinks.emplace_back();
@@ -161,13 +163,12 @@ TEST_F(LogFileTest, ReplacingTheSinkOrFileWaitsForWritesInFlight) {
         set_sink(nullptr);
         retirable.is_retired = true;
         ASSERT_TRUE(set_file(path.string()));
-        ASSERT_TRUE(set_file(""));
+        ASSERT_TRUE(set_file(background.string()));
     }
     is_done = true;
     for (std::thread& writer : writers) {
         writer.join();
     }
-    testing::internal::GetCapturedStderr();
     int late_calls = 0;
     for (const RetirableSink& retirable : retired_sinks) {
         late_calls += retirable.late_calls;
