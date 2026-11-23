@@ -9,3 +9,18 @@ formats_tests = executable(
 )
 
 test('formats', formats_tests, protocol: 'gtest', suite: 'unit', timeout: 30)
+
+format_names = executable('format_names', 'format_names.cpp', dependencies: formats_dep)
+
+test(
+    'format_coverage',
+    python,
+    args: [
+        '-I', files('check_format_coverage.py'),
+        '--names-program', format_names,
+        '--dxgi-json', files('../../../docs/api/dxgi.json'),
+        '--d3d9-json', files('../../../docs/api/d3d9.json'),
+    ],
+    suite: 'unit',
+    timeout: 30,
+)
