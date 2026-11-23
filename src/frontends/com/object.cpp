@@ -11,11 +11,7 @@ ULONG RefCounts::add_ref() noexcept {
 }
 
 ULONG RefCounts::release() noexcept {
-    const ULONG previous = public_count_.fetch_sub(1, std::memory_order_acq_rel);
-    if (previous == 1) {
-        release_private();
-    }
-    return previous - 1;
+    return public_count_.fetch_sub(1, std::memory_order_acq_rel) - 1;
 }
 
 void RefCounts::add_private_ref() noexcept {

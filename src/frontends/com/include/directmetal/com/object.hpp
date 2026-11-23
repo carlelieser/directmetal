@@ -68,8 +68,8 @@ class RefCounts {
 public:
     // Returns the new public count. Going from 0 to 1 takes the private reference.
     ULONG add_ref() noexcept;
-    // Returns the new public count. Going from 1 to 0 drops the private reference; it cannot report
-    // destruction, so the caller holds another private reference across the call.
+    // Returns the new public count. Going from 1 to 0 hands the public references' private
+    // reference to the caller, which drops it with release_private.
     ULONG release() noexcept;
     void add_private_ref() noexcept;
     // Returns true when the private count reached zero and the object must be destroyed.
@@ -135,16 +135,14 @@ ULONG STDMETHODCALLTYPE Object<Base, Extra...>::AddRef() noexcept {
     return count;
 }
 
-// The temporary private reference keeps the object alive through on_last_public_release.
 template <typename Base, typename... Extra>
 ULONG STDMETHODCALLTYPE Object<Base, Extra...>::Release() noexcept {
     DM_IMPL("IUnknown::Release");
-    counts_.add_private_ref();
     const ULONG count = counts_.release();
     if (count == 0) {
         on_last_public_release();
+        release_private();
     }
-    release_private();
     return count;
 }
 

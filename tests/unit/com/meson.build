@@ -8,6 +8,7 @@ com_tests = executable(
     'lifetime_test.cpp',
     'private_data_test.cpp',
     'query_interface_test.cpp',
+    'ref_counts_test.cpp',
     dependencies: [com_dep, gtest_dep],
 )
 
