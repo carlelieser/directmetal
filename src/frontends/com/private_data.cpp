@@ -1,6 +1,6 @@
 #include <directmetal/com/private_data.hpp>
 
-#include "utf16.hpp"
+#include "unicode.hpp"
 
 #include <algorithm>
 #include <cstring>

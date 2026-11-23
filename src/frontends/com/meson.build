@@ -5,7 +5,7 @@ com_lib = static_library(
     'com',
     'object.cpp',
     'private_data.cpp',
-    'utf16.cpp',
+    'unicode.cpp',
     include_directories: com_include,
     dependencies: [frontend_markers_dep, runtime_dep, win32_headers_dep],
 )
