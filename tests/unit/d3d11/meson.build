@@ -8,6 +8,7 @@ d3d11_tests = executable(
     'object_methods_test.cpp',
     'render_target_view_test.cpp',
     'staging_layout_test.cpp',
+    'stub_outputs_test.cpp',
     'texture_test.cpp',
     link_whole: d3d11_frontend_lib,
     dependencies: [d3d11_frontend_deps, gtest_dep],

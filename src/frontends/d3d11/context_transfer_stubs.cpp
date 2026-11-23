@@ -1,5 +1,7 @@
 #include "context_transfer_stubs.hpp"
 
+#include "stub_outputs.hpp"
+
 #include <directmetal/frontends/markers.hpp>
 
 namespace directmetal::d3d11 {
@@ -121,9 +123,10 @@ void STDMETHODCALLTYPE ContextTransferStubs::CSSetConstantBuffers(UINT, UINT,
     DM_STUB_VOID("ID3D11DeviceContext::CSSetConstantBuffers");
 }
 
-void STDMETHODCALLTYPE ContextTransferStubs::VSGetConstantBuffers(UINT, UINT,
-                                                                  ID3D11Buffer**) noexcept {
-    DM_STUB_VOID("ID3D11DeviceContext::VSGetConstantBuffers");
+void STDMETHODCALLTYPE ContextTransferStubs::VSGetConstantBuffers(
+    UINT, UINT NumBuffers, ID3D11Buffer** ppConstantBuffers) noexcept {
+    DM_STUB_RETURN("ID3D11DeviceContext::VSGetConstantBuffers",
+                   (void)stub::clear_array(NumBuffers, ppConstantBuffers));
 }
 
 } // namespace directmetal::d3d11

@@ -1,5 +1,7 @@
 #include "context_pipeline_stubs.hpp"
 
+#include "stub_outputs.hpp"
+
 #include <directmetal/frontends/markers.hpp>
 
 namespace directmetal::d3d11 {
@@ -101,9 +103,9 @@ void STDMETHODCALLTYPE ContextPipelineStubs::End(ID3D11Asynchronous*) noexcept {
     DM_STUB_VOID("ID3D11DeviceContext::End");
 }
 
-HRESULT STDMETHODCALLTYPE ContextPipelineStubs::GetData(ID3D11Asynchronous*, void*, UINT,
-                                                        UINT) noexcept {
-    DM_STUB("ID3D11DeviceContext::GetData");
+HRESULT STDMETHODCALLTYPE ContextPipelineStubs::GetData(ID3D11Asynchronous*, void* pData,
+                                                        UINT DataSize, UINT) noexcept {
+    DM_STUB_RETURN("ID3D11DeviceContext::GetData", stub::clear_bytes(pData, DataSize));
 }
 
 void STDMETHODCALLTYPE ContextPipelineStubs::SetPredication(ID3D11Predicate*, WINBOOL) noexcept {
