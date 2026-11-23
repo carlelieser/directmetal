@@ -1,0 +1,78 @@
+# Records Windows reference outputs of the API test programs on WARP (docs/plans/phase-1.md#exit-test).
+# Dispatch with `gh workflow run reference.yml --ref <branch>`, then import the artifact with
+# `tools/reference/update.py --run <run id>`.
+name: Reference
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: reference-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  windows-warp:
+    runs-on: windows-2025
+    timeout-minutes: 30
+    env:
+      LLVM_MINGW_VERSION: "20261104"
+      LLVM_MINGW_RELEASE: llvm-mingw-20261104-ucrt-x86_64
+      LLVM_MINGW_SHA256: 552191b5754c49a5a20723276a6fc56541ea1922c4c50b7b669022333fc1b40f
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-tools
+      - name: Reference tooling unit tests
+        run: python -I -m unittest discover -s tools/reference/tests
+      - name: Locate LLVM-MinGW
+        run: echo "DIRECTMETAL_LLVM_MINGW=$RUNNER_TEMP/llvm-mingw" >> "$GITHUB_ENV"
+      - id: llvm-mingw-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ env.DIRECTMETAL_LLVM_MINGW }}
+          key: ${{ env.LLVM_MINGW_RELEASE }}-${{ env.LLVM_MINGW_SHA256 }}
+      - name: Install LLVM-MinGW
+        if: steps.llvm-mingw-cache.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          $archive = Join-Path $env:RUNNER_TEMP "$env:LLVM_MINGW_RELEASE.zip"
+          Invoke-WebRequest -OutFile $archive `
+            -Uri "https://github.com/mstorsjo/llvm-mingw/releases/download/$env:LLVM_MINGW_VERSION/$env:LLVM_MINGW_RELEASE.zip"
+          $hash = (Get-FileHash -Algorithm SHA256 $archive).Hash.ToLowerInvariant()
+          if ($hash -ne $env:LLVM_MINGW_SHA256) {
+            throw "LLVM-MinGW archive SHA-256 $hash does not match $env:LLVM_MINGW_SHA256"
+          }
+          & "$env:SystemRoot\System32\tar.exe" -xf $archive -C $env:RUNNER_TEMP
+          if ($LASTEXITCODE -ne 0) { throw "extracting $archive failed" }
+          Move-Item (Join-Path $env:RUNNER_TEMP $env:LLVM_MINGW_RELEASE) $env:DIRECTMETAL_LLVM_MINGW
+      - name: Add LLVM-MinGW to PATH
+        run: echo "$DIRECTMETAL_LLVM_MINGW/bin" >> "$GITHUB_PATH"
+      - name: Build API programs
+        run: |
+          programs=$(tail -n +2 tests/api/programs/manifest.tsv | cut -f1)
+          meson setup build/reference-x64 --native-file=toolchains/windows-llvm-mingw.ini
+          meson setup build/reference-x86 --cross-file=toolchains/windows-llvm-mingw-i686.ini
+          for build_dir in build/reference-x64 build/reference-x86; do
+            # shellcheck disable=SC2086
+            meson compile -C "$build_dir" $programs
+          done
+      - name: Run API programs on WARP
+        run: >-
+          python -I tools/reference/run_reference.py
+          --build x64=build/reference-x64
+          --build x86=build/reference-x86
+          --toolchain "$LLVM_MINGW_RELEASE"
+          --output "reference-$GITHUB_RUN_ID"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: reference-${{ github.run_id }}
+          path: reference-${{ github.run_id }}/
+          if-no-files-found: error
