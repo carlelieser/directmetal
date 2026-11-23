@@ -35,7 +35,7 @@ HRESULT Texture2D::create_unix_object(BridgeDevice& bridge, const TexturePlan& p
     if (!staging_.has_value()) {
         auto created = bridge.create_texture(to_backend_desc(plan));
         handle_ = created.has_value() ? created.value() : bridge::Handle{};
-        return to_hresult(created.status());
+        return to_hresult(created.status(), E_INVALIDARG);
     }
     const std::uint64_t size = staging_->layout.size();
     auto* memory = static_cast<std::byte*>(directmetal_bridge_allocate_shared(size));
@@ -45,7 +45,7 @@ HRESULT Texture2D::create_unix_object(BridgeDevice& bridge, const TexturePlan& p
     auto imported = bridge.import_memory(std::span(memory, size));
     if (!imported.has_value()) {
         directmetal_bridge_free_shared(memory, size);
-        return to_hresult(imported.status());
+        return to_hresult(imported.status(), E_OUTOFMEMORY);
     }
     staging_->memory = memory;
     handle_ = imported.value();

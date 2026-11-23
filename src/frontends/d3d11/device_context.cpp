@@ -141,7 +141,9 @@ HRESULT DeviceContext::wait_for_writes(const Texture2D& texture, UINT map_flags)
     const bool is_polling = (map_flags & D3D11_MAP_FLAG_DO_NOT_WAIT) != 0;
     const auto timeout =
         is_polling ? std::chrono::nanoseconds(-1) : std::chrono::nanoseconds::max();
-    return to_hresult(device().bridge().wait(texture.last_write(), timeout));
+    // A wait fails only when the unix side can no longer complete the work.
+    return to_hresult(device().bridge().wait(texture.last_write(), timeout),
+                      DXGI_ERROR_DEVICE_REMOVED);
 }
 
 void DeviceContext::copy_resource(Texture2D& destination, const Texture2D& source) {

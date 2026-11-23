@@ -17,7 +17,6 @@ constexpr std::array status_mappings = {
     StatusMapping{backend::Status::success, S_OK},
     StatusMapping{backend::Status::out_of_memory, E_OUTOFMEMORY},
     StatusMapping{backend::Status::invalid_argument, E_INVALIDARG},
-    StatusMapping{backend::Status::unsupported, DXGI_ERROR_UNSUPPORTED},
     StatusMapping{backend::Status::device_lost, DXGI_ERROR_DEVICE_REMOVED},
     StatusMapping{backend::Status::timeout, DXGI_ERROR_WAS_STILL_DRAWING},
 };
@@ -42,8 +41,8 @@ template <typename Mappings, typename Key> HRESULT lookup(const Mappings& mappin
 
 } // namespace
 
-HRESULT to_hresult(backend::Status status) noexcept {
-    return lookup(status_mappings, status);
+HRESULT to_hresult(backend::Status status, HRESULT unsupported) noexcept {
+    return status == backend::Status::unsupported ? unsupported : lookup(status_mappings, status);
 }
 
 HRESULT to_hresult(com::PrivateDataResult result) noexcept {

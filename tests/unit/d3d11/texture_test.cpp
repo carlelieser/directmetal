@@ -176,6 +176,18 @@ TEST_F(TextureTest, ResourcesOver2048MegabytesAreOutOfMemory) {
     EXPECT_EQ(device_->CreateTexture2D(&staging, nullptr, nullptr), E_OUTOFMEMORY);
 }
 
+// Direct3D reports a texture the device cannot create as an invalid argument or a lack of memory;
+// DXGI_ERROR_UNSUPPORTED belongs to device creation.
+TEST_F(TextureTest, UnixSideFailuresMapToCreationResults) {
+    const D3D11_TEXTURE2D_DESC desc = render_target_desc(DXGI_FORMAT_R8G8B8A8_UNORM);
+    ID3D11Texture2D* texture = nullptr;
+    fake_bridge::state().create_texture_status = directmetal::bridge::status_not_supported;
+    EXPECT_EQ(device_->CreateTexture2D(&desc, nullptr, &texture), E_INVALIDARG);
+    fake_bridge::state().create_texture_status = directmetal::bridge::status_no_memory;
+    EXPECT_EQ(device_->CreateTexture2D(&desc, nullptr, &texture), E_OUTOFMEMORY);
+    EXPECT_EQ(texture, nullptr);
+}
+
 TEST_F(TextureTest, StagingTextureIsImportedAndReleased) {
     ID3D11Texture2D* texture = create_texture(staging_desc(DXGI_FORMAT_R8G8B8A8_UNORM));
     ASSERT_EQ(fake_bridge::state().imported_sizes.size(), 1u);

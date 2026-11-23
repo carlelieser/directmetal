@@ -45,7 +45,7 @@ HRESULT check_driver(D3D_DRIVER_TYPE type, HMODULE software, UINT sdk_version) n
 HRESULT open_device(const DeviceSettings& settings, Device*& device) {
     auto bridge = BridgeDevice::open();
     if (!bridge.has_value()) {
-        return to_hresult(bridge.status());
+        return to_hresult(bridge.status(), DXGI_ERROR_UNSUPPORTED);
     }
     return Device::create(std::move(bridge).value(), settings, device);
 }

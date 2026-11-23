@@ -9,7 +9,9 @@
 
 namespace directmetal::d3d11 {
 
-HRESULT to_hresult(backend::Status status) noexcept;
+// backend::Status::unsupported has no single Direct3D meaning, so each call site names its
+// result: DXGI_ERROR_UNSUPPORTED for device creation, E_INVALIDARG or E_OUTOFMEMORY for resources.
+HRESULT to_hresult(backend::Status status, HRESULT unsupported) noexcept;
 HRESULT to_hresult(com::PrivateDataResult result) noexcept;
 
 // For a valid request that needs more than the implemented slice: logs operation and feature and
