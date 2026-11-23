@@ -130,6 +130,13 @@ void MetalRecorder::signal(Timeline& timeline, std::uint64_t value) {
     }
 }
 
+void MetalRecorder::wait(Timeline& timeline, std::uint64_t value) {
+    @autoreleasepool {
+        end_encoding();
+        [command_buffer() encodeWaitForEvent:timeline_state(timeline)->event() value:value];
+    }
+}
+
 RecordedWork MetalRecorder::finish() {
     end_encoding();
     RecordedWork work{command_buffer(), std::move(signaled_)};

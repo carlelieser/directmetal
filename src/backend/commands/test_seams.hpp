@@ -12,4 +12,8 @@ namespace directmetal::backend::commands::testing {
 // submit still run, so tests of a timeline's loss must not rely on them failing to.
 void fail_next_submit(Queue& queue) noexcept;
 
+// Commands recorded on queue after this wait on the GPU until timeline reaches value. The test
+// must signal timeline before destroying the queue, which waits for its submitted work.
+void wait_on_gpu(Queue& queue, Timeline& timeline, std::uint64_t value);
+
 } // namespace directmetal::backend::commands::testing

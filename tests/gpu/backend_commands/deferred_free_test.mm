@@ -1,3 +1,4 @@
+#include "commands/test_seams.hpp"
 #include "commands_fixture.hpp"
 #include "resource_access.hpp"
 
@@ -7,8 +8,24 @@ using namespace directmetal::backend;
 using namespace directmetal::backend::testing;
 
 constexpr std::uint64_t small_size = 64 * kib;
-// Dedicated buffers whose copy keeps the GPU busy for a few milliseconds.
 constexpr std::uint64_t large_size = 64 * mib;
+
+// Holds the queue's GPU work until opened; opens on destruction so teardown never waits on it.
+class Gate {
+public:
+    explicit Gate(Timeline& timeline) : timeline_(timeline) {}
+    Gate(const Gate&) = delete;
+    Gate& operator=(const Gate&) = delete;
+    ~Gate() { open(); }
+
+    void hold(Queue& queue) {
+        directmetal::backend::commands::testing::wait_on_gpu(queue, timeline_, 1);
+    }
+    void open() { timeline_.signal_cpu(1); }
+
+private:
+    Timeline& timeline_;
+};
 
 NSUInteger offset_of(Buffer& buffer) {
     return resources::metal_buffer(buffer).heapOffset;
@@ -17,23 +34,22 @@ NSUInteger offset_of(Buffer& buffer) {
 using DeferredFree = CommandsTest;
 
 TEST_F(DeferredFree, KeepsRangeUntilQueueCompletes) {
-    const auto large_source = make_buffer(large_size);
-    const auto large_destination = make_buffer(large_size);
+    const auto gate_timeline = make_timeline(0);
+    Gate gate(*gate_timeline);
+    const auto destination = make_buffer(small_size);
     auto small = make_buffer(small_size);
     const NSUInteger offset = offset_of(*small);
-    recorder().copy_buffer({*large_source, 0, *large_destination, 0, large_size});
-    recorder().copy_buffer({*small, 0, *large_destination, 0, small_size});
+    gate.hold(*queue_);
+    recorder().copy_buffer({*small, 0, *destination, 0, small_size});
     ASSERT_EQ(queue_->submit(), Status::success);
     small.reset();
     const auto replacement = make_buffer(small_size);
-    const MemoryStats during = device_->memory_stats();
-    const bool is_still_running = queue_->progress().completed_value() == 0;
-    if (is_still_running) {
-        EXPECT_EQ(during.pending_free_bytes, small_size);
-    }
-    if (offset_of(*replacement) == offset) {
-        EXPECT_GE(queue_->progress().completed_value(), 1u);
-    }
+    EXPECT_NE(offset_of(*replacement), offset);
+    EXPECT_EQ(device_->memory_stats().pending_free_bytes, small_size);
+    EXPECT_EQ(queue_->progress().wait(1, std::chrono::milliseconds(20)), Status::timeout);
+    EXPECT_EQ(device_->memory_stats().pending_free_bytes, small_size);
+
+    gate.open();
     ASSERT_EQ(queue_->progress().wait(1, patience), Status::success);
     EXPECT_EQ(device_->memory_stats().pending_free_bytes, 0u);
     const auto reuse = make_buffer(small_size);

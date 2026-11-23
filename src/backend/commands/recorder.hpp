@@ -39,6 +39,10 @@ public:
     void copy_texture(const TextureCopy& copy) override;
     void signal(Timeline& timeline, std::uint64_t value) override;
 
+    // Makes later commands wait on the GPU until timeline reaches value. Not part of
+    // CommandRecorder yet; test_seams.mm uses it.
+    void wait(Timeline& timeline, std::uint64_t value);
+
     // Ends recording; the next command starts a new command buffer.
     RecordedWork finish();
 
