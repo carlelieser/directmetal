@@ -65,7 +65,8 @@ using enum backend::PixelFormat;
 inline constexpr bool DeviceFeatures::* float32_filtering_feature =
     &DeviceFeatures::has_float32_filtering;
 inline constexpr bool DeviceFeatures::* bc_compression = &DeviceFeatures::has_bc_compression;
-// Tier 2 read_write access to the formats Apple lists as "All" in the texture buffer table.
+// Tier 2 read_write access to the formats Apple lists as "All" in the texture buffer table; the
+// R32 formats are tier 1, which every Apple GPU has.
 inline constexpr bool DeviceFeatures::* read_write_tier2 = &DeviceFeatures::has_read_write_tier2;
 
 inline constexpr CapabilityRow capability_rows[] = {
@@ -97,11 +98,11 @@ inline constexpr CapabilityRow capability_rows[] = {
     {abgr4_unorm, packed_16bit},
     {bgr5a1_unorm, packed_16bit},
     {r32_uint, integer_color | buffer},
-    {r32_uint, Capability::read_write, read_write_tier2},
+    {r32_uint, Capability::read_write},
     {r32_sint, integer_color | buffer},
-    {r32_sint, Capability::read_write, read_write_tier2},
+    {r32_sint, Capability::read_write},
     {r32_float, float32_color | buffer},
-    {r32_float, Capability::read_write, read_write_tier2},
+    {r32_float, Capability::read_write},
     {r32_float, float32_filtering, float32_filtering_feature},
     {rg16_unorm, all_color | buffer},
     {rg16_snorm, all_color | buffer},

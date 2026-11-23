@@ -145,10 +145,12 @@ TEST(DxgiSupport, DeviceFeaturesGateBcCompression) {
     }
 }
 
-TEST(DxgiSupport, DeviceFeaturesGateTypedUavLoads) {
+TEST(DxgiSupport, DeviceFeaturesGateTypedUavLoadsBeyondR32) {
     DeviceFeatures features = mac_features(GpuFamily::apple10);
     features.has_read_write_tier2 = false;
-    EXPECT_TRUE(formats_with(Support::typed_uav_load, features).empty());
+    const std::set<std::string_view> tier1 = {"DXGI_FORMAT_R32_FLOAT", "DXGI_FORMAT_R32_UINT",
+                                              "DXGI_FORMAT_R32_SINT"};
+    EXPECT_EQ(formats_with(Support::typed_uav_load, features), tier1);
     EXPECT_TRUE(has(support(r32_float, features), Support::typed_uav_store));
 }
 
