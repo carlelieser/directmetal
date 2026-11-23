@@ -34,6 +34,8 @@ public:
     virtual void signal_cpu(std::uint64_t value) noexcept = 0;
     // Runs callback once completed_value() reaches value, immediately if it already has. The
     // callback runs on a Metal completion thread and must only touch atomics and lock-free queues.
+    // Every pending callback still runs when the timeline is destroyed or its device is lost, so
+    // deferred frees waiting on it are not stranded.
     virtual void notify(std::uint64_t value, std::function<void()> callback) = 0;
 };
 
@@ -95,6 +97,7 @@ public:
     virtual Status submit() noexcept = 0;
     // The value the most recent submit signals; 0 before the first submit. Thread-safe.
     virtual std::uint64_t last_submitted_value() const noexcept = 0;
+    // Stable for the queue's lifetime. Thread-safe.
     virtual Timeline& progress() noexcept = 0;
 };
 

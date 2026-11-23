@@ -1,1 +1,23 @@
 # GPU tests for backend_memory (suite 'gpu').
+backend_memory_tests = executable(
+    'backend_memory_tests',
+    'adapter_test.mm',
+    'deferred_free_test.mm',
+    'gpu_access_test.mm',
+    'heap_test.mm',
+    'lifetime_test.mm',
+    'stress_test.mm',
+    'texture_test.mm',
+    include_directories: backend_private_include,
+    dependencies: [backend_dep, gtest_dep],
+    objcpp_args: '-fobjc-arc',
+)
+
+test(
+    'backend_memory',
+    backend_memory_tests,
+    protocol: 'gtest',
+    suite: 'gpu',
+    env: gpu_test_env,
+    timeout: 60,
+)

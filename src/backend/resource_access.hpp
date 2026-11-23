@@ -18,7 +18,9 @@ id<MTLTexture> metal_texture(Texture& texture) noexcept;
 
 // Deferred free: a destroyed resource's memory is returned once every tracked queue's progress
 // reaches the value that queue last submitted before the destruction (Queue::last_submitted_value,
-// Timeline::notify). Queues register on creation and unregister on destruction.
+// Timeline::notify). Queues register on creation and unregister first thing on destruction,
+// before any queue member is torn down; a queue must not outlive its device. The device calls
+// Queue::last_submitted_value and Queue::progress from the thread destroying a resource.
 void track_queue(Device& device, Queue& queue);
 void untrack_queue(Device& device, Queue& queue) noexcept;
 
