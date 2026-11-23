@@ -260,7 +260,8 @@ TEST_P(StreamDecoderRejects, WithStickyErrorAndExecutesNothing) {
     SubmitStreamParams params = submission_for(bytes);
     params.chunk_address = placeholder;
     GetParam().corrupt(bytes, params);
-    const GuardedChunk chunk(bytes);
+    // Aligned, so a size that is not a multiple of 8 is rejected for its size.
+    const GuardedChunk chunk(bytes, Placement::aligned);
     if (params.chunk_address != 0) {
         params.chunk_address += directmetal::bridge::to_address(chunk.data()) - placeholder;
     }

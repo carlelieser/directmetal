@@ -105,7 +105,8 @@ SubmitStreamParams submission_for(std::span<const std::byte> chunk) {
     return {{1}, bridge::to_address(chunk.data()), header.size, 0, header.sequence};
 }
 
-GuardedChunk::GuardedChunk(std::span<const std::byte> bytes) : size_(bytes.size()) {
+GuardedChunk::GuardedChunk(std::span<const std::byte> bytes, Placement placement)
+    : size_(bytes.size()) {
     const auto page_size = static_cast<std::size_t>(getpagesize());
     const std::size_t aligned_size = (bytes.size() + 7) / 8 * 8;
     const std::size_t data_pages = (aligned_size + page_size - 1) / page_size + 1;
@@ -120,7 +121,7 @@ GuardedChunk::GuardedChunk(std::span<const std::byte> bytes) : size_(bytes.size(
     if (mprotect(guard, page_size, PROT_NONE) != 0) {
         throw std::runtime_error("GuardedChunk: mprotect failed");
     }
-    start_ = guard - aligned_size;
+    start_ = guard - (placement == Placement::aligned ? aligned_size : bytes.size());
     std::memcpy(start_, bytes.data(), bytes.size());
 }
 

@@ -48,10 +48,20 @@ private:
 // The SubmitStreamParams matching a chunk as built.
 SubmitStreamParams submission_for(std::span<const std::byte> chunk);
 
-// Copies bytes so that they end at an inaccessible page: a read past the end faults.
+// Where GuardedChunk puts bytes in front of its inaccessible page.
+enum class Placement {
+    // The last byte is the last before the guard, so any read past the end faults; the start is
+    // misaligned when the size is not a multiple of 8.
+    at_guard,
+    // The start is 8-byte aligned and up to 7 readable bytes separate the end from the guard.
+    aligned,
+};
+
+// Copies bytes in front of an inaccessible page.
 class GuardedChunk {
 public:
-    explicit GuardedChunk(std::span<const std::byte> bytes);
+    explicit GuardedChunk(std::span<const std::byte> bytes,
+                          Placement placement = Placement::at_guard);
     GuardedChunk(const GuardedChunk&) = delete;
     GuardedChunk& operator=(const GuardedChunk&) = delete;
     ~GuardedChunk();

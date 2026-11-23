@@ -41,8 +41,9 @@ struct Outcome {
     std::size_t executed;
 };
 
-Outcome replay(const std::vector<std::byte>& bytes, std::uint32_t chunk_size) {
-    const GuardedChunk chunk(bytes);
+Outcome replay(const std::vector<std::byte>& bytes, std::uint32_t chunk_size,
+               Placement placement = Placement::at_guard) {
+    const GuardedChunk chunk(bytes, placement);
     const SubmitStreamParams params{
         {1}, directmetal::bridge::to_address(chunk.data()), chunk_size, 0, 1};
     StreamDecoder decoder;
@@ -71,15 +72,20 @@ TEST(DecoderCorpus, SingleByteFlips) {
     }
 }
 
-// Every proper prefix is rejected, whether or not the header's size was updated to match.
+// Every proper prefix is rejected, whether or not the header's size was updated to match. Sizes
+// that are not a multiple of 8 are also replayed from an aligned address, so the size check, not
+// the address check, rejects them.
 TEST(DecoderCorpus, Truncations) {
     const Corpus corpus = sample_corpus();
     for (std::uint32_t size = 0; size < corpus.bytes.size(); ++size) {
         std::vector<std::byte> bytes(corpus.bytes.begin(), corpus.bytes.begin() + size);
         EXPECT_LT(replay(bytes, size).status, 0) << "size " << size;
-        if (size >= sizeof(ChunkHeader)) {
-            std::memcpy(bytes.data() + offsetof(ChunkHeader, size), &size, sizeof(size));
-            const Outcome outcome = replay(bytes, size);
+        if (size < sizeof(ChunkHeader)) {
+            continue;
+        }
+        std::memcpy(bytes.data() + offsetof(ChunkHeader, size), &size, sizeof(size));
+        for (const Placement placement : {Placement::at_guard, Placement::aligned}) {
+            const Outcome outcome = replay(bytes, size, placement);
             EXPECT_LT(outcome.status, 0) << "patched size " << size;
             EXPECT_EQ(outcome.executed, 0u) << "patched size " << size;
         }
@@ -117,7 +123,8 @@ TEST(DecoderCorpus, RandomCorruption) {
         }
         bytes.resize(random.below(4) == 0 ? random.below(bytes.size() + 64) : bytes.size());
         const auto size = static_cast<std::uint32_t>(bytes.size());
-        const Outcome outcome = replay(bytes, size);
+        const Placement placement = index % 2 == 0 ? Placement::at_guard : Placement::aligned;
+        const Outcome outcome = replay(bytes, size, placement);
         if (outcome.status < 0) {
             ++rejected;
             EXPECT_EQ(outcome.executed, 0u) << "case " << index;
