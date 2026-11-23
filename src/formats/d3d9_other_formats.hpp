@@ -8,6 +8,14 @@
 namespace directmetal::formats::tables {
 
 inline constexpr Substitution d3d9_depth24 = Substitution::depth24_to_depth32_stencil8;
+// Windows drivers return INTZ depth in every channel and DF24 and DF16 depth in red only.
+inline constexpr std::array<Swizzle, 4> intz_swizzle = {Swizzle::red, Swizzle::red, Swizzle::red,
+                                                        Swizzle::red};
+inline constexpr std::array<Swizzle, 4> depth_swizzle = {Swizzle::red, Swizzle::zero, Swizzle::zero,
+                                                         Swizzle::one};
+// ATI2 stores X in BC5's second channel and Y in its first.
+inline constexpr std::array<Swizzle, 4> ati2_swizzle = {Swizzle::green, Swizzle::red, Swizzle::one,
+                                                        Swizzle::one};
 
 inline constexpr D3d9FormatInfo d3d9_other_rows[] = {
     {70, "D3DFMT_D16_LOCKABLE", depth16_unorm, no_substitution, identity_swizzle,
@@ -62,18 +70,18 @@ inline constexpr D3d9FormatInfo d3d9_other_rows[] = {
      16, 4, 4},
     {fourcc("MET1"), "D3DFMT_MULTI2_ARGB8", invalid, Substitution::unsupported, identity_swizzle,
      D3d9Usage::none, 0, 1, 1},
-    {fourcc("INTZ"), "INTZ", depth32_float_stencil8, d3d9_depth24, identity_swizzle,
+    {fourcc("INTZ"), "INTZ", depth32_float_stencil8, d3d9_depth24, intz_swizzle, d3d9_sampled_depth,
+     4, 1, 1},
+    {fourcc("DF24"), "DF24", depth32_float_stencil8, d3d9_depth24, depth_swizzle,
      d3d9_sampled_depth, 4, 1, 1},
-    {fourcc("DF24"), "DF24", depth32_float_stencil8, d3d9_depth24, identity_swizzle,
-     d3d9_sampled_depth, 4, 1, 1},
-    {fourcc("DF16"), "DF16", depth16_unorm, no_substitution, identity_swizzle, d3d9_sampled_depth,
-     2, 1, 1},
+    {fourcc("DF16"), "DF16", depth16_unorm, no_substitution, depth_swizzle, d3d9_sampled_depth, 2,
+     1, 1},
     // Raw depth reads expose a vendor-specific bit layout.
     {fourcc("RAWZ"), "RAWZ", invalid, Substitution::unsupported, identity_swizzle, D3d9Usage::none,
      4, 1, 1},
     {fourcc("ATI1"), "ATI1", bc4_runorm, no_substitution, identity_swizzle,
      D3d9Usage::texture | D3d9Usage::filter, 8, 4, 4},
-    {fourcc("ATI2"), "ATI2", bc5_rgunorm, no_substitution, identity_swizzle,
+    {fourcc("ATI2"), "ATI2", bc5_rgunorm, no_substitution, ati2_swizzle,
      D3d9Usage::texture | D3d9Usage::filter, 16, 4, 4},
     {fourcc("NULL"), "NULL", invalid, no_substitution, identity_swizzle, D3d9Usage::render_target,
      0, 1, 1},

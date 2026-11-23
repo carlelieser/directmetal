@@ -62,6 +62,17 @@ TEST(D3d9Formats, IncludesTheFourccExtensions) {
     EXPECT_EQ(info(fourcc("NULL")).usage, D3d9Usage::render_target);
 }
 
+TEST(D3d9Formats, ExtensionsReadChannelsLikeWindowsDrivers) {
+    // ATI2 stores X in the second BC5 channel; INTZ returns depth in every channel.
+    const std::array<Swizzle, 4> ati2 = {Swizzle::green, Swizzle::red, Swizzle::one, Swizzle::one};
+    const std::array<Swizzle, 4> intz = {Swizzle::red, Swizzle::red, Swizzle::red, Swizzle::red};
+    const std::array<Swizzle, 4> depth = {Swizzle::red, Swizzle::zero, Swizzle::zero, Swizzle::one};
+    EXPECT_EQ(info(fourcc("ATI2")).swizzle, ati2);
+    EXPECT_EQ(info(fourcc("INTZ")).swizzle, intz);
+    EXPECT_EQ(info(fourcc("DF24")).swizzle, depth);
+    EXPECT_EQ(info(fourcc("DF16")).swizzle, depth);
+}
+
 TEST(D3d9Formats, UnsupportedFormatsAdvertiseNoUsage) {
     for (const D3d9FormatInfo& format : all_d3d9_formats()) {
         if (format.substitution == Substitution::unsupported) {
