@@ -3,6 +3,7 @@ formats_tests = executable(
     'formats_tests',
     'dxgi_formats_test.cpp',
     'dxgi_support_test.cpp',
+    'view_compatibility_test.cpp',
     dependencies: [formats_dep, gtest_dep],
 )
 

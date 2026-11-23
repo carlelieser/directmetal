@@ -1,7 +1,7 @@
 # formats_dep's header is free of Windows headers. Only the table sources include DirectX-Headers'
 # dxgiformat.h (never together with the toolchain's), through formats_dxgi_headers, to check their
 # values in native builds.
-formats_sources = files('dxgi_formats.cpp')
+formats_sources = files('dxgi_formats.cpp', 'view_compatibility.cpp')
 formats_dxgi_headers = []
 if is_darwin
     directx_headers = dependency(
