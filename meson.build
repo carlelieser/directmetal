@@ -44,6 +44,7 @@ subdir('src/bridge')
 if is_darwin
     subdir('src/backend')
     subdir('src/unix')
+    subdir('src/bridge/native')
 endif
 subdir('src/frontends')
 subdir('tests')

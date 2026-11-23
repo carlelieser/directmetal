@@ -1,79 +1,31 @@
+#include <directmetal/host/dispatch.hpp>
 #include <directmetal/unixlib.hpp>
 
-#include <cstdio>
-#include <cstring>
+#include <cstdint>
 #include <iterator>
-#include <sys/utsname.h>
 
 namespace directmetal {
-namespace {
 
-using namespace bridge;
-
-Status query_version(void* params) noexcept {
-    auto* query = static_cast<QueryVersionParams*>(params);
-    if (query == nullptr || query->reserved != 0) {
-        return status_invalid_parameter;
-    }
-    query->version = protocol_version;
-    return status_success;
+template <std::uint32_t Code> bridge::Status entry(void* params) noexcept {
+    return host::dispatch(Code, params);
 }
 
-Status write_host_system(LogCallParams& call) noexcept {
-    utsname host{};
-    if (uname(&host) != 0) {
-        return status_unsuccessful;
-    }
-    std::strncpy(call.host_system, host.sysname, sizeof(call.host_system) - 1);
-    call.host_system[sizeof(call.host_system) - 1] = '\0';
-    return status_success;
-}
-
-Status log_call(void* params) noexcept {
-    auto* call = static_cast<LogCallParams*>(params);
-    if (call == nullptr) {
-        return status_invalid_parameter;
-    }
-    const bool has_valid_name = call->name != 0 && call->name_length <= max_name_length;
-    if (!has_valid_name || call->reserved != 0) {
-        return status_invalid_parameter;
-    }
-    // The reply is written first so a failure never follows a printed line: the PE side would
-    // otherwise report a logged call as not logged.
-    const Status status = write_host_system(*call);
-    if (status < 0) {
-        return status;
-    }
-    std::fprintf(stderr, "directmetal: call %.*s\n", static_cast<int>(call->name_length),
-                 from_address<const char>(call->name));
-    return status_success;
-}
-
-// Placeholder for control calls the host does not implement yet.
-Status not_implemented(void*) noexcept {
-    return status_not_implemented;
-}
-
-} // namespace
 } // namespace directmetal
 
-// Argument layouts are identical for 32-bit and 64-bit callers, so both tables share entries.
+// Argument layouts are identical for 32-bit and 64-bit callers, so both tables share entries. Wine
+// indexes them by bridge::FunctionCode; append an entry whenever a code is added.
 extern "C" {
 const directmetal::UnixCallEntry __wine_unix_call_funcs[] = {
-    directmetal::query_version,   directmetal::log_call,        directmetal::not_implemented,
-    directmetal::not_implemented, directmetal::not_implemented, directmetal::not_implemented,
-    directmetal::not_implemented, directmetal::not_implemented, directmetal::not_implemented,
-    directmetal::not_implemented, directmetal::not_implemented, directmetal::not_implemented,
-    directmetal::not_implemented, directmetal::not_implemented, directmetal::not_implemented,
-    directmetal::not_implemented,
+    directmetal::entry<0>,  directmetal::entry<1>,  directmetal::entry<2>,  directmetal::entry<3>,
+    directmetal::entry<4>,  directmetal::entry<5>,  directmetal::entry<6>,  directmetal::entry<7>,
+    directmetal::entry<8>,  directmetal::entry<9>,  directmetal::entry<10>, directmetal::entry<11>,
+    directmetal::entry<12>, directmetal::entry<13>, directmetal::entry<14>, directmetal::entry<15>,
 };
 const directmetal::UnixCallEntry __wine_unix_call_wow64_funcs[] = {
-    directmetal::query_version,   directmetal::log_call,        directmetal::not_implemented,
-    directmetal::not_implemented, directmetal::not_implemented, directmetal::not_implemented,
-    directmetal::not_implemented, directmetal::not_implemented, directmetal::not_implemented,
-    directmetal::not_implemented, directmetal::not_implemented, directmetal::not_implemented,
-    directmetal::not_implemented, directmetal::not_implemented, directmetal::not_implemented,
-    directmetal::not_implemented,
+    directmetal::entry<0>,  directmetal::entry<1>,  directmetal::entry<2>,  directmetal::entry<3>,
+    directmetal::entry<4>,  directmetal::entry<5>,  directmetal::entry<6>,  directmetal::entry<7>,
+    directmetal::entry<8>,  directmetal::entry<9>,  directmetal::entry<10>, directmetal::entry<11>,
+    directmetal::entry<12>, directmetal::entry<13>, directmetal::entry<14>, directmetal::entry<15>,
 };
 }
 
