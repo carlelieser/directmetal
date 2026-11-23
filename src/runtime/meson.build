@@ -2,6 +2,7 @@ platform_source = host_machine.system() == 'windows' ? 'platform_windows.cpp' : 
 
 runtime_lib = static_library(
     'runtime',
+    'hud.cpp',
     'log.cpp',
     'log_environment.cpp',
     'log_file.cpp',

@@ -1,6 +1,7 @@
 # Unit tests for src/runtime (suite 'unit': no GPU required).
 runtime_tests = executable(
     'runtime_tests',
+    'hud_test.cpp',
     'log_test.cpp',
     'log_file_test.cpp',
     'log_spec_test.cpp',
