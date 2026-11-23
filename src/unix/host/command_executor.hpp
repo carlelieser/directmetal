@@ -61,8 +61,15 @@ private:
 
     static const std::array<Handler, static_cast<std::size_t>(bridge::Opcode::count)> handlers;
 
+    // A signal_timeline whose mirror is updated once the submit that commits it succeeds.
+    struct PendingWatch {
+        std::shared_ptr<TimelineObject> timeline;
+        std::uint64_t value;
+    };
+
     ExecutorSetup setup_;
     std::vector<std::shared_ptr<void>> held_;
+    std::vector<PendingWatch> watches_;
     bool has_recorded_ = false;
 };
 

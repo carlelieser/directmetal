@@ -63,6 +63,9 @@ public:
 
     backend::CommandRecorder& recorder() noexcept override { return *this; }
     backend::Status submit() noexcept override {
+        if (gpu_.is_submit_failing) {
+            return backend::Status::device_lost;
+        }
         {
             const std::lock_guard lock(mutex_);
             ++submitted_;
@@ -170,6 +173,9 @@ void FakeTimeline::signal_cpu(std::uint64_t value) noexcept {
 }
 
 void FakeTimeline::notify(std::uint64_t value, std::function<void()> callback) {
+    if (notify_count_ != nullptr) {
+        ++*notify_count_;
+    }
     {
         const std::lock_guard lock(mutex_);
         if (completed_ < value) {
@@ -274,7 +280,7 @@ FakeDevice::create_texture(const backend::TextureDesc& desc) {
 Result<std::unique_ptr<backend::Timeline>>
 FakeDevice::create_timeline(std::uint64_t initial_value) {
     return Result<std::unique_ptr<backend::Timeline>>::success(
-        std::make_unique<FakeTimeline>(initial_value));
+        std::make_unique<FakeTimeline>(initial_value, &gpu_.timeline_notifies));
 }
 
 Result<std::unique_ptr<backend::Queue>> FakeDevice::create_queue() {

@@ -19,7 +19,9 @@ namespace directmetal::host::testing {
 
 class FakeTimeline final : public backend::Timeline {
 public:
-    explicit FakeTimeline(std::uint64_t initial_value) : completed_(initial_value) {}
+    // notify_count, when set, counts notify calls.
+    explicit FakeTimeline(std::uint64_t initial_value, std::atomic<int>* notify_count = nullptr)
+        : notify_count_(notify_count), completed_(initial_value) {}
     ~FakeTimeline() override;
 
     std::uint64_t completed_value() const noexcept override;
@@ -32,6 +34,7 @@ public:
 
 private:
     std::shared_ptr<int> token_ = std::make_shared<int>(0);
+    std::atomic<int>* notify_count_;
     mutable std::mutex mutex_;
     std::condition_variable has_advanced_;
     std::uint64_t completed_;
@@ -66,6 +69,10 @@ public:
     std::atomic<int> live_textures = 0;
     std::atomic<int> live_queues = 0;
     std::atomic<std::uint64_t> used_bytes = 0;
+    // notify calls on timelines created with create_timeline.
+    std::atomic<int> timeline_notifies = 0;
+    // Queue submits fail with device_lost while set.
+    std::atomic<bool> is_submit_failing = false;
 
 private:
     mutable std::mutex mutex_;

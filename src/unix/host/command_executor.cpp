@@ -187,9 +187,9 @@ Status CommandExecutor::signal_timeline(const DecodedCommand& command) {
         return status_invalid_parameter;
     }
     hold(timeline);
+    watches_.push_back({timeline, signal.value});
     timeline->highest_signaled.store(signal.value);
     setup_.queue->recorder().signal(*timeline->timeline, signal.value);
-    watch(*timeline->timeline, timeline->mirror, signal.value);
     return status_success;
 }
 
@@ -223,14 +223,21 @@ void CommandExecutor::hold(std::shared_ptr<void> object) {
     has_recorded_ = true;
 }
 
+// Watches are registered only for work that was committed: a failed submit's signals never
+// happen, and their callbacks would wait until the timeline is destroyed.
 Status CommandExecutor::submit_recorded() noexcept {
     const Status status = to_bridge(setup_.queue->submit());
+    std::vector<PendingWatch> watches;
+    watches.swap(watches_);
     held_.clear();
     has_recorded_ = false;
     if (status < 0) {
         return status;
     }
     try {
+        for (const PendingWatch& pending : watches) {
+            watch(*pending.timeline->timeline, pending.timeline->mirror, pending.value);
+        }
         watch(setup_.queue->progress(), setup_.progress_mirror,
               setup_.queue->last_submitted_value());
     } catch (const std::bad_alloc&) {

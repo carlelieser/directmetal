@@ -148,6 +148,18 @@ TEST_F(StreamErrorTest, InvalidSubresourceIsSticky) {
     expect_sticky(status_invalid_parameter, raw(Opcode::clear_texture), 1);
 }
 
+TEST_F(StreamErrorTest, FailedSubmitIsStickyAndWatchesNothing) {
+    std::uint64_t mirror = 0;
+    const Handle timeline = create_timeline(device, 1, &mirror);
+    gpu.is_submit_failing = true;
+    submit(chunk(1).add(SignalTimelineCommand{timeline, 4}).add(SubmitCommand{}));
+    recorded_before_failure = 1;
+    ASSERT_TRUE(wait_failed());
+    EXPECT_EQ(gpu.timeline_notifies, 0);
+    gpu.is_submit_failing = false;
+    expect_sticky(status_device_removed, raw(Opcode::submit), 1);
+}
+
 TEST_F(StreamErrorTest, WaitsFailAfterStickyError) {
     const Handle timeline = create_timeline(device, 3, nullptr);
     EXPECT_EQ(wait(timeline, 3), status_success);
