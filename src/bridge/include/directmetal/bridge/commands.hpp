@@ -3,14 +3,16 @@
 #include <directmetal/backend/types.hpp>
 #include <directmetal/bridge/protocol.hpp>
 
+#include <array>
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
 
-// The one-way command stream. A chunk is a ChunkHeader followed by command_count commands; each
-// command is a CommandHeader followed by its payload struct and, for set_label, inline UTF-8.
-// Commands are 8-byte aligned and their size is a multiple of 8. Payload sizes must match
-// exactly: directmetal.dll and directmetal.so always ship together.
+// The one-way command stream. A chunk is a ChunkHeader followed by exactly command_count commands
+// and nothing else; trailing bytes are an error. Each command is a CommandHeader followed by its
+// payload struct and, for set_label, inline UTF-8. Commands are 8-byte aligned and their size is a
+// multiple of 8. Payload sizes must match opcode_layouts exactly: directmetal.dll and
+// directmetal.so always ship together. Any violation makes the stream's error sticky.
 namespace directmetal::bridge {
 
 inline constexpr std::uint32_t chunk_magic = 0x53434D44; // "DMCS" in memory order
@@ -19,6 +21,8 @@ inline constexpr std::uint32_t max_label_length = 256;
 // Chunks are allocated with directmetal_bridge_allocate_shared, so they are 16 KiB aligned.
 inline constexpr std::uint32_t max_chunk_size = 1024 * 1024;
 
+// sequence and size must equal the SubmitStreamParams that submits the chunk, and size is at most
+// max_chunk_size.
 struct alignas(8) ChunkHeader {
     std::uint32_t magic;
     std::uint16_t version;
@@ -85,8 +89,8 @@ struct alignas(8) CopyBufferCommand {
     std::uint64_t size;
 };
 
-// Payload of both copy_buffer_to_texture and copy_texture_to_buffer.
-struct alignas(8) BufferTextureCopyCommand {
+// The region of a buffer↔texture copy.
+struct alignas(8) BufferTextureRegion {
     Handle buffer;
     std::uint64_t offset;
     std::uint32_t row_pitch;
@@ -96,6 +100,14 @@ struct alignas(8) BufferTextureCopyCommand {
     std::uint32_t slice;
     backend::Origin3D origin;
     backend::Extent3D extent;
+};
+
+struct alignas(8) CopyBufferToTextureCommand {
+    BufferTextureRegion region;
+};
+
+struct alignas(8) CopyTextureToBufferCommand {
+    BufferTextureRegion region;
 };
 
 struct alignas(8) CopyTextureCommand {
@@ -135,6 +147,31 @@ struct alignas(64) StreamControl {
     std::uint64_t reserved[4];
 };
 
+struct OpcodeLayout {
+    std::uint32_t payload_size;
+    bool has_inline_data;
+};
+
+// Indexed by Opcode; shared by the encoder and the decoder.
+inline constexpr std::array<OpcodeLayout, static_cast<std::size_t>(Opcode::count)> opcode_layouts =
+    {{
+        {0, false},
+        {sizeof(SetLabelCommand), true},
+        {sizeof(DestroyObjectCommand), false},
+        {sizeof(ClearTextureCommand), false},
+        {sizeof(ClearDepthStencilCommand), false},
+        {sizeof(CopyBufferCommand), false},
+        {sizeof(CopyBufferToTextureCommand), false},
+        {sizeof(CopyTextureToBufferCommand), false},
+        {sizeof(CopyTextureCommand), false},
+        {sizeof(SignalTimelineCommand), false},
+        {sizeof(SubmitCommand), false},
+    }};
+
+constexpr const OpcodeLayout& layout_of(Opcode opcode) noexcept {
+    return opcode_layouts[static_cast<std::size_t>(opcode)];
+}
+
 template <typename Command> inline constexpr Opcode opcode_of = Opcode::count;
 template <> inline constexpr Opcode opcode_of<SetLabelCommand> = Opcode::set_label;
 template <> inline constexpr Opcode opcode_of<DestroyObjectCommand> = Opcode::destroy_object;
@@ -142,9 +179,28 @@ template <> inline constexpr Opcode opcode_of<ClearTextureCommand> = Opcode::cle
 template <>
 inline constexpr Opcode opcode_of<ClearDepthStencilCommand> = Opcode::clear_depth_stencil;
 template <> inline constexpr Opcode opcode_of<CopyBufferCommand> = Opcode::copy_buffer;
+template <>
+inline constexpr Opcode opcode_of<CopyBufferToTextureCommand> = Opcode::copy_buffer_to_texture;
+template <>
+inline constexpr Opcode opcode_of<CopyTextureToBufferCommand> = Opcode::copy_texture_to_buffer;
 template <> inline constexpr Opcode opcode_of<CopyTextureCommand> = Opcode::copy_texture;
 template <> inline constexpr Opcode opcode_of<SignalTimelineCommand> = Opcode::signal_timeline;
 template <> inline constexpr Opcode opcode_of<SubmitCommand> = Opcode::submit;
+
+template <typename Command> constexpr bool is_layout_consistent() noexcept {
+    return layout_of(opcode_of<Command>).payload_size == sizeof(Command);
+}
+
+static_assert(is_layout_consistent<SetLabelCommand>());
+static_assert(is_layout_consistent<DestroyObjectCommand>());
+static_assert(is_layout_consistent<ClearTextureCommand>());
+static_assert(is_layout_consistent<ClearDepthStencilCommand>());
+static_assert(is_layout_consistent<CopyBufferCommand>());
+static_assert(is_layout_consistent<CopyBufferToTextureCommand>());
+static_assert(is_layout_consistent<CopyTextureToBufferCommand>());
+static_assert(is_layout_consistent<CopyTextureCommand>());
+static_assert(is_layout_consistent<SignalTimelineCommand>());
+static_assert(is_layout_consistent<SubmitCommand>());
 
 static_assert(sizeof(ChunkHeader) == 24);
 static_assert(offsetof(ChunkHeader, sequence) == 8);
@@ -161,11 +217,13 @@ static_assert(offsetof(ClearDepthStencilCommand, clear) == 24);
 static_assert(sizeof(CopyBufferCommand) == 40);
 static_assert(offsetof(CopyBufferCommand, destination) == 16);
 static_assert(offsetof(CopyBufferCommand, size) == 32);
-static_assert(sizeof(BufferTextureCopyCommand) == 64);
-static_assert(offsetof(BufferTextureCopyCommand, row_pitch) == 16);
-static_assert(offsetof(BufferTextureCopyCommand, texture) == 24);
-static_assert(offsetof(BufferTextureCopyCommand, origin) == 40);
-static_assert(offsetof(BufferTextureCopyCommand, extent) == 52);
+static_assert(sizeof(BufferTextureRegion) == 64);
+static_assert(sizeof(CopyBufferToTextureCommand) == 64);
+static_assert(sizeof(CopyTextureToBufferCommand) == 64);
+static_assert(offsetof(BufferTextureRegion, row_pitch) == 16);
+static_assert(offsetof(BufferTextureRegion, texture) == 24);
+static_assert(offsetof(BufferTextureRegion, origin) == 40);
+static_assert(offsetof(BufferTextureRegion, extent) == 52);
 static_assert(sizeof(CopyTextureCommand) == 80);
 static_assert(offsetof(CopyTextureCommand, source_origin) == 16);
 static_assert(offsetof(CopyTextureCommand, destination) == 32);

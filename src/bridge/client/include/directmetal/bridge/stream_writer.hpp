@@ -21,13 +21,8 @@ public:
     ~StreamWriter();
 
     template <typename Command> void record(const Command& command) {
-        static_assert(opcode_of<Command> != Opcode::count, "command needs an explicit opcode");
+        static_assert(opcode_of<Command> != Opcode::count, "not a command payload type");
         record_payload(opcode_of<Command>, &command, sizeof(Command));
-    }
-
-    // For payloads shared by several opcodes, such as BufferTextureCopyCommand.
-    template <typename Command> void record(Opcode opcode, const Command& command) {
-        record_payload(opcode, &command, sizeof(Command));
     }
 
     // label longer than max_label_length is truncated.
