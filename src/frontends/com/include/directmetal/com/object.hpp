@@ -12,6 +12,7 @@
 // COM object base. QueryInterface is driven by each class's interface table; reference counts are
 // split into public (AddRef/Release) and private (internal owners such as a device's children).
 // Threading: counts are atomic, QueryInterface is lock-free.
+// ABI: objects built natively use the Itanium C++ ABI, not MSVC's, so PE code never calls them.
 namespace directmetal::com {
 
 template <typename Base, typename... Extra> class Object;
@@ -97,6 +98,10 @@ protected:
     virtual ~Object();
     // The derived class's interface table lookup.
     virtual void* find_interface(REFIID iid) noexcept = 0;
+    // The hooks below follow the count transitions without a lock: on another thread a hook may
+    // run concurrently with, or before, the hook of an earlier transition. Each must be
+    // thread-safe and a balanced, commutative operation such as taking or dropping a reference; a
+    // hook that needs ordered state serializes itself and re-reads the count.
     // Runs when the public count goes from 0 to 1 again; children re-take their device reference.
     virtual void on_first_public_ref() noexcept {}
     // Runs when the public count reaches zero; children drop their device reference here.
