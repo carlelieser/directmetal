@@ -82,7 +82,10 @@ struct alignas(8) CreateTextureParams {
     Handle device;
     backend::TextureDesc desc;
     std::uint32_t reserved;
-    Handle texture;                // out
+    Handle texture; // out
+    // The growth of the device's used memory across the creation, measured with creation
+    // serialized per device. It is exact while each device has one stream (Phase 1); a resource
+    // destroyed concurrently by another stream of the device would skew it.
     std::uint64_t allocation_size; // out
 };
 
@@ -123,7 +126,9 @@ struct alignas(8) SubmitStreamParams {
 };
 
 // Returns status_success or status_timeout. Once the stream that signals the timeline (or whose
-// progress timeline it is) has a sticky error, every wait fails with status_device_removed.
+// progress timeline it is) has a sticky error, every wait fails with status_device_removed. In
+// Phase 1 the host applies this per device: a sticky error on any stream of the device fails waits
+// on every timeline of that device, which is the same while each device has one stream.
 struct alignas(8) WaitTimelineParams {
     Handle timeline;
     std::uint64_t value;
