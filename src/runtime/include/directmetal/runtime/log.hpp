@@ -52,7 +52,8 @@ void write(Component component, Level level, std::string_view message) noexcept;
 std::size_t apply_spec(std::string_view spec) noexcept;
 
 // Appends lines to the file at `path` (UTF-8) instead of stderr. An empty path restores stderr.
-// Returns false, leaving the current output unchanged, if the file cannot be opened.
+// Returns false, leaving the current output unchanged, if the file cannot be opened. Returns only
+// when no write into the previous file is running.
 bool set_file(std::string_view path) noexcept;
 
 // Applies DIRECTMETAL_LOG and DIRECTMETAL_LOG_FILE. Runs once when the library is loaded; calling
@@ -80,7 +81,9 @@ public:
     virtual void write(Component component, Level level, std::string_view message) noexcept = 0;
 };
 
-// Null restores stderr. The sink must outlive its installation.
+// Null restores stderr. The sink must outlive its installation. Sink calls are serialized with
+// every other output, so when set_sink returns no call into the previous sink is running or will
+// start. A sink must not log or call set_sink or set_file from write.
 void set_sink(Sink* sink) noexcept;
 
 std::string_view name(Level level) noexcept;

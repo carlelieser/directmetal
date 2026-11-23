@@ -7,11 +7,15 @@
 #include <cstddef>
 #include <cstdio>
 #include <format>
+#include <mutex>
 #include <new>
 #include <string>
 #include <utility>
 
 namespace directmetal::log {
+
+constinit std::mutex output_mutex;
+
 namespace {
 
 constexpr std::size_t component_count = static_cast<std::size_t>(Component::count);
@@ -33,7 +37,8 @@ default_levels(std::index_sequence<Index...>) noexcept {
 constinit std::array<std::atomic<Level>, component_count> levels =
     default_levels(std::make_index_sequence<component_count>{});
 
-constinit std::atomic<Sink*> sink{nullptr};
+// Guarded by output_mutex.
+Sink* sink = nullptr;
 
 std::size_t index_of(Component component) noexcept {
     return static_cast<std::size_t>(component);
@@ -69,8 +74,9 @@ void set_level(Component component, Level level) noexcept {
 }
 
 void write(Component component, Level level, std::string_view message) noexcept {
-    if (Sink* current = sink.load(std::memory_order_acquire); current != nullptr) {
-        current->write(component, level, message);
+    const std::lock_guard lock(output_mutex);
+    if (sink != nullptr) {
+        sink->write(component, level, message);
         return;
     }
     if (!write_to_log_file(component, level, message)) {
@@ -79,7 +85,8 @@ void write(Component component, Level level, std::string_view message) noexcept 
 }
 
 void set_sink(Sink* new_sink) noexcept {
-    sink.store(new_sink, std::memory_order_release);
+    const std::lock_guard lock(output_mutex);
+    sink = new_sink;
 }
 
 std::string_view name(Level level) noexcept {

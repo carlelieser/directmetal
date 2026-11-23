@@ -11,14 +11,12 @@
 namespace directmetal::log {
 namespace {
 
-// Held across the write so set_file never closes a handle that is being written.
-constinit std::mutex file_mutex;
+// Guarded by output_mutex.
 platform::FileHandle current_file = platform::no_file;
 
 } // namespace
 
 bool write_to_file(std::string_view line) noexcept {
-    const std::lock_guard lock(file_mutex);
     return current_file != platform::no_file && platform::write_all(current_file, line);
 }
 
@@ -36,7 +34,7 @@ bool set_file(std::string_view path) noexcept {
             return false;
         }
     }
-    const std::lock_guard lock(file_mutex);
+    const std::lock_guard lock(output_mutex);
     if (current_file != platform::no_file) {
         platform::close_file(current_file);
     }

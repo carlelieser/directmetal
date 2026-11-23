@@ -1,6 +1,8 @@
 #include "log_fixture.hpp"
 
+#include <atomic>
 #include <cstdlib>
+#include <deque>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -118,6 +120,56 @@ TEST_F(LogFileTest, ConcurrentWritersKeepLinesWhole) {
         EXPECT_EQ(text.rfind("directmetal: info host: thread ", 0), 0u) << text;
     }
     EXPECT_EQ(count, thread_count * lines_per_thread);
+}
+
+// Reports any call still running after its owner declared it retired.
+class RetirableSink : public Sink {
+public:
+    void write(Component, Level, std::string_view) noexcept override {
+        for (int spin = 0; spin < 5000; ++spin) {
+            std::atomic_signal_fence(std::memory_order_seq_cst);
+        }
+        if (is_retired) {
+            ++late_calls;
+        }
+    }
+
+    std::atomic<bool> is_retired{false};
+    std::atomic<int> late_calls{0};
+};
+
+TEST_F(LogFileTest, ReplacingTheSinkOrFileWaitsForWritesInFlight) {
+    std::atomic<bool> is_done{false};
+    std::vector<std::thread> writers;
+    for (int index = 0; index < 2; ++index) {
+        writers.emplace_back([&] {
+            while (!is_done) {
+                print(Component::host, Level::info, "concurrent");
+                std::this_thread::yield();
+            }
+        });
+    }
+    testing::internal::CaptureStderr();
+    std::deque<RetirableSink> retired_sinks;
+    for (int round = 0; round < 100; ++round) {
+        RetirableSink& retirable = retired_sinks.emplace_back();
+        set_sink(&retirable);
+        std::this_thread::yield();
+        set_sink(nullptr);
+        retirable.is_retired = true;
+        ASSERT_TRUE(set_file(path.string()));
+        ASSERT_TRUE(set_file(""));
+    }
+    is_done = true;
+    for (std::thread& writer : writers) {
+        writer.join();
+    }
+    testing::internal::GetCapturedStderr();
+    int late_calls = 0;
+    for (const RetirableSink& retirable : retired_sinks) {
+        late_calls += retirable.late_calls;
+    }
+    EXPECT_EQ(late_calls, 0);
 }
 
 TEST_F(LogFileTest, EnvironmentSetsLevelsAndFile) {
