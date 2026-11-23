@@ -94,6 +94,8 @@ public:
     // Waits for the last pass and checks it, then checks that both rings wrapped.
     bool finish(Report& report);
     int wraps() const noexcept { return upload_.wraps + readback_.wraps; }
+    // Every command naming the rings must have been submitted and flushed.
+    bool release(Report& report);
 
 private:
     // Writes the pattern for check.pass into upload and marks the readback region unwritten.
@@ -182,6 +184,18 @@ bool Roundtrip::finish(Report& report) {
     return true;
 }
 
+bool Roundtrip::release(Report& report) {
+    const backend::Status upload = upload_.ring.release();
+    const backend::Status readback = readback_.ring.release();
+    if (upload != backend::Status::success) {
+        return report.fail("releasing the upload ring failed with " + status_text(upload));
+    }
+    if (readback != backend::Status::success) {
+        return report.fail("releasing the readback ring failed with " + status_text(readback));
+    }
+    return true;
+}
+
 bool run_passes(Roundtrip& roundtrip, Report& report) {
     std::uint64_t pass = 0;
     bool is_passing = true;
@@ -193,7 +207,7 @@ bool run_passes(Roundtrip& roundtrip, Report& report) {
     return is_passing;
 }
 
-// The rings are released and freed on return, after every command naming them is submitted.
+// Releases the rings once every command naming them is submitted and flushed.
 Report run_rings(DeviceClient& device, StreamWriter& writer, TimelineClient progress) {
     Report report;
     auto upload = StagingRing::create(device, ring_capacity);
@@ -204,10 +218,14 @@ Report run_rings(DeviceClient& device, StreamWriter& writer, TimelineClient prog
         return report;
     }
     Roundtrip roundtrip(writer, progress, {std::move(upload).value(), std::move(readback).value()});
-    if (!run_passes(roundtrip, report)) {
+    const bool is_passing = run_passes(roundtrip, report);
+    if (!is_passing) {
         writer.record(SubmitCommand{0});
     }
     writer.flush();
+    if (is_passing) {
+        roundtrip.release(report);
+    }
     return report;
 }
 
