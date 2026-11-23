@@ -32,18 +32,19 @@ TEST(NativeTransport, ReachesHostDispatchForLogCall) {
     EXPECT_STRNE(params.host_system, "");
 }
 
-// The interim host::dispatch reports every Phase 1 control call as not implemented.
+// The host rejects null parameters for every control call.
 TEST(NativeTransport, PassesNewControlCallsToHostDispatch) {
     for (auto code = to_index(FunctionCode::initialize); code < to_index(FunctionCode::count);
          ++code) {
-        EXPECT_EQ(directmetal_bridge_call(code, nullptr), status_not_implemented)
+        EXPECT_EQ(directmetal_bridge_call(code, nullptr), status_invalid_parameter)
             << "code " << code;
     }
 }
 
 TEST(NativeTransport, CarriesClientCallsToHostDispatch) {
     EXPECT_EQ(query_version().value(), protocol_version);
-    EXPECT_EQ(DeviceClient::create(0, {}).status(), directmetal::backend::Status::unsupported);
+    // Creating a device would create a Metal device, which suite unit must not.
+    EXPECT_EQ(initialize("native_transport_test", false), directmetal::backend::Status::success);
 }
 
 TEST(NativeTransport, RejectsUnknownCodes) {
