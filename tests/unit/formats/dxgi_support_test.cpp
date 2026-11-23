@@ -99,7 +99,7 @@ TEST(DxgiSubstitutions, B8G8R8X8ForcesAlphaToOne) {
 
 TEST(DxgiSubstitutions, R32G32B32IsAVertexFormatOnly) {
     for (const DxgiFormat format : {r32g32b32_float, 7u, 8u}) {
-        EXPECT_EQ(info(format).substitution, Substitution::rgb_as_buffer_only) << format;
+        EXPECT_EQ(info(format).substitution, Substitution::vertex_fetch_only) << format;
         EXPECT_EQ(info(format).bytes_per_block, 12) << format;
         for (const GpuFamily family : {GpuFamily::apple7, GpuFamily::apple10}) {
             EXPECT_EQ(support(format, family), Support::vertex_buffer) << format;

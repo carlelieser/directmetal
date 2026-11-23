@@ -57,7 +57,7 @@ enum class Substitution : std::uint8_t {
     none,
     depth24_to_depth32_stencil8,
     alpha_forced_one,
-    rgb_as_buffer_only,
+    vertex_fetch_only,
     emulated_unpack,
     unsupported,
 };
