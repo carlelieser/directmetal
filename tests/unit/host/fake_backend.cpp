@@ -1,6 +1,7 @@
 #include "fake_backend.hpp"
 
 #include <algorithm>
+#include <stdexcept>
 
 namespace directmetal::host::testing {
 namespace {
@@ -294,6 +295,9 @@ backend::MemoryStats FakeDevice::memory_stats() const {
 Result<std::unique_ptr<backend::Device>>
 FakeProvider::create(const backend::DeviceRequest& request) {
     last_request = request;
+    if (is_create_throwing) {
+        throw std::runtime_error("fake device creation failure");
+    }
     if (create_status != backend::Status::success) {
         return Result<std::unique_ptr<backend::Device>>::failure(create_status);
     }

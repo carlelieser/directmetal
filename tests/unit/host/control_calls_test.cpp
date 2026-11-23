@@ -1,5 +1,6 @@
 #include "host_fixture.hpp"
 
+#include <string>
 #include <string_view>
 
 namespace directmetal::host::testing {
@@ -138,6 +139,20 @@ TEST_F(HostTest, ReportsDeviceCreationFailure) {
     EXPECT_EQ(call(FunctionCode::create_device, huge), status_invalid_parameter);
     CreateDeviceParams largest{0, {std::uint64_t{1} << 30, 0}, {}, {}};
     EXPECT_EQ(call(FunctionCode::create_device, largest), status_success);
+}
+
+TEST_F(HostTest, ContainsUnexpectedExceptions) {
+    initialize();
+    provider.is_create_throwing = true;
+    CreateDeviceParams params{};
+    ::testing::internal::CaptureStderr();
+    EXPECT_EQ(call(FunctionCode::create_device, params), status_unsuccessful);
+    EXPECT_EQ(call(FunctionCode::create_device, params), status_unsuccessful);
+    const std::string logged = ::testing::internal::GetCapturedStderr();
+    EXPECT_NE(logged.find("control call 4 threw"), std::string::npos);
+    EXPECT_EQ(logged.find("threw", logged.find("threw") + 1), std::string::npos);
+    provider.is_create_throwing = false;
+    EXPECT_FALSE(is_null(create_device()));
 }
 
 TEST_F(HostTest, CreatesAndValidatesBuffers) {

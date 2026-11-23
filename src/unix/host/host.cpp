@@ -6,6 +6,8 @@
 #include <directmetal/host/dispatch.hpp>
 
 #include <array>
+#include <atomic>
+#include <cstdio>
 #include <cstring>
 #include <new>
 
@@ -67,6 +69,16 @@ constexpr std::array<Call, to_index(FunctionCode::count)> calls = {{
     {invoke<DestroyTimelineParams, destroy_timeline>, true},
 }};
 
+// No exception may cross the bridge; one the host cannot name leaves it in an unknown state, which
+// is reported once rather than on every later call.
+void report_unexpected_exception(std::uint32_t code) noexcept {
+    static std::atomic<bool> has_reported = false;
+    if (!has_reported.exchange(true)) {
+        std::fprintf(stderr, "directmetal: host: control call %u threw an unexpected exception\n",
+                     code);
+    }
+}
+
 } // namespace
 
 class Host::State {
@@ -106,6 +118,9 @@ Status Host::call(std::uint32_t code, void* params, CallerAbi abi) noexcept {
         return call.entry(context, params, abi);
     } catch (const std::bad_alloc&) {
         return status_no_memory;
+    } catch (...) {
+        report_unexpected_exception(code);
+        return status_unsuccessful;
     }
 }
 

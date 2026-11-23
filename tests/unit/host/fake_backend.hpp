@@ -120,6 +120,8 @@ public:
     backend::Capabilities device_capabilities = capabilities();
     // create fails with this status unless it is success.
     backend::Status create_status = backend::Status::success;
+    // create throws std::runtime_error while set.
+    bool is_create_throwing = false;
 
 private:
     FakeGpu& gpu_;
