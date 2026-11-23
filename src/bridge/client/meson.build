@@ -7,6 +7,7 @@ bridge_client_lib = static_library(
     'control_call.cpp',
     'device_client.cpp',
     'shared_block_allocator.cpp',
+    'staging_ring.cpp',
     'stream_writer.cpp',
     include_directories: bridge_client_include,
     dependencies: [bridge_protocol_dep, bridge_codec_dep, memory_dep, runtime_dep],
