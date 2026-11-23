@@ -99,10 +99,12 @@ struct alignas(8) SubmitStreamParams {
     std::uint64_t sequence;
 };
 
-// Returns status_success or status_timeout.
+// Returns status_success or status_timeout. Once the stream that signals the timeline (or whose
+// progress timeline it is) has a sticky error, every wait fails with status_device_removed.
 struct alignas(8) WaitTimelineParams {
     Handle timeline;
     std::uint64_t value;
+    // timeout_infinite waits without a limit.
     std::uint64_t timeout_ns;
 };
 

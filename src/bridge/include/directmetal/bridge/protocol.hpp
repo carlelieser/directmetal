@@ -52,6 +52,8 @@ inline constexpr Status status_entrypoint_not_found = static_cast<Status>(0xC000
 inline constexpr Status status_device_removed = static_cast<Status>(0xC00002B6);
 
 inline constexpr std::uint32_t max_name_length = 256;
+// WaitTimelineParams::timeout_ns value that never times out.
+inline constexpr std::uint64_t timeout_infinite = UINT64_MAX;
 // import_memory requires address and size to be multiples of this: the page size of native arm64
 // and of the kernel under Rosetta 2. Metal documents page alignment for no-copy buffers.
 inline constexpr std::uint64_t shared_memory_alignment = 16 * 1024;

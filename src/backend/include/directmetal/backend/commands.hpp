@@ -4,6 +4,7 @@
 
 #include <chrono>
 #include <cstdint>
+#include <functional>
 #include <string_view>
 
 namespace directmetal::backend {
@@ -31,6 +32,9 @@ public:
     virtual std::uint64_t completed_value() const noexcept = 0;
     virtual Status wait(std::uint64_t value, std::chrono::nanoseconds timeout) noexcept = 0;
     virtual void signal_cpu(std::uint64_t value) noexcept = 0;
+    // Runs callback once completed_value() reaches value, immediately if it already has. The
+    // callback runs on a Metal completion thread and must only touch atomics and lock-free queues.
+    virtual void notify(std::uint64_t value, std::function<void()> callback) = 0;
 };
 
 struct BufferCopy {
@@ -81,13 +85,16 @@ public:
     virtual void signal(Timeline& timeline, std::uint64_t value) = 0;
 };
 
-// Owned by one thread at a time (the stream thread that decodes into it).
+// Owned by one thread at a time (the stream thread that decodes into it). progress() starts at 0
+// and the k-th submit signals k.
 class Queue {
 public:
     virtual ~Queue() = default;
     virtual CommandRecorder& recorder() noexcept = 0;
-    // Commits the current MTLCommandBuffer and signals progress() with the next value.
+    // Commits the current MTLCommandBuffer and signals progress() with last_submitted_value() + 1.
     virtual Status submit() noexcept = 0;
+    // The value the most recent submit signals; 0 before the first submit. Thread-safe.
+    virtual std::uint64_t last_submitted_value() const noexcept = 0;
     virtual Timeline& progress() noexcept = 0;
 };
 
