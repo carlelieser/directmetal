@@ -6,6 +6,7 @@ backend_memory_tests = executable(
     'gpu_access_test.mm',
     'heap_test.mm',
     'lifetime_test.mm',
+    'stress_test.mm',
     'texture_test.mm',
     include_directories: backend_private_include,
     dependencies: [backend_dep, gtest_dep],
