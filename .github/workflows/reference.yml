@@ -59,7 +59,8 @@ jobs:
         run: |
           programs=$(tail -n +2 tests/api/programs/manifest.tsv | cut -f1)
           meson setup build/reference-x64 --native-file=toolchains/windows-llvm-mingw.ini
-          meson setup build/reference-x86 --cross-file=toolchains/windows-llvm-mingw-i686.ini
+          meson setup build/reference-x86 --native-file=toolchains/windows-llvm-mingw.ini \
+            --cross-file=toolchains/windows-llvm-mingw-i686.ini
           for build_dir in build/reference-x64 build/reference-x86; do
             # shellcheck disable=SC2086
             meson compile -C "$build_dir" $programs
