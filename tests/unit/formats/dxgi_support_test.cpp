@@ -155,13 +155,34 @@ TEST(DxgiSupport, DisplayFormatsAreTheScanoutFormats) {
 TEST(DxgiSupport, CompressedFormatsAreSampledNotRendered) {
     for (DxgiFormat format = 71; format <= 99; ++format) {
         const FormatInfo* found = find(format);
-        if (found == nullptr || found->kind != ComponentKind::compressed) {
+        const bool is_compressed_view = found != nullptr && found->block_width == 4;
+        if (!is_compressed_view || found->kind == ComponentKind::typeless) {
             continue;
         }
         const Support supported = support(format, GpuFamily::apple7);
         EXPECT_TRUE(has(supported, Support::texture2d | Support::shader_sample)) << found->name;
         EXPECT_FALSE(has(supported, Support::render_target)) << found->name;
         EXPECT_FALSE(has(supported, Support::texture1d)) << found->name;
+    }
+}
+
+TEST(DxgiLayout, CompressedKindsKeepTheirComponentType) {
+    struct Expected {
+        DxgiFormat format;
+        ComponentKind kind;
+    };
+    constexpr Expected expected[] = {
+        {71, ComponentKind::compressed_unorm},  {72, ComponentKind::compressed_unorm_srgb},
+        {80, ComponentKind::compressed_unorm},  {81, ComponentKind::compressed_snorm},
+        {84, ComponentKind::compressed_snorm},  {95, ComponentKind::compressed_ufloat},
+        {96, ComponentKind::compressed_sfloat}, {99, ComponentKind::compressed_unorm_srgb},
+    };
+    for (const Expected& entry : expected) {
+        EXPECT_EQ(info(entry.format).kind, entry.kind) << info(entry.format).name;
+    }
+    for (const DxgiFormat format : {0u, 189u, 190u}) {
+        EXPECT_EQ(info(format).kind, ComponentKind::opaque) << format;
+        EXPECT_EQ(info(format).typeless_family, 0u) << format;
     }
 }
 

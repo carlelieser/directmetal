@@ -72,8 +72,14 @@ enum class ComponentKind : std::uint8_t {
     float_value,
     depth,
     depth_stencil,
-    compressed,
+    compressed_unorm,
+    compressed_unorm_srgb,
+    compressed_snorm,
+    compressed_ufloat,
+    compressed_sfloat,
     video,
+    // No component layout: DXGI_FORMAT_UNKNOWN and sampler feedback maps.
+    opaque,
 };
 
 struct FormatInfo {

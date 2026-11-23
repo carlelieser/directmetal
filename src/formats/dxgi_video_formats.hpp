@@ -9,7 +9,7 @@ namespace directmetal::formats::tables {
 inline constexpr Substitution no_metal_format = Substitution::unsupported;
 
 inline constexpr DxgiRow video_format_rows[] = {
-    {0, "DXGI_FORMAT_UNKNOWN", invalid, typeless, 0, 0, Support::none, no_metal_format,
+    {0, "DXGI_FORMAT_UNKNOWN", invalid, opaque, 0, 0, Support::none, no_metal_format,
      identity_swizzle, 1, 1, 0},
     {100, "DXGI_FORMAT_AYUV", invalid, video, 0, 4, Support::none, no_metal_format},
     {101, "DXGI_FORMAT_Y410", invalid, video, 0, 4, Support::none, no_metal_format},
@@ -41,9 +41,9 @@ inline constexpr DxgiRow video_format_rows[] = {
     {132, "DXGI_FORMAT_V408", invalid, video, 0, 1, Support::none, no_metal_format,
      identity_swizzle, 1, 1, 3},
     // Sampler feedback maps have an opaque layout.
-    {189, "DXGI_FORMAT_SAMPLER_FEEDBACK_MIN_MIP_OPAQUE", invalid, typeless, 189, 0, Support::none,
+    {189, "DXGI_FORMAT_SAMPLER_FEEDBACK_MIN_MIP_OPAQUE", invalid, opaque, 0, 0, Support::none,
      no_metal_format},
-    {190, "DXGI_FORMAT_SAMPLER_FEEDBACK_MIP_REGION_USED_OPAQUE", invalid, typeless, 190, 0,
+    {190, "DXGI_FORMAT_SAMPLER_FEEDBACK_MIP_REGION_USED_OPAQUE", invalid, opaque, 0, 0,
      Support::none, no_metal_format},
 };
 

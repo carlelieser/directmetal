@@ -1,11 +1,17 @@
 #include <directmetal/formats/formats.hpp>
 
+#include <algorithm>
+#include <iterator>
+
 namespace directmetal::formats {
 namespace {
 
 // Views name a typed format; video resources are not viewable in Phase 1.
 bool is_view_format(const FormatInfo& view) noexcept {
-    return view.kind != ComponentKind::typeless && view.kind != ComponentKind::video;
+    constexpr ComponentKind unviewable[] = {ComponentKind::typeless, ComponentKind::video,
+                                            ComponentKind::opaque};
+    return std::find(std::begin(unviewable), std::end(unviewable), view.kind) ==
+           std::end(unviewable);
 }
 
 bool is_in_family(const FormatInfo& resource, const FormatInfo& view) noexcept {
