@@ -35,10 +35,26 @@ HeldInterface hold(IUnknown* object) noexcept {
     return HeldInterface(object);
 }
 
+// The bytes of a debug-name entry, or null when it is absent or holds an interface.
+template <typename Entry> const std::vector<std::byte>* name_bytes(const Entry* entry) noexcept {
+    const bool has_bytes = entry != nullptr && entry->object == nullptr;
+    return has_bytes ? &entry->bytes : nullptr;
+}
+
 std::string narrow_name(std::span<const std::byte> bytes) {
     const auto* begin = reinterpret_cast<const char*>(bytes.data());
     const auto* end = std::find(begin, begin + bytes.size(), '\0');
     return std::string(begin, end);
+}
+
+// The debug name set last wins; an interface stored under a debug-name GUID is not a name.
+std::string choose_name(const std::vector<std::byte>* wide, const std::vector<std::byte>* narrow,
+                        bool is_wide_preferred) {
+    const bool is_wide_chosen = is_wide_preferred || narrow == nullptr;
+    if (wide != nullptr && is_wide_chosen) {
+        return utf8_from_utf16(*wide);
+    }
+    return narrow != nullptr ? narrow_name(*narrow) : std::string();
 }
 
 } // namespace
@@ -116,24 +132,25 @@ void PrivateDataStore::on_debug_name_changed(std::function<void(std::string_view
 void PrivateDataStore::store(Entry entry) {
     const bool is_name = is_debug_name(entry.guid);
     const bool is_removal = entry.bytes.empty() && entry.object == nullptr;
-    const bool is_wide_name = IsEqualGUID(entry.guid, debug_object_name_wide);
     HeldInterface added = hold(entry.object);
     HeldInterface replaced;
     DebugNameCallback callback;
     std::string name;
     {
         const std::scoped_lock lock(mutex_);
+        // Everything that can throw comes first, so a failure leaves the store unchanged.
+        entries_.reserve(entries_.size() + 1);
         if (is_name) {
             callback = debug_name_callback_;
         }
+        if (callback) {
+            name = debug_name_after(entry, is_removal);
+        }
+        if (is_name && !is_removal) {
+            is_wide_name_preferred_ = IsEqualGUID(entry.guid, debug_object_name_wide);
+        }
         replaced.reset(replace(entry.guid, is_removal ? nullptr : &entry));
         (void)added.release();
-        if (is_name && !is_removal) {
-            is_wide_name_preferred_ = is_wide_name;
-        }
-        if (callback) {
-            name = debug_name_locked();
-        }
     }
     replaced.reset();
     if (callback) {
@@ -165,17 +182,19 @@ const PrivateDataStore::Entry* PrivateDataStore::find(REFGUID guid) const noexce
     return existing == entries_.end() ? nullptr : &*existing;
 }
 
-// The debug name set last wins; an interface stored under a debug-name GUID is not a name.
 std::string PrivateDataStore::debug_name_locked() const {
-    const Entry* wide = find(debug_object_name_wide);
-    const Entry* narrow = find(debug_object_name);
-    const bool has_wide = wide != nullptr && wide->object == nullptr;
-    const bool has_narrow = narrow != nullptr && narrow->object == nullptr;
-    const bool is_wide_chosen = is_wide_name_preferred_ || !has_narrow;
-    if (has_wide && is_wide_chosen) {
-        return utf8_from_utf16(wide->bytes);
-    }
-    return has_narrow ? narrow_name(narrow->bytes) : std::string();
+    return choose_name(name_bytes(find(debug_object_name_wide)),
+                       name_bytes(find(debug_object_name)), is_wide_name_preferred_);
+}
+
+// The debug name once `change` is stored, without storing it.
+std::string PrivateDataStore::debug_name_after(const Entry& change, bool is_removal) const {
+    const bool is_wide_change = IsEqualGUID(change.guid, debug_object_name_wide);
+    const Entry* changed = is_removal ? nullptr : &change;
+    const Entry* wide = is_wide_change ? changed : find(debug_object_name_wide);
+    const Entry* narrow = is_wide_change ? find(debug_object_name) : changed;
+    const bool is_wide_preferred = is_removal ? is_wide_name_preferred_ : is_wide_change;
+    return choose_name(name_bytes(wide), name_bytes(narrow), is_wide_preferred);
 }
 
 } // namespace directmetal::com

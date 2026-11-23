@@ -52,6 +52,7 @@ private:
     void store(Entry entry);
     const Entry* find(REFGUID guid) const noexcept;
     std::string debug_name_locked() const;
+    std::string debug_name_after(const Entry& change, bool is_removal) const;
 
     mutable std::mutex mutex_;
     std::vector<Entry> entries_;

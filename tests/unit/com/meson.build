@@ -1,6 +1,7 @@
 # Unit tests for src/frontends/com (suite 'unit': no GPU required).
 com_tests = executable(
     'com_tests',
+    'allocation_failure_test.cpp',
     'boundary_test.cpp',
     'concurrency_test.cpp',
     'debug_name_test.cpp',
