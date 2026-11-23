@@ -12,3 +12,5 @@ Each record states one decision, its context and its consequences. A decision ch
 | [0006](0006-shader-pipeline.md) | Native front ends into DirectMetal IR; MSL then AIR |
 | [0007](0007-testing-strategy.md) | Windows output as reference; tiered test suites and CI gates |
 | [0008](0008-wine-bridge-module.md) | One builtin bridge DLL and one unix library shared by all API DLLs |
+| [0009](0009-front-end-placement.md) | Front ends on the PE side; control calls plus a batched command stream |
+| [0010](0010-native-windows-headers.md) | Pinned mingw-w64 headers at build time for native builds; win32metadata for the SDK |

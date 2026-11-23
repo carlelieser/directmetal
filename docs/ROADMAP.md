@@ -55,6 +55,9 @@ Recorded in [architecture decision records](adr/README.md).
 | Platform | Apple silicon only; macOS 14 for D3D9–11, macOS 26 (Metal 4) for D3D12; x86_64 unix side under Rosetta 2. [ADR 0005](adr/0005-platform-targets.md) |
 | Shaders | D3D9 bytecode, DXBC and DXIL front ends into DirectMetal IR; MSL backend, AIR from Phase 8. No SPIR-V, no Metal Shader Converter. [ADR 0006](adr/0006-shader-pipeline.md) |
 | Testing | Windows (WARP) output is the reference; tiered suites from unit to trace replay and performance. [ADR 0007](adr/0007-testing-strategy.md) |
+| Bridge | One builtin `directmetal.dll` and one `directmetal.so` are the only PE↔unix boundary. [ADR 0008](adr/0008-wine-bridge-module.md) |
+| Front ends | PE side; control calls plus a batched command stream; native builds through an in-process bridge. [ADR 0009](adr/0009-front-end-placement.md) |
+| Native headers | Pinned, unmodified mingw-w64 headers at build time; SDK headers from win32metadata. [ADR 0010](adr/0010-native-windows-headers.md) |
 
 ## Testing
 
@@ -85,6 +88,8 @@ Each phase ends in a working, tested state. Phases 4–7 depend on 1–3; 5 depe
 **Exit:** `d3d11.dll` stub loads in Wine on macOS, logs a call that crosses into the unix side through `directmetal.dll`, and returns `E_NOTIMPL`; this is asserted by an API test running in CI, and the status report gate `python3 -I tools/api/report_status.py --require d3d11:stub>=1 --require d3d11:tested>=1` passes on that test's call logs.
 
 ### Phase 1 — Core runtime and Metal backend
+
+Plan: [docs/plans/phase-1.md](plans/phase-1.md).
 
 - COM base: `IUnknown`, internal/external refcounts, private data (`SetPrivateData`/`GetPrivateData`), `QueryInterface` tables, debug object names.
 - Logging, per-application configuration, environment overrides, HUD hook points.

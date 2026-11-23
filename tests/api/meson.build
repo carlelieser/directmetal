@@ -9,7 +9,7 @@ api_arch = host_machine.cpu_family() == 'x86_64' ? 'win64' : 'win32'
 d3d11_create_device = executable(
     'd3d11_create_device',
     'd3d11_create_device.cpp',
-    include_directories: bridge_include,
+    dependencies: bridge_protocol_dep,
     link_args: '-static',
 )
 
@@ -75,3 +75,5 @@ test(
     is_parallel: false,
     timeout: 60,
 )
+
+subdir('programs')

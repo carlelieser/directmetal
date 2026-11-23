@@ -1,0 +1,8 @@
+[wrap-file]
+directory = DirectX-Headers-61c7718954ec73dbdd43c723240fe1a0452a3724
+source_url = https://github.com/microsoft/DirectX-Headers/archive/61c7718954ec73dbdd43c723240fe1a0452a3724.tar.gz
+source_filename = DirectX-Headers-61c7718954ec73dbdd43c723240fe1a0452a3724.tar.gz
+source_hash = ae52d65bbc2e1c42f5b85144818ad765d40d0d37421a582e06ac2b29388c8161
+
+[provide]
+DirectX-Headers = dep_dxheaders

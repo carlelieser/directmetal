@@ -1,6 +1,6 @@
 # 0002 — Delivery model
 
-Status: accepted
+Status: accepted. The WoW64 pointer-thunk consequence is superseded by [ADR 0009](0009-front-end-placement.md).
 
 ## Context
 
