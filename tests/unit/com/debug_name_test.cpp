@@ -45,6 +45,27 @@ TEST_F(DebugNameTest, NarrowNameStopsAtNul) {
     EXPECT_EQ(store.debug_name(), "tex");
 }
 
+TEST_F(DebugNameTest, NarrowNameKeepsValidUtf8) {
+    set_narrow(store, "T\xc3\xa9x\xf0\x9f\x98\x80");
+
+    EXPECT_EQ(store.debug_name(), "T\xc3\xa9x\xf0\x9f\x98\x80");
+}
+
+TEST_F(DebugNameTest, NarrowNameReplacesInvalidUtf8BeforeTheCallback) {
+    // A stray byte, an overlong '/', an encoded surrogate and a truncated sequence.
+    set_narrow(store, "a\xff"
+                      "b\xc0\xaf"
+                      "c\xed\xa0\x80"
+                      "d\xe2\x82");
+
+    const std::string replacement = "\xef\xbf\xbd";
+    const std::string expected = "a" + replacement + "b" + replacement + replacement + "c" +
+                                 replacement + replacement + replacement + "d" + replacement +
+                                 replacement;
+    EXPECT_EQ(store.debug_name(), expected);
+    EXPECT_EQ(names.back(), expected);
+}
+
 TEST_F(DebugNameTest, WideNameConvertsToUtf8) {
     set_wide(store, u"Téx\U0001F600");
 

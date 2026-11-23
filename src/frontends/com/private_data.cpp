@@ -41,12 +41,6 @@ template <typename Entry> const std::vector<std::byte>* name_bytes(const Entry* 
     return has_bytes ? &entry->bytes : nullptr;
 }
 
-std::string narrow_name(std::span<const std::byte> bytes) {
-    const auto* begin = reinterpret_cast<const char*>(bytes.data());
-    const auto* end = std::find(begin, begin + bytes.size(), '\0');
-    return std::string(begin, end);
-}
-
 // The debug name set last wins; an interface stored under a debug-name GUID is not a name.
 std::string choose_name(const std::vector<std::byte>* wide, const std::vector<std::byte>* narrow,
                         bool is_wide_preferred) {
@@ -54,7 +48,7 @@ std::string choose_name(const std::vector<std::byte>* wide, const std::vector<st
     if (wide != nullptr && is_wide_chosen) {
         return utf8_from_utf16(*wide);
     }
-    return narrow != nullptr ? narrow_name(*narrow) : std::string();
+    return narrow != nullptr ? utf8_sanitized(*narrow) : std::string();
 }
 
 } // namespace

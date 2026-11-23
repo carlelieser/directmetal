@@ -10,4 +10,8 @@ namespace directmetal::com {
 // U+FFFD; a trailing odd byte is ignored.
 std::string utf8_from_utf16(std::span<const std::byte> bytes);
 
+// UTF-8 bytes up to the first NUL, with each byte that does not start or continue a well-formed
+// sequence replaced by U+FFFD.
+std::string utf8_sanitized(std::span<const std::byte> bytes);
+
 } // namespace directmetal::com
