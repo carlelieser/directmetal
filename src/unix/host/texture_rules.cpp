@@ -96,11 +96,20 @@ bool has_valid_counts(const TextureDesc& desc, const TypeRule& rule) noexcept {
     return is_sample_count && desc.mip_levels == 1;
 }
 
+bool has_usage(const TextureDesc& desc, backend::TextureUsage usage) noexcept {
+    return (desc.usage & usage) != backend::TextureUsage::none;
+}
+
 // Depth, stencil and block-compressed formats exist only as 2D, array or cube textures, and
-// compressed ones are never render targets.
+// compressed ones are never render targets. Metal cannot render to 1D textures at all.
 bool suits_format(const TextureDesc& desc, const TypeRule& rule) noexcept {
     const PixelLayout* layout = find_layout(desc.format);
     if (layout == nullptr) {
+        return false;
+    }
+    const bool is_line_target =
+        rule.dimensions == 1 && has_usage(desc, backend::TextureUsage::render_target);
+    if (is_line_target) {
         return false;
     }
     const bool is_special = is_compressed(*layout) || !has_aspect(*layout, Aspect::color);
@@ -111,10 +120,6 @@ bool suits_format(const TextureDesc& desc, const TypeRule& rule) noexcept {
         (desc.usage & backend::TextureUsage::render_target) != backend::TextureUsage::none;
     const bool is_blocked_target = is_compressed(*layout) && is_render_target;
     return rule.dimensions == 2 && !is_blocked_target;
-}
-
-bool has_usage(const TextureDesc& desc, backend::TextureUsage usage) noexcept {
-    return (desc.usage & usage) != backend::TextureUsage::none;
 }
 
 formats::DeviceFeatures features_of(const backend::Capabilities& capabilities) noexcept {

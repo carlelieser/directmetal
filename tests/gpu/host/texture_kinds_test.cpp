@@ -73,7 +73,17 @@ protected:
     }
 };
 
-// Metal cannot render to 1D textures, so they are filled through buffer copies.
+// Metal cannot render to 1D textures: the host refuses them as render targets before Metal sees
+// one, so they are filled through buffer copies.
+TEST_F(OneDimensionalTextureTest, RefusesRenderTargets) {
+    backend::TextureDesc desc = one_dimensional_desc(TextureType::tex1d, 1);
+    desc.usage = backend::TextureUsage::shader_read | backend::TextureUsage::render_target;
+    EXPECT_EQ(device().create_texture(desc).status(), backend::Status::invalid_argument);
+    desc.type = TextureType::tex1d_array;
+    desc.array_length = 2;
+    EXPECT_EQ(device().create_texture(desc).status(), backend::Status::invalid_argument);
+}
+
 TEST_F(OneDimensionalTextureTest, UploadsAndReadsBackOne) {
     const bridge::Handle texture = make_texture(one_dimensional_desc(TextureType::tex1d, 1));
     upload_floats(texture, 0, 0.5f);
