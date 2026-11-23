@@ -17,7 +17,7 @@ tools/build.sh --test sanitize
 
 Changes to PE-side code must also pass `tools/build.sh win64 win32`.
 
-ASan is broken on macOS 27, so local runs there may use `DIRECTMETAL_SANITIZERS=undefined tools/build.sh --test sanitize`. CI runs the full ASan and UBSan build on hosted runners.
+ASan is broken on macOS 27, so local runs there may use `DIRECTMETAL_SANITIZERS=undefined tools/build.sh --test sanitize`. Run the full ASan and UBSan build on a machine with macOS 26 or earlier.
 
 Format C++ and Objective-C++ with `clang-format -i`, and Python with `ruff format` and `ruff check`.
 
@@ -42,7 +42,7 @@ fix: clamp mip count for BC formats below block size
 - Keep each pull request to one topic. Describe the change and how it was tested.
 - Tests follow [ADR 0007](docs/adr/0007-testing-strategy.md); a bug fix's regression test fails without the fix.
 - Results that differ from the [Windows reference](docs/adr/0007-testing-strategy.md#oracle) are fixed, or tracked as an issue and linked from the pull request.
-- CI must pass. Rebase on `main` rather than merging it into your branch.
+- `tools/ci/run_local.sh` must pass; it runs the same checks as `.github/workflows/ci.yml`, which is currently disabled. Rebase on `main` rather than merging it into your branch.
 
 ## Reporting issues
 
