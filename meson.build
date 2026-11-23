@@ -9,6 +9,8 @@ project(
         'warning_level=3',
         'werror=true',
         'b_ndebug=if-release',
+        # DirectX-Headers always comes from the pinned wrap, never from the system.
+        'force_fallback_for=DirectX-Headers',
     ],
 )
 

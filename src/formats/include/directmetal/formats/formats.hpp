@@ -2,20 +2,21 @@
 
 #include <directmetal/backend/types.hpp>
 
-#ifdef _WIN32
-#include <dxgiformat.h>
-#else
-#include <directx/dxgiformat.h>
-#endif
-
 #include <array>
 #include <cstdint>
 #include <span>
 #include <string_view>
 
 // DXGI_FORMAT and D3DFORMAT tables: Metal format, substitution, swizzle and per-family support.
-// The tables are constexpr data; lookups are lock-free.
+// The tables are constexpr data; lookups are lock-free. Formats are keyed on raw values so this
+// header needs no Windows headers: front ends pass static_cast<std::uint32_t>(DXGI_FORMAT). The
+// tables cover every DXGI_FORMAT enumerator in DirectX-Headers, through
+// DXGI_FORMAT_A4B4G4R4_UNORM; the table sources check their values against DirectX-Headers'
+// dxgiformat.h in native builds.
 namespace directmetal::formats {
+
+// A DXGI_FORMAT value.
+using DxgiFormat = std::uint32_t;
 
 enum class Support : std::uint32_t {
     none = 0,
@@ -76,13 +77,13 @@ enum class ComponentKind : std::uint8_t {
 };
 
 struct FormatInfo {
-    DXGI_FORMAT format;
+    DxgiFormat format;
     std::string_view name; // the enumerator name, e.g. "DXGI_FORMAT_R8G8B8A8_UNORM"
     backend::PixelFormat pixel_format;
     Substitution substitution;
     std::array<Swizzle, 4> swizzle;
     ComponentKind kind;
-    DXGI_FORMAT typeless_family;
+    DxgiFormat typeless_family;
     std::uint8_t block_width;
     std::uint8_t block_height;
     std::uint8_t bytes_per_block;
@@ -94,11 +95,11 @@ struct FormatInfo {
 enum class CastingRules : std::uint8_t { d3d11, d3d12_relaxed };
 
 // Null for values outside the DXGI_FORMAT enum.
-const FormatInfo* find(DXGI_FORMAT format) noexcept;
+const FormatInfo* find(DxgiFormat format) noexcept;
 // Every DXGI_FORMAT enumerator except DXGI_FORMAT_FORCE_UINT, in enum order.
 std::span<const FormatInfo> all_dxgi_formats() noexcept;
-Support support(DXGI_FORMAT format, backend::GpuFamily family) noexcept;
-bool is_view_compatible(DXGI_FORMAT resource, DXGI_FORMAT view, CastingRules rules) noexcept;
+Support support(DxgiFormat format, backend::GpuFamily family) noexcept;
+bool is_view_compatible(DxgiFormat resource, DxgiFormat view, CastingRules rules) noexcept;
 
 enum class D3d9Usage : std::uint32_t {
     none = 0,
