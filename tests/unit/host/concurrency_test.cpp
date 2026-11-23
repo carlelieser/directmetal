@@ -77,5 +77,27 @@ TEST_F(HostTest, ConcurrentDevicesRunIndependentStreams) {
     EXPECT_EQ(gpu.live_queues, 0);
 }
 
+TEST_F(HostTest, DestroyDeviceLeavesNoObjectCreatedConcurrently) {
+    initialize();
+    device = create_device();
+    gpu.hold_creation();
+    std::thread creator([this] {
+        CreateBufferParams params{device, {64, backend::StorageMode::shared, {}}, {}};
+        call(FunctionCode::create_buffer, params);
+    });
+    gpu.wait_creation_entered();
+    std::thread destroyer([this] {
+        DestroyDeviceParams params{device};
+        call(FunctionCode::destroy_device, params);
+    });
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    gpu.release_creation();
+    creator.join();
+    destroyer.join();
+    EXPECT_EQ(gpu.live_buffers, 0);
+    CreateBufferParams after{device, {64, backend::StorageMode::shared, {}}, {}};
+    EXPECT_EQ(call(FunctionCode::create_buffer, after), status_invalid_handle);
+}
+
 } // namespace
 } // namespace directmetal::host::testing

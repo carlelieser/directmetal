@@ -129,7 +129,8 @@ Status create_device(HostContext& context, CreateDeviceParams& params) {
 }
 
 Status destroy_device(HostContext& context, DestroyDeviceParams& params) {
-    if (context.table.find_as<DeviceObject>(params.device, ObjectKind::device) == nullptr) {
+    const auto device = context.table.find_as<DeviceObject>(params.device, ObjectKind::device);
+    if (device == nullptr || !mark_destroyed(*device)) {
         return status_invalid_handle;
     }
     destroy_device_objects(context, params.device);

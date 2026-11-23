@@ -79,6 +79,10 @@ Status create_timeline(HostContext& context, CreateTimelineParams& params) {
     if (!is_valid_mirror(context, params.mirror_address)) {
         return status_invalid_parameter;
     }
+    const auto lock = lock_if_live(*device);
+    if (!lock.owns_lock()) {
+        return status_invalid_handle;
+    }
     auto created = device->device->create_timeline(params.initial_value);
     if (!created.has_value()) {
         return to_bridge(created.status());

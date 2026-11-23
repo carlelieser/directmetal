@@ -211,6 +211,32 @@ std::uint64_t FakeGpu::submitted(std::size_t queue) const {
     return queues_.at(queue)->last_submitted_value();
 }
 
+void FakeGpu::hold_creation() {
+    const std::lock_guard lock(mutex_);
+    is_creation_held_ = true;
+    is_creation_entered_ = false;
+}
+
+void FakeGpu::wait_creation_entered() {
+    std::unique_lock lock(mutex_);
+    gate_changed_.wait(lock, [this] { return is_creation_entered_; });
+}
+
+void FakeGpu::release_creation() {
+    {
+        const std::lock_guard lock(mutex_);
+        is_creation_held_ = false;
+    }
+    gate_changed_.notify_all();
+}
+
+void FakeGpu::pass_creation_gate() {
+    std::unique_lock lock(mutex_);
+    is_creation_entered_ = true;
+    gate_changed_.notify_all();
+    gate_changed_.wait(lock, [this] { return !is_creation_held_; });
+}
+
 void FakeGpu::add_queue(FakeQueue* queue) {
     const std::lock_guard lock(mutex_);
     queues_.push_back(queue);
@@ -225,6 +251,7 @@ void FakeGpu::remove_queue(FakeQueue* queue) {
 
 Result<std::unique_ptr<backend::Buffer>>
 FakeDevice::create_buffer(const backend::BufferDesc& desc) {
+    gpu_.pass_creation_gate();
     if (desc.storage == backend::StorageMode::memoryless) {
         return Result<std::unique_ptr<backend::Buffer>>::failure(backend::Status::unsupported);
     }

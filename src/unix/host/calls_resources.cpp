@@ -7,6 +7,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <mutex>
 #include <span>
 
 namespace directmetal::host {
@@ -47,6 +48,10 @@ Status create_buffer(HostContext& context, CreateBufferParams& params) {
     if (!is_valid_buffer_desc(params.desc, device->device->capabilities())) {
         return status_invalid_parameter;
     }
+    const auto lock = lock_if_live(*device);
+    if (!lock.owns_lock()) {
+        return status_invalid_handle;
+    }
     auto created = device->device->create_buffer(params.desc);
     if (!created.has_value()) {
         return to_bridge(created.status());
@@ -64,6 +69,10 @@ Status import_memory(HostContext& context, ImportMemoryParams& params) {
     }
     if (!is_valid_import(context, params)) {
         return status_invalid_parameter;
+    }
+    const auto lock = lock_if_live(*device);
+    if (!lock.owns_lock()) {
+        return status_invalid_handle;
     }
     const std::span memory(from_address<std::byte>(params.address), params.size);
     auto created = device->device->import_memory(memory);
@@ -85,6 +94,10 @@ Status create_texture(HostContext& context, CreateTextureParams& params) {
     const bool is_valid = is_valid_texture_desc(params.desc, device->device->capabilities());
     if (!is_valid || params.reserved != 0) {
         return status_invalid_parameter;
+    }
+    const auto lock = lock_if_live(*device);
+    if (!lock.owns_lock()) {
+        return status_invalid_handle;
     }
     auto created = device->device->create_texture(params.desc);
     if (!created.has_value()) {

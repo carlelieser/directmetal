@@ -1,5 +1,6 @@
 #include "calls.hpp"
 #include "host_context.hpp"
+#include "objects.hpp"
 #include "teardown.hpp"
 
 #include <directmetal/host/dispatch.hpp>
@@ -75,7 +76,9 @@ public:
     // Devices still open are torn down as destroy_device would.
     ~State() {
         for (const TableEntry& device : context.table.owned_by({})) {
-            destroy_device_objects(context, device.handle);
+            if (mark_destroyed(*static_cast<DeviceObject*>(device.object.get()))) {
+                destroy_device_objects(context, device.handle);
+            }
         }
     }
 

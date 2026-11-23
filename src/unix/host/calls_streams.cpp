@@ -57,6 +57,10 @@ Status open_stream(HostContext& context, OpenStreamParams& params) {
     if (!is_valid_control(context, params.control_address)) {
         return status_invalid_parameter;
     }
+    const auto lock = lock_if_live(*device);
+    if (!lock.owns_lock()) {
+        return status_invalid_handle;
+    }
     const StreamSetup setup{device, params.device,
                             from_address<StreamControl>(params.control_address), &context.table,
                             context.is_wow64.load()};
