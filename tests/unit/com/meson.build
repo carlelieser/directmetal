@@ -13,3 +13,13 @@ com_tests = executable(
 )
 
 test('com', com_tests, protocol: 'gtest', suite: 'unit', timeout: 60)
+
+# The shim's BOOL and interface macros cannot coexist with Objective-C headers (ADR 0009), so
+# including it from Objective-C++ must fail.
+if meson.get_compiler('objcpp').compiles(
+    '#include <windows.h>',
+    dependencies: win32_headers_dep,
+    name: 'windows.h as Objective-C++',
+)
+    error('src/win32/include/windows.h compiled as Objective-C++')
+endif
