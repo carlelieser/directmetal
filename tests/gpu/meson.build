@@ -7,6 +7,7 @@ foreach component : ['backend_memory', 'backend_commands', 'host', 'formats']
 endforeach
 
 # Proves validation is really active: the canary's invalid blit encode must abort the process.
+# tests/api runs the unix library variant in place of directmetal.so under Wine.
 validation_canary = executable(
     'validation_canary',
     'validation_canary.mm',
@@ -22,4 +23,14 @@ test(
     should_fail: true,
     is_parallel: false,
     timeout: 60,
+)
+
+validation_canary_unixlib = shared_library(
+    'validation_canary_unixlib',
+    'validation_canary.mm',
+    name_prefix: '',
+    name_suffix: 'so',
+    dependencies: [host_core_dep, metal_dep],
+    objcpp_args: ['-fobjc-arc', '-DDIRECTMETAL_VALIDATION_CANARY_UNIXLIB'],
+    gnu_symbol_visibility: 'hidden',
 )

@@ -1,3 +1,8 @@
+# Wine API tests (suite 'api'). The validation canary goes through run_api_test.py, which enables
+# Metal validation in assert mode and fails on any abnormal exit.
+fs = import('fs')
+api_runner = files('run_api_test.py')
+
 unix_library = get_option('unix_library')
 if unix_library == ''
     unix_library = meson.project_source_root() / 'build' / 'unix' / 'src' / 'unix' / 'directmetal.so'
@@ -77,3 +82,31 @@ test(
 )
 
 subdir('programs')
+
+# The validation canary's unix library stands in for directmetal.so. Its first unix call trips
+# Metal validation, which Wine reports to the PE side as status 0xc0000005, so the program fails;
+# this proves the runner's validation settings reach Metal in a Wine process.
+unix_build_dir = fs.parent(fs.parent(fs.parent(unix_library)))
+validation_canary_unixlib = unix_build_dir / 'tests' / 'gpu' / 'validation_canary_unixlib.so'
+wine_runner_args = [
+    '-I', api_runner,
+    '--mode', 'wine',
+    '--arch', api_arch,
+    '--dll', d3d11_dll,
+    '--builtin', directmetal_builtin_dll,
+]
+
+test(
+    'validation_canary_wine',
+    python,
+    args: wine_runner_args + [
+        '--program', d3d11_create_device,
+        '--program-arg', 'unix',
+        '--unix-library', validation_canary_unixlib,
+        '--work-dir', meson.current_build_dir() / 'validation_canary_wine',
+    ],
+    suite: 'api',
+    should_fail: true,
+    is_parallel: false,
+    timeout: 180,
+)
