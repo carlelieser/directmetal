@@ -9,7 +9,7 @@ Counts come from the generated [API inventories](api/SUMMARY.md). Methods are th
 | Group | Interfaces | Methods | Enums | Structs | Entry points |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Direct3D 9 | 20 | 223 | 52 | 44 | 9 |
-| Direct3D 10 / 10.1 | 48 | 284 | 37 | 69 | 27 |
+| Direct3D 10 / 10.1 | 55 | 341 | 37 | 69 | 27 |
 | Direct3D 11.0–11.4 | 79 | 470 | 88 | 171 | 3 |
 | Direct3D 12 | 176 | 603 | 320 | 573 | 10 |
 | DXGI 1.0–1.6 | 46 | 189 | 32 | 38 | 5 |
