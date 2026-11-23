@@ -5,6 +5,10 @@
 #include <cstdint>
 
 // Exported by directmetal.dll in PE builds and by the native bridge library in macOS builds.
+//
+// In Phase 1 each device has one stream, owned by one thread; that thread flushes it before any
+// teardown call (destroy_device, close_stream, release_memory). Ownership of several streams per
+// device is defined when deferred contexts land in Phase 4.
 #ifndef DIRECTMETAL_BRIDGE_API
 #ifdef _WIN32
 #define DIRECTMETAL_BRIDGE_API __declspec(dllimport)
