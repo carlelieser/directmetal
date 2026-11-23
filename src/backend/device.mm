@@ -45,65 +45,73 @@ private:
 };
 
 Result<std::unique_ptr<Buffer>> MetalDevice::create_buffer(const BufferDesc& desc) {
-    assert(desc.size > 0);
-    if (desc.storage == StorageMode::memoryless) {
-        return fail<Buffer>(Status::unsupported);
+    @autoreleasepool {
+        assert(desc.size > 0);
+        if (desc.storage == StorageMode::memoryless) {
+            return fail<Buffer>(Status::unsupported);
+        }
+        id<MTLDevice> device = arena_->device();
+        const MTLResourceOptions options = resources::metal_resource_options(desc.storage);
+        const NSUInteger length = desc.size;
+        const MTLSizeAndAlign need = [device heapBufferSizeAndAlignWithLength:length
+                                                                      options:options];
+        auto placed =
+            arena_->place({need.size, need.align, desc.storage},
+                          ^id<MTLResource>(id<MTLHeap> heap, NSUInteger offset) {
+                            if (heap == nil) {
+                                return [device newBufferWithLength:length options:options];
+                            }
+                            return [heap newBufferWithLength:length options:options offset:offset];
+                          });
+        if (!placed.has_value()) {
+            return fail<Buffer>(placed.status());
+        }
+        return Result<std::unique_ptr<Buffer>>::success(
+            std::make_unique<resources::MetalBuffer>(arena_, std::move(placed).value()));
     }
-    id<MTLDevice> device = arena_->device();
-    const MTLResourceOptions options = resources::metal_resource_options(desc.storage);
-    const NSUInteger length = desc.size;
-    const MTLSizeAndAlign need = [device heapBufferSizeAndAlignWithLength:length options:options];
-    auto placed = arena_->place({need.size, need.align, desc.storage},
-                                ^id<MTLResource>(id<MTLHeap> heap, NSUInteger offset) {
-                                  if (heap == nil) {
-                                      return [device newBufferWithLength:length options:options];
-                                  }
-                                  return [heap newBufferWithLength:length
-                                                           options:options
-                                                            offset:offset];
-                                });
-    if (!placed.has_value()) {
-        return fail<Buffer>(placed.status());
-    }
-    return Result<std::unique_ptr<Buffer>>::success(
-        std::make_unique<resources::MetalBuffer>(arena_, std::move(placed).value()));
 }
 
 Result<std::unique_ptr<Buffer>> MetalDevice::import_memory(std::span<std::byte> memory) {
-    const auto address = reinterpret_cast<std::uintptr_t>(memory.data());
-    assert(address % import_alignment == 0);
-    assert(!memory.empty() && memory.size() % import_alignment == 0);
-    id<MTLBuffer> buffer = [arena_->device() newBufferWithBytesNoCopy:memory.data()
-                                                               length:memory.size()
-                                                              options:MTLResourceStorageModeShared
-                                                          deallocator:nil];
-    if (buffer == nil) {
-        return fail<Buffer>(Status::out_of_memory);
+    @autoreleasepool {
+        const auto address = reinterpret_cast<std::uintptr_t>(memory.data());
+        assert(address % import_alignment == 0);
+        assert(!memory.empty() && memory.size() % import_alignment == 0);
+        id<MTLBuffer> buffer =
+            [arena_->device() newBufferWithBytesNoCopy:memory.data()
+                                                length:memory.size()
+                                               options:MTLResourceStorageModeShared
+                                           deallocator:nil];
+        if (buffer == nil) {
+            return fail<Buffer>(Status::out_of_memory);
+        }
+        return Result<std::unique_ptr<Buffer>>::success(
+            std::make_unique<resources::MetalBuffer>(buffer));
     }
-    return Result<std::unique_ptr<Buffer>>::success(
-        std::make_unique<resources::MetalBuffer>(buffer));
 }
 
 // Memoryless textures have no backing memory, so they need no size query and are never placed.
 Result<std::unique_ptr<Texture>> MetalDevice::create_texture(const TextureDesc& desc) {
-    id<MTLDevice> device = arena_->device();
-    MTLTextureDescriptor* descriptor = resources::texture_descriptor(desc);
-    MemoryRequirement requirement{0, 1, desc.storage};
-    if (desc.storage != StorageMode::memoryless) {
-        const MTLSizeAndAlign need = [device heapTextureSizeAndAlignWithDescriptor:descriptor];
-        requirement = {need.size, need.align, desc.storage};
+    @autoreleasepool {
+        id<MTLDevice> device = arena_->device();
+        MTLTextureDescriptor* descriptor = resources::texture_descriptor(desc);
+        MemoryRequirement requirement{0, 1, desc.storage};
+        if (desc.storage != StorageMode::memoryless) {
+            const MTLSizeAndAlign need = [device heapTextureSizeAndAlignWithDescriptor:descriptor];
+            requirement = {need.size, need.align, desc.storage};
+        }
+        auto placed =
+            arena_->place(requirement, ^id<MTLResource>(id<MTLHeap> heap, NSUInteger offset) {
+              if (heap == nil) {
+                  return [device newTextureWithDescriptor:descriptor];
+              }
+              return [heap newTextureWithDescriptor:descriptor offset:offset];
+            });
+        if (!placed.has_value()) {
+            return fail<Texture>(placed.status());
+        }
+        return Result<std::unique_ptr<Texture>>::success(
+            std::make_unique<resources::MetalTexture>(arena_, std::move(placed).value(), desc));
     }
-    auto placed = arena_->place(requirement, ^id<MTLResource>(id<MTLHeap> heap, NSUInteger offset) {
-      if (heap == nil) {
-          return [device newTextureWithDescriptor:descriptor];
-      }
-      return [heap newTextureWithDescriptor:descriptor offset:offset];
-    });
-    if (!placed.has_value()) {
-        return fail<Texture>(placed.status());
-    }
-    return Result<std::unique_ptr<Texture>>::success(
-        std::make_unique<resources::MetalTexture>(arena_, std::move(placed).value(), desc));
 }
 
 } // namespace
