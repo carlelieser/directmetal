@@ -15,8 +15,8 @@ inline constexpr DxgiRow small_format_rows[] = {
     {50, "DXGI_FORMAT_R8G8_UINT", rg8_uint, uint, 48, 2, integer_color},
     {51, "DXGI_FORMAT_R8G8_SNORM", rg8_snorm, snorm, 48, 2, filterable_color},
     {52, "DXGI_FORMAT_R8G8_SINT", rg8_sint, sint, 48, 2, integer_color},
-    // A depth-stencil R16_TYPELESS resource is created with DXGI_FORMAT_D16_UNORM's pixel format.
-    {53, "DXGI_FORMAT_R16_TYPELESS", r16_unorm, typeless, 53, 2, typeless_color},
+    {53, "DXGI_FORMAT_R16_TYPELESS", r16_unorm, typeless, 53, 2, typeless_color, Substitution::none,
+     identity_swizzle, 1, 1, 1, depth16_unorm},
     {54, "DXGI_FORMAT_R16_FLOAT", r16_float, float_value, 53, 2,
      filterable_color | Support::typed_uav_load},
     {56, "DXGI_FORMAT_R16_UNORM", r16_unorm, unorm, 53, 2, filterable_color},

@@ -35,8 +35,8 @@ inline constexpr DxgiRow wide_format_rows[] = {
     {16, "DXGI_FORMAT_R32G32_FLOAT", rg32_float, float_value, 15, 8, filterable_color},
     {17, "DXGI_FORMAT_R32G32_UINT", rg32_uint, uint, 15, 8, integer_color},
     {18, "DXGI_FORMAT_R32G32_SINT", rg32_sint, sint, 15, 8, integer_color},
-    // A depth-stencil R32_TYPELESS resource is created with DXGI_FORMAT_D32_FLOAT's pixel format.
-    {39, "DXGI_FORMAT_R32_TYPELESS", r32_float, typeless, 39, 4, typeless_color},
+    {39, "DXGI_FORMAT_R32_TYPELESS", r32_float, typeless, 39, 4, typeless_color, Substitution::none,
+     identity_swizzle, 1, 1, 1, depth32_float},
     {41, "DXGI_FORMAT_R32_FLOAT", r32_float, float_value, 39, 4,
      filterable_color | Support::typed_uav_load},
     {42, "DXGI_FORMAT_R32_UINT", r32_uint, uint, 39, 4,

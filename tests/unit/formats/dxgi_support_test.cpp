@@ -52,6 +52,32 @@ TEST(DxgiSubstitutions, Depth24StencilUsesDepth32FloatStencil8) {
     EXPECT_FALSE(has(support(d24_unorm_s8_uint, GpuFamily::apple7), Support::texture3d));
 }
 
+TEST(DxgiSubstitutions, DepthBindableFormatsNameTheirDepthPixelFormat) {
+    struct Expected {
+        DxgiFormat format;
+        PixelFormat depth_pixel_format;
+    };
+    constexpr Expected expected[] = {
+        {53, PixelFormat::depth16_unorm},
+        {55, PixelFormat::depth16_unorm},
+        {39, PixelFormat::depth32_float},
+        {40, PixelFormat::depth32_float},
+        {44, PixelFormat::depth32_float_stencil8},
+        {d24_unorm_s8_uint, PixelFormat::depth32_float_stencil8},
+        {19, PixelFormat::depth32_float_stencil8},
+        {20, PixelFormat::depth32_float_stencil8},
+    };
+    std::size_t depth_bindable_count = 0;
+    for (const FormatInfo& format : all_dxgi_formats()) {
+        depth_bindable_count += format.depth_pixel_format != PixelFormat::invalid ? 1 : 0;
+    }
+    EXPECT_EQ(depth_bindable_count, std::size(expected));
+    for (const Expected& entry : expected) {
+        EXPECT_EQ(info(entry.format).depth_pixel_format, entry.depth_pixel_format)
+            << info(entry.format).name;
+    }
+}
+
 TEST(DxgiSubstitutions, StencilViewsReadStencilInGreen) {
     const std::array<Swizzle, 4> expected = {Swizzle::zero, Swizzle::red, Swizzle::zero,
                                              Swizzle::one};

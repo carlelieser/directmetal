@@ -86,6 +86,9 @@ struct FormatInfo {
     DxgiFormat format;
     std::string_view name; // the enumerator name, e.g. "DXGI_FORMAT_R8G8B8A8_UNORM"
     backend::PixelFormat pixel_format;
+    // The pixel format of a resource bound as a depth-stencil target: Depth16Unorm, Depth32Float or
+    // Depth32Float_Stencil8 for the depth formats and their typeless families; invalid otherwise.
+    backend::PixelFormat depth_pixel_format;
     Substitution substitution;
     std::array<Swizzle, 4> swizzle;
     ComponentKind kind;

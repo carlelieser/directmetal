@@ -38,6 +38,7 @@ struct DxgiRow {
     std::uint8_t block_width = 1;
     std::uint8_t block_height = 1;
     std::uint8_t plane_count = 1;
+    backend::PixelFormat depth_pixel_format = backend::PixelFormat::invalid;
 };
 
 // Usage profiles from Microsoft's Direct3D 11 format support tables

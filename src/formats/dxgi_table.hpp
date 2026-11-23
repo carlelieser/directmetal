@@ -41,10 +41,18 @@ inline constexpr auto dxgi_rows = [] {
 }();
 
 constexpr FormatInfo to_format_info(const DxgiRow& row) {
-    return {row.format,          row.name,        row.pixel_format,
-            row.substitution,    row.swizzle,     row.kind,
-            row.typeless_family, row.block_width, row.block_height,
-            row.bytes_per_block, row.plane_count};
+    return {row.format,
+            row.name,
+            row.pixel_format,
+            row.depth_pixel_format,
+            row.substitution,
+            row.swizzle,
+            row.kind,
+            row.typeless_family,
+            row.block_width,
+            row.block_height,
+            row.bytes_per_block,
+            row.plane_count};
 }
 
 inline constexpr auto dxgi_format_infos = [] {
