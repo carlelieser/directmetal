@@ -116,6 +116,16 @@ enum class D3d9Usage : std::uint32_t {
     auto_gen_mipmap = 0x400,
 };
 
+constexpr D3d9Usage operator|(D3d9Usage left, D3d9Usage right) noexcept {
+    return static_cast<D3d9Usage>(static_cast<std::uint32_t>(left) |
+                                  static_cast<std::uint32_t>(right));
+}
+
+constexpr D3d9Usage operator&(D3d9Usage left, D3d9Usage right) noexcept {
+    return static_cast<D3d9Usage>(static_cast<std::uint32_t>(left) &
+                                  static_cast<std::uint32_t>(right));
+}
+
 struct D3d9FormatInfo {
     std::uint32_t value; // D3DFORMAT, including FOURCC values
     std::string_view name;

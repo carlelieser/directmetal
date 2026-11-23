@@ -12,9 +12,8 @@ namespace {
 using directmetal::backend::PixelFormat;
 using namespace directmetal::formats;
 
-// formats.hpp declares no operators for D3d9Usage.
-bool has(D3d9Usage usage, D3d9Usage flag) {
-    return (static_cast<std::uint32_t>(usage) & static_cast<std::uint32_t>(flag)) != 0;
+bool has(D3d9Usage usage, D3d9Usage flags) {
+    return (usage & flags) == flags;
 }
 
 constexpr std::uint32_t fourcc(std::string_view code) {
@@ -56,8 +55,7 @@ TEST(D3d9Formats, IncludesTheFourccExtensions) {
         EXPECT_EQ(info(fourcc(extension)).name, extension);
     }
     EXPECT_EQ(fourcc("INTZ"), 0x5a544e49u);
-    EXPECT_TRUE(has(info(fourcc("INTZ")).usage, D3d9Usage::texture));
-    EXPECT_TRUE(has(info(fourcc("INTZ")).usage, D3d9Usage::depth_stencil));
+    EXPECT_TRUE(has(info(fourcc("INTZ")).usage, D3d9Usage::texture | D3d9Usage::depth_stencil));
     EXPECT_EQ(info(fourcc("ATI2")).pixel_format, PixelFormat::bc5_rgunorm);
     EXPECT_EQ(info(fourcc("NULL")).usage, D3d9Usage::render_target);
 }
@@ -119,8 +117,7 @@ TEST(D3d9Formats, SubstitutesDepthAndOpaqueFormats) {
                                               Swizzle::one};
     EXPECT_EQ(info(22).substitution, Substitution::alpha_forced_one);
     EXPECT_EQ(info(22).swizzle, alpha_one);
-    EXPECT_TRUE(has(info(22).usage, D3d9Usage::render_target));
-    EXPECT_TRUE(has(info(22).usage, D3d9Usage::srgb_write));
+    EXPECT_TRUE(has(info(22).usage, D3d9Usage::render_target | D3d9Usage::srgb_write));
 }
 
 TEST(D3d9Formats, ReplicatesLuminanceAndFillsMissingChannelsWithOne) {

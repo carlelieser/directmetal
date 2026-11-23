@@ -13,11 +13,6 @@
 // channels a format lacks (https://learn.microsoft.com/windows/win32/direct3d9/d3dformat).
 namespace directmetal::formats::tables {
 
-constexpr D3d9Usage operator|(D3d9Usage left, D3d9Usage right) noexcept {
-    return static_cast<D3d9Usage>(static_cast<std::uint32_t>(left) |
-                                  static_cast<std::uint32_t>(right));
-}
-
 // MAKEFOURCC from d3d9types.h: the first character in the low byte.
 constexpr std::uint32_t fourcc(std::string_view code) noexcept {
     return static_cast<std::uint32_t>(static_cast<unsigned char>(code[0])) |
