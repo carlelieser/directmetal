@@ -9,6 +9,7 @@ format_gpu_tests = executable(
     'multisample_test.mm',
     'swizzle_test.mm',
     'texture_plan.cpp',
+    'unclaimed_usage_test.mm',
     include_directories: backend_private_include,
     dependencies: [backend_dep, formats_dep, gtest_dep],
     objcpp_args: '-fobjc-arc',
