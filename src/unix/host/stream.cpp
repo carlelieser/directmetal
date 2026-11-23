@@ -60,7 +60,13 @@ void Stream::submit(const bridge::SubmitStreamParams& submission) {
 }
 
 bool Stream::finish(Unsubmitted unsubmitted) {
-    const Settled settled = work_.wait_completed(work_.push_settle(unsubmitted));
+    SettleRequest request{unsubmitted};
+    if (!work_.push_settle(request)) {
+        // Already stopping: another teardown call drained and settled the stream.
+        return true;
+    }
+    work_.wait_completed(request);
+    const Settled& settled = request.settled;
     if (settled.has_unsubmitted) {
         return false;
     }
@@ -84,7 +90,7 @@ void Stream::run() noexcept {
             decode(work.submission);
             break;
         case StreamWork::Kind::settle:
-            work_.complete(work.ticket, executor_.settle(settle_mode(work.unsubmitted)));
+            work_.complete(*work.request, executor_.settle(settle_mode(work.request->unsubmitted)));
             break;
         case StreamWork::Kind::stop:
             return;

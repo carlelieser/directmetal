@@ -5,25 +5,21 @@ namespace directmetal::host {
 void WorkQueue::push_chunk(const bridge::SubmitStreamParams& submission) {
     {
         const std::lock_guard lock(mutex_);
-        pending_.push_back({StreamWork::Kind::chunk, submission, 0, Unsubmitted::keep});
+        pending_.push_back({StreamWork::Kind::chunk, submission, nullptr});
     }
     has_work_.notify_one();
 }
 
-std::uint64_t WorkQueue::push_settle(Unsubmitted unsubmitted) {
-    std::uint64_t ticket = 0;
+bool WorkQueue::push_settle(SettleRequest& request) {
     {
         const std::lock_guard lock(mutex_);
-        // The consumer may already have stopped; a ticket of 0 is complete at once.
         if (is_stopping_) {
-            return 0;
+            return false;
         }
-        ticket = issued_ticket_ + 1;
-        pending_.push_back({StreamWork::Kind::settle, {}, ticket, unsubmitted});
-        issued_ticket_ = ticket;
+        pending_.push_back({StreamWork::Kind::settle, {}, &request});
     }
     has_work_.notify_one();
-    return ticket;
+    return true;
 }
 
 void WorkQueue::request_stop() noexcept {
@@ -38,29 +34,25 @@ StreamWork WorkQueue::pop() noexcept {
     std::unique_lock lock(mutex_);
     has_work_.wait(lock, [this] { return !pending_.empty() || is_stopping_; });
     if (pending_.empty()) {
-        return {StreamWork::Kind::stop, {}, 0, Unsubmitted::keep};
+        return {StreamWork::Kind::stop, {}, nullptr};
     }
     const StreamWork work = pending_.front();
     pending_.pop_front();
     return work;
 }
 
-void WorkQueue::complete(std::uint64_t ticket, Settled settled) noexcept {
+void WorkQueue::complete(SettleRequest& request, Settled settled) noexcept {
     {
         const std::lock_guard lock(mutex_);
-        completed_ticket_ = ticket;
-        completed_ = settled;
+        request.settled = settled;
+        request.is_done = true;
     }
     has_completed_.notify_all();
 }
 
-Settled WorkQueue::wait_completed(std::uint64_t ticket) noexcept {
-    if (ticket == 0) {
-        return {0, false};
-    }
+void WorkQueue::wait_completed(const SettleRequest& request) noexcept {
     std::unique_lock lock(mutex_);
-    has_completed_.wait(lock, [this, ticket] { return completed_ticket_ >= ticket; });
-    return completed_;
+    has_completed_.wait(lock, [&request] { return request.is_done; });
 }
 
 } // namespace directmetal::host

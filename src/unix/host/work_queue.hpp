@@ -20,31 +20,37 @@ struct Settled {
     bool has_unsubmitted;
 };
 
+// Owned by the waiting control call, so each request gets its own answer.
+struct SettleRequest {
+    Unsubmitted unsubmitted;
+    Settled settled{0, false};
+    bool is_done = false;
+};
+
 struct StreamWork {
     enum class Kind : std::uint8_t { chunk, settle, stop };
 
     Kind kind;
     bridge::SubmitStreamParams submission;
-    // For settle: the ticket complete() reports, and what to do with unsubmitted work.
-    std::uint64_t ticket;
-    Unsubmitted unsubmitted;
+    // For settle; it outlives the work because its owner waits for complete().
+    SettleRequest* request;
 };
 
-// Hands submitted chunks and commit requests from control calls (the producer) to a stream's
+// Hands submitted chunks and settle requests from control calls (the producers) to a stream's
 // consumer thread, in order.
 class WorkQueue {
 public:
     void push_chunk(const bridge::SubmitStreamParams& submission);
-    // Queues a settle request after every chunk queued so far; wait_completed(ticket) waits for
-    // it. Once stop is requested, nothing is queued and the ticket is already complete.
-    std::uint64_t push_settle(Unsubmitted unsubmitted);
+    // Queues request after every chunk queued so far. False, leaving request untouched, once stop
+    // has been requested: the consumer then never answers it.
+    bool push_settle(SettleRequest& request);
     // pop() returns stop once everything queued before has been returned.
     void request_stop() noexcept;
     StreamWork pop() noexcept;
 
-    // Called by the consumer once it has handled the settle request with ticket.
-    void complete(std::uint64_t ticket, Settled settled) noexcept;
-    Settled wait_completed(std::uint64_t ticket) noexcept;
+    // Called by the consumer once it has handled request.
+    void complete(SettleRequest& request, Settled settled) noexcept;
+    void wait_completed(const SettleRequest& request) noexcept;
 
 private:
     std::mutex mutex_;
@@ -52,9 +58,6 @@ private:
     std::condition_variable has_completed_;
     std::deque<StreamWork> pending_;
     bool is_stopping_ = false;
-    std::uint64_t issued_ticket_ = 0;
-    std::uint64_t completed_ticket_ = 0;
-    Settled completed_{0, false};
 };
 
 } // namespace directmetal::host
