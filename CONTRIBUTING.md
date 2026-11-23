@@ -42,7 +42,7 @@ fix: clamp mip count for BC formats below block size
 - Keep each pull request to one topic. Describe the change and how it was tested.
 - Tests follow [ADR 0007](docs/adr/0007-testing-strategy.md); a bug fix's regression test fails without the fix.
 - Results that differ from the [Windows reference](docs/adr/0007-testing-strategy.md#oracle) are fixed, or tracked as an issue and linked from the pull request.
-- Run tests through `tools/build.sh --test` or `tools/ci/run_local.sh`. To run a test binary or `meson test` directly, prefix it with `tools/with_gpu_lock.sh`: concurrent GPU test runs have stalled WindowServer. Never provoke real GPU faults or hangs in tests; use a fake backend for device-loss paths.
+- Run tests through `tools/build.sh --test` or `tools/ci/run_local.sh`. To run a test binary or `meson test` directly, prefix it with `tools/with_gpu_lock.sh`: concurrent GPU test runs have stalled WindowServer. The lock, `/Users/Shared/directmetal/gpu.lock`, is shared by every account on the machine, so your runs and a self-hosted CI runner's account wait for each other; `DIRECTMETAL_GPU_LOCK` overrides it and must then name the same file for every account. Never provoke real GPU faults or hangs in tests; use a fake backend for device-loss paths.
 - `tools/ci/run_local.sh` must pass; it runs the same checks as `.github/workflows/ci.yml`, which is currently disabled. Rebase on `main` rather than merging it into your branch.
 
 ## Reporting issues
