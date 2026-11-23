@@ -23,16 +23,37 @@ bool is_not_implemented(const char* name, HRESULT result) {
     return false;
 }
 
-bool check_create_device(HMODULE d3d11) {
+// With the unix side the device is created at feature level 11_0 and its only reference releases
+// it; without it the bridge cannot initialize and no device is returned.
+bool check_create_device(HMODULE d3d11, bool is_unix_side_expected) {
     auto create = find_export<PFN_D3D11_CREATE_DEVICE>(d3d11, "D3D11CreateDevice");
     if (create == nullptr) {
         std::fprintf(stderr, "d3d11.dll does not export D3D11CreateDevice\n");
         return false;
     }
     ID3D11Device* device = nullptr;
+    D3D_FEATURE_LEVEL level{};
     const HRESULT result = create(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, 0, nullptr, 0,
-                                  D3D11_SDK_VERSION, &device, nullptr, nullptr);
-    return is_not_implemented("D3D11CreateDevice", result);
+                                  D3D11_SDK_VERSION, &device, &level, nullptr);
+    if (!is_unix_side_expected) {
+        if (result == DXGI_ERROR_UNSUPPORTED && device == nullptr) {
+            return true;
+        }
+        std::fprintf(stderr,
+                     "D3D11CreateDevice returned 0x%08lx, expected DXGI_ERROR_UNSUPPORTED\n",
+                     static_cast<unsigned long>(result));
+        return false;
+    }
+    const ULONG remaining = device == nullptr ? 0 : device->Release();
+    if (result == S_OK && level == D3D_FEATURE_LEVEL_11_0 && remaining == 0) {
+        return true;
+    }
+    std::fprintf(stderr,
+                 "D3D11CreateDevice returned 0x%08lx at level 0x%04x, final Release %lu; expected "
+                 "S_OK at 0xb000 and 0\n",
+                 static_cast<unsigned long>(result), static_cast<unsigned>(level),
+                 static_cast<unsigned long>(remaining));
+    return false;
 }
 
 bool check_create_device_and_swap_chain(HMODULE d3d11) {
@@ -94,9 +115,9 @@ int main(int argc, char** argv) {
         std::fprintf(stderr, "LoadLibrary(d3d11.dll) failed: %lu\n", GetLastError());
         return 1;
     }
-    const bool is_device_stubbed = check_create_device(d3d11);
+    const bool is_device_created = check_create_device(d3d11, is_unix_side_expected);
     const bool is_swap_chain_stubbed = check_create_device_and_swap_chain(d3d11);
     const bool is_reply_expected = check_bridge_reply(is_unix_side_expected);
     FreeLibrary(d3d11);
-    return is_device_stubbed && is_swap_chain_stubbed && is_reply_expected ? 0 : 1;
+    return is_device_created && is_swap_chain_stubbed && is_reply_expected ? 0 : 1;
 }

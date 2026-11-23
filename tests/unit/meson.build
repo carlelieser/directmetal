@@ -26,6 +26,6 @@ call_log_tests = executable(
 
 test('call_log', call_log_tests, protocol: 'gtest', suite: 'unit', timeout: 30)
 
-foreach component : ['runtime', 'memory', 'formats', 'bridge', 'host', 'com']
+foreach component : ['runtime', 'memory', 'formats', 'bridge', 'host', 'com', 'd3d11']
     subdir(component)
 endforeach

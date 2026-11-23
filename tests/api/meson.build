@@ -89,15 +89,15 @@ test(
         '--program-arg', 'unix',
         '--call-log-dir', api_call_log_dir / 'd3d11_create_device',
         '--work-dir', meson.current_build_dir() / 'd3d11_create_device',
-        '--expect', 'directmetal: call D3D11CreateDevice',
         '--expect', 'directmetal: call D3D11CreateDeviceAndSwapChain',
     ],
     suite: 'api',
     timeout: 180,
 )
 
-# Without directmetal.so, Wine fails to load the unix library with STATUS_DLL_NOT_FOUND; the stubs
-# must still return E_NOTIMPL and report that status on the PE side.
+# Without directmetal.so, Wine fails to load the unix library with STATUS_DLL_NOT_FOUND. The PE side
+# must fail cleanly: D3D11CreateDevice returns DXGI_ERROR_UNSUPPORTED after logging the failed
+# initialize, and the stub still returns E_NOTIMPL and reports that status.
 test(
     'd3d11_create_device_without_unix_library',
     python,
@@ -105,7 +105,7 @@ test(
         '--program-arg', 'no-unix',
         '--call-log-dir', api_call_log_dir / 'd3d11_create_device_without_unix_library',
         '--work-dir', meson.current_build_dir() / 'd3d11_create_device_without_unix_library',
-        '--expect', 'directmetal: stub D3D11CreateDevice not logged: bridge call failed with status 0xc0000135',
+        '--expect', 'directmetal: warn bridge: initialize failed with status 0xc0000135',
         '--expect', 'directmetal: stub D3D11CreateDeviceAndSwapChain not logged: bridge call failed with status 0xc0000135',
     ],
     suite: 'api',
