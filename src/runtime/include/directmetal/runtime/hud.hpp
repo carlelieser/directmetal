@@ -29,7 +29,8 @@ public:
 };
 
 // Null removes the observer. When this returns, no on_frame call is running or will start with
-// the old observer. The observer must outlive its installation and must not call end_frame.
+// the old observer. The observer must outlive its installation and must not call set_observer or
+// end_frame from on_frame, which would deadlock.
 void set_observer(Observer* observer) noexcept;
 // Called at Present from Phase 2 on. Reports the frame's counts to the observer and starts the
 // next frame; calls from several threads are serialized.
