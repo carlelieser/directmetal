@@ -2,6 +2,8 @@
 
 #include <gmock/gmock.h>
 
+#include <future>
+
 namespace directmetal::host::testing {
 namespace {
 
@@ -93,6 +95,29 @@ TEST_F(StreamTest, DestroysObjectsAfterTheirLastSubmit) {
     ASSERT_TRUE(wait_retired(2));
     EXPECT_EQ(gpu.live_textures, 0);
     EXPECT_EQ(status_of(control), status_success);
+}
+
+// control.hpp: at most 64 chunks wait for the consumer thread.
+constexpr std::uint64_t max_queued_chunks = 64;
+
+TEST_F(StreamTest, BlocksSubmitWhileTheQueueIsFull) {
+    const Handle texture = create_texture(device, render_target_desc());
+    gpu.hold_gate();
+    submit(chunk(1).add(clear_of(texture)));
+    gpu.wait_gate_entered();
+    for (std::uint64_t sequence = 2; sequence <= max_queued_chunks + 1; ++sequence) {
+        EXPECT_EQ(submit(chunk(sequence).add(clear_of(texture))), status_success);
+    }
+    Chunk& overflow = chunk(max_queued_chunks + 2).add(clear_of(texture)).seal();
+    auto blocked = std::async(std::launch::async, [&] {
+        SubmitStreamParams params = overflow.submission(stream.stream);
+        return call(FunctionCode::submit_stream, params);
+    });
+    EXPECT_EQ(blocked.wait_for(std::chrono::milliseconds(50)), std::future_status::timeout);
+    gpu.release_gate();
+    EXPECT_EQ(blocked.get(), status_success);
+    ASSERT_TRUE(wait_retired(max_queued_chunks + 2));
+    EXPECT_EQ(gpu.recorded().size(), max_queued_chunks + 2);
 }
 
 TEST_F(StreamTest, RejectsQueuedCommandsAfterStreamCloses) {

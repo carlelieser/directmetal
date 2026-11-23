@@ -51,11 +51,12 @@ public:
     std::size_t queue_count() const;
     std::uint64_t submitted(std::size_t queue) const;
 
-    // While held, create_buffer blocks after announcing that it was entered.
-    void hold_creation();
-    void wait_creation_entered();
-    void release_creation();
-    void pass_creation_gate();
+    // While held, create_buffer and every recorder call block after announcing that they were
+    // entered.
+    void hold_gate();
+    void wait_gate_entered();
+    void release_gate();
+    void pass_gate();
 
     void add_queue(FakeQueue* queue);
     void remove_queue(FakeQueue* queue);
@@ -71,8 +72,8 @@ private:
     std::vector<std::string> recorded_;
     std::vector<FakeQueue*> queues_;
     std::condition_variable gate_changed_;
-    bool is_creation_held_ = false;
-    bool is_creation_entered_ = false;
+    bool is_gate_held_ = false;
+    bool is_gate_entered_ = false;
 };
 
 class FakeDevice final : public backend::Device {

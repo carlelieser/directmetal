@@ -186,6 +186,7 @@ std::vector<std::string> FakeGpu::recorded() const {
 }
 
 void FakeGpu::record(std::string name) {
+    pass_gate();
     const std::lock_guard lock(mutex_);
     recorded_.push_back(std::move(name));
 }
@@ -211,30 +212,30 @@ std::uint64_t FakeGpu::submitted(std::size_t queue) const {
     return queues_.at(queue)->last_submitted_value();
 }
 
-void FakeGpu::hold_creation() {
+void FakeGpu::hold_gate() {
     const std::lock_guard lock(mutex_);
-    is_creation_held_ = true;
-    is_creation_entered_ = false;
+    is_gate_held_ = true;
+    is_gate_entered_ = false;
 }
 
-void FakeGpu::wait_creation_entered() {
+void FakeGpu::wait_gate_entered() {
     std::unique_lock lock(mutex_);
-    gate_changed_.wait(lock, [this] { return is_creation_entered_; });
+    gate_changed_.wait(lock, [this] { return is_gate_entered_; });
 }
 
-void FakeGpu::release_creation() {
+void FakeGpu::release_gate() {
     {
         const std::lock_guard lock(mutex_);
-        is_creation_held_ = false;
+        is_gate_held_ = false;
     }
     gate_changed_.notify_all();
 }
 
-void FakeGpu::pass_creation_gate() {
+void FakeGpu::pass_gate() {
     std::unique_lock lock(mutex_);
-    is_creation_entered_ = true;
+    is_gate_entered_ = true;
     gate_changed_.notify_all();
-    gate_changed_.wait(lock, [this] { return !is_creation_held_; });
+    gate_changed_.wait(lock, [this] { return !is_gate_held_; });
 }
 
 void FakeGpu::add_queue(FakeQueue* queue) {
@@ -251,7 +252,7 @@ void FakeGpu::remove_queue(FakeQueue* queue) {
 
 Result<std::unique_ptr<backend::Buffer>>
 FakeDevice::create_buffer(const backend::BufferDesc& desc) {
-    gpu_.pass_creation_gate();
+    gpu_.pass_gate();
     if (desc.storage == backend::StorageMode::memoryless) {
         return Result<std::unique_ptr<backend::Buffer>>::failure(backend::Status::unsupported);
     }

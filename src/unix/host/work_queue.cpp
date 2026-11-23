@@ -4,8 +4,14 @@ namespace directmetal::host {
 
 void WorkQueue::push_chunk(const bridge::SubmitStreamParams& submission) {
     {
-        const std::lock_guard lock(mutex_);
+        std::unique_lock lock(mutex_);
+        has_space_.wait(lock,
+                        [this] { return queued_chunks_ < max_queued_chunks || is_stopping_; });
+        if (is_stopping_) {
+            return;
+        }
         pending_.push_back({StreamWork::Kind::chunk, submission, nullptr});
+        ++queued_chunks_;
     }
     has_work_.notify_one();
 }
@@ -28,6 +34,7 @@ void WorkQueue::request_stop() noexcept {
         is_stopping_ = true;
     }
     has_work_.notify_one();
+    has_space_.notify_all();
 }
 
 StreamWork WorkQueue::pop() noexcept {
@@ -38,6 +45,10 @@ StreamWork WorkQueue::pop() noexcept {
     }
     const StreamWork work = pending_.front();
     pending_.pop_front();
+    if (work.kind == StreamWork::Kind::chunk) {
+        --queued_chunks_;
+        has_space_.notify_one();
+    }
     return work;
 }
 

@@ -3,6 +3,7 @@
 #include <directmetal/bridge/control.hpp>
 
 #include <condition_variable>
+#include <cstddef>
 #include <cstdint>
 #include <deque>
 #include <mutex>
@@ -40,6 +41,10 @@ struct StreamWork {
 // consumer thread, in order.
 class WorkQueue {
 public:
+    // Chunks queued and not yet taken by the consumer; push_chunk waits while this many are.
+    static constexpr std::size_t max_queued_chunks = 64;
+
+    // Blocks while max_queued_chunks are queued. Once stop is requested the chunk is dropped.
     void push_chunk(const bridge::SubmitStreamParams& submission);
     // Queues request after every chunk queued so far. False, leaving request untouched, once stop
     // has been requested: the consumer then never answers it.
@@ -56,7 +61,9 @@ private:
     std::mutex mutex_;
     std::condition_variable has_work_;
     std::condition_variable has_completed_;
+    std::condition_variable has_space_;
     std::deque<StreamWork> pending_;
+    std::size_t queued_chunks_ = 0;
     bool is_stopping_ = false;
 };
 

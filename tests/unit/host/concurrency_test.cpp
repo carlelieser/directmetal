@@ -80,18 +80,18 @@ TEST_F(HostTest, ConcurrentDevicesRunIndependentStreams) {
 TEST_F(HostTest, DestroyDeviceLeavesNoObjectCreatedConcurrently) {
     initialize();
     device = create_device();
-    gpu.hold_creation();
+    gpu.hold_gate();
     std::thread creator([this] {
         CreateBufferParams params{device, {64, backend::StorageMode::shared, {}}, {}};
         call(FunctionCode::create_buffer, params);
     });
-    gpu.wait_creation_entered();
+    gpu.wait_gate_entered();
     std::thread destroyer([this] {
         DestroyDeviceParams params{device};
         call(FunctionCode::destroy_device, params);
     });
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
-    gpu.release_creation();
+    gpu.release_gate();
     creator.join();
     destroyer.join();
     EXPECT_EQ(gpu.live_buffers, 0);
