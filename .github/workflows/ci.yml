@@ -53,6 +53,23 @@ jobs:
           else
             echo "::notice::tools/api/tests does not exist; no API tooling tests to run"
           fi
+      - name: API runner unit tests
+        run: python -I -m unittest discover -s tests/api/tests
+
+  reference:
+    runs-on: macos-26
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.13"
+      - name: Reference tooling unit tests
+        run: python -I -m unittest discover -s tools/reference/tests
+      - name: Check references are fresh
+        run: python -I tools/reference/check_fresh.py
 
   sanitize:
     runs-on: macos-26
