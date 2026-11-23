@@ -1,12 +1,16 @@
 #include <directmetal/bridge/client.hpp>
 #include <directmetal/bridge/staging_ring.hpp>
 
+#include <algorithm>
 #include <utility>
 
 namespace directmetal::bridge {
 namespace {
 
 using RingResult = backend::Result<StagingRing>;
+
+// copy_buffer offsets are multiples of 4.
+constexpr std::uint64_t min_alignment = 4;
 
 // capacity rounded up to shared_memory_alignment; 0 when it is 0 or rounding overflows.
 constexpr std::uint64_t import_size(std::uint64_t capacity) noexcept {
@@ -71,7 +75,8 @@ StagingRing::allocate(std::uint64_t size, std::uint64_t alignment, std::uint64_t
     if (memory_.empty()) {
         return std::nullopt;
     }
-    const std::optional<std::uint64_t> offset = ring_.allocate(size, alignment, retire_value);
+    const std::optional<std::uint64_t> offset =
+        ring_.allocate(size, std::max(alignment, min_alignment), retire_value);
     if (!offset.has_value()) {
         return std::nullopt;
     }

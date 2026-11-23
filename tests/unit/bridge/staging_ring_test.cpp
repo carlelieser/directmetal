@@ -74,6 +74,25 @@ TEST_F(StagingRingTest, RoundsCapacityUpToTheImportAlignment) {
     EXPECT_EQ(ring.value().capacity(), shared_memory_alignment);
 }
 
+TEST_F(StagingRingTest, AlignsOffsetsToAtLeastFourBytes) {
+    auto ring = create(shared_memory_alignment);
+    ASSERT_TRUE(ring.has_value());
+    ASSERT_TRUE(ring.value().allocate(2, 1, 1).has_value());
+    const auto second = ring.value().allocate(2, 1, 1);
+    ASSERT_TRUE(second.has_value());
+    EXPECT_EQ(second->offset % 4, 0u);
+}
+
+TEST_F(StagingRingTest, AlignsCpuAddressesLikeOffsets) {
+    auto ring = create(shared_memory_alignment);
+    ASSERT_TRUE(ring.has_value());
+    ASSERT_TRUE(ring.value().allocate(8, 4, 1).has_value());
+    const auto aligned = ring.value().allocate(8, 256, 1);
+    ASSERT_TRUE(aligned.has_value());
+    EXPECT_EQ(aligned->offset, 256u);
+    EXPECT_EQ(directmetal::bridge::to_address(aligned->cpu_address) % 256, 0u);
+}
+
 TEST_F(StagingRingTest, ReleaseFreesTheMemoryOnce) {
     auto ring = create(shared_memory_alignment);
     ASSERT_TRUE(ring.has_value());
