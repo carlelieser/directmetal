@@ -166,14 +166,15 @@ Status StreamDecoder::walk(const Chunk& chunk, CommandSink* sink) noexcept {
     DecodedCommand command;
     std::uint32_t offset = sizeof(ChunkHeader);
     for (std::uint32_t index = 0; index < chunk.command_count; ++index) {
-        std::uint32_t opcode = framing_failure_opcode;
-        Status status = read_command(chunk, offset, command, opcode);
+        const CommandRead read = read_command(chunk, offset, command);
+        Status status = read.status;
         if (status >= 0 && sink != nullptr) {
             status = sink->execute(command);
         }
         if (status < 0) {
-            return fail(status, opcode, chunk.sequence);
+            return fail(status, read.opcode, chunk.sequence);
         }
+        offset += read.size;
     }
     if (offset != chunk.size) {
         return fail(status_invalid_parameter, framing_failure_opcode, chunk.sequence);
@@ -181,28 +182,27 @@ Status StreamDecoder::walk(const Chunk& chunk, CommandSink* sink) noexcept {
     return status_success;
 }
 
-Status StreamDecoder::read_command(const Chunk& chunk, std::uint32_t& offset,
-                                   DecodedCommand& command, std::uint32_t& opcode) noexcept {
+StreamDecoder::CommandRead StreamDecoder::read_command(const Chunk& chunk, std::uint32_t offset,
+                                                       DecodedCommand& command) noexcept {
     const std::uint32_t remaining = chunk.size - offset;
     if (remaining < sizeof(CommandHeader)) {
-        return status_invalid_parameter;
+        return {status_invalid_parameter, framing_failure_opcode, 0};
     }
     CommandHeader header{};
     std::memcpy(&header, chunk.data + offset, sizeof(header));
-    opcode = static_cast<std::uint32_t>(header.opcode);
+    const auto opcode = static_cast<std::uint32_t>(header.opcode);
     if (opcode >= opcode_count || header.reserved != 0) {
-        return status_invalid_parameter;
+        return {status_invalid_parameter, opcode, 0};
     }
     // Alignment is checked with the payload size: command_size is always aligned.
     const bool is_in_chunk = header.size >= sizeof(CommandHeader) && header.size <= remaining;
     if (!is_in_chunk || header.size > max_command_size) {
-        return status_invalid_parameter;
+        return {status_invalid_parameter, opcode, 0};
     }
     const std::uint32_t body_size = header.size - static_cast<std::uint32_t>(sizeof(header));
     std::memcpy(command.bytes_.data(), chunk.data + offset + sizeof(header), body_size);
     command.opcode_ = header.opcode;
-    offset += header.size;
-    return validate_payload(command, header.size);
+    return {validate_payload(command, header.size), opcode, header.size};
 }
 
 Status StreamDecoder::validate_payload(DecodedCommand& command, std::uint32_t size) noexcept {

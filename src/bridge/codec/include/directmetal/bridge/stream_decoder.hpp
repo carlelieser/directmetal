@@ -76,13 +76,19 @@ public:
 
 private:
     struct Chunk;
+    // The outcome of reading one command: its raw opcode, or framing_failure_opcode, and its size.
+    struct CommandRead {
+        Status status;
+        std::uint32_t opcode;
+        std::uint32_t size;
+    };
 
     Status validate_submission(const SubmitStreamParams& submission) const noexcept;
     bool reserve_copy(std::uint32_t size) noexcept;
     Status read_header(const SubmitStreamParams& submission, Chunk& chunk) noexcept;
     Status walk(const Chunk& chunk, CommandSink* sink) noexcept;
-    static Status read_command(const Chunk& chunk, std::uint32_t& offset, DecodedCommand& command,
-                               std::uint32_t& opcode) noexcept;
+    static CommandRead read_command(const Chunk& chunk, std::uint32_t offset,
+                                    DecodedCommand& command) noexcept;
     static Status validate_payload(DecodedCommand& command, std::uint32_t size) noexcept;
     Status fail(Status status, std::uint32_t opcode, std::uint64_t sequence) noexcept;
 
