@@ -73,6 +73,14 @@ TEST(D3d9Formats, ExtensionsReadChannelsLikeWindowsDrivers) {
     EXPECT_EQ(info(fourcc("DF16")).swizzle, depth);
 }
 
+TEST(D3d9Formats, MapsLockableStencilAndFourBitStencil) {
+    EXPECT_EQ(info(85).pixel_format, PixelFormat::stencil8);
+    EXPECT_TRUE(has(info(85).usage, D3d9Usage::depth_stencil));
+    EXPECT_EQ(info(79).pixel_format, PixelFormat::depth32_float_stencil8);
+    EXPECT_EQ(info(79).substitution, Substitution::depth24_to_depth32_stencil8);
+    EXPECT_TRUE(has(info(79).usage, D3d9Usage::depth_stencil));
+}
+
 TEST(D3d9Formats, UnsupportedFormatsAdvertiseNoUsage) {
     for (const D3d9FormatInfo& format : all_d3d9_formats()) {
         if (format.substitution == Substitution::unsupported) {

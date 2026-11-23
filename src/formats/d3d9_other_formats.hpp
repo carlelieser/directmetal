@@ -29,19 +29,21 @@ inline constexpr D3d9FormatInfo d3d9_other_rows[] = {
      D3d9Usage::depth_stencil, 4, 1, 1},
     {77, "D3DFMT_D24X8", depth32_float_stencil8, d3d9_depth24, identity_swizzle,
      D3d9Usage::depth_stencil, 4, 1, 1},
-    {79, "D3DFMT_D24X4S4", invalid, Substitution::unsupported, identity_swizzle, D3d9Usage::none, 4,
-     1, 1},
+    // The four stencil bits live in Stencil8's low bits.
+    {79, "D3DFMT_D24X4S4", depth32_float_stencil8, d3d9_depth24, identity_swizzle,
+     D3d9Usage::depth_stencil, 4, 1, 1},
     {80, "D3DFMT_D16", depth16_unorm, no_substitution, identity_swizzle, D3d9Usage::depth_stencil,
      2, 1, 1},
     {82, "D3DFMT_D32F_LOCKABLE", depth32_float, no_substitution, identity_swizzle,
      D3d9Usage::depth_stencil, 4, 1, 1},
     {83, "D3DFMT_D24FS8", depth32_float_stencil8, d3d9_depth24, identity_swizzle,
      D3d9Usage::depth_stencil, 4, 1, 1},
-    // Direct3D 9Ex only.
+    // Direct3D 9Ex only; Metal has no 32-bit normalized depth format.
     {84, "D3DFMT_D32_LOCKABLE", invalid, Substitution::unsupported, identity_swizzle,
      D3d9Usage::none, 4, 1, 1},
-    {85, "D3DFMT_S8_LOCKABLE", invalid, Substitution::unsupported, identity_swizzle,
-     D3d9Usage::none, 1, 1, 1},
+    // Direct3D 9Ex only.
+    {85, "D3DFMT_S8_LOCKABLE", stencil8, no_substitution, identity_swizzle,
+     D3d9Usage::depth_stencil, 1, 1, 1},
     {100, "D3DFMT_VERTEXDATA", invalid, no_substitution, identity_swizzle, D3d9Usage::none, 0, 1,
      1},
     {101, "D3DFMT_INDEX16", invalid, no_substitution, identity_swizzle, D3d9Usage::none, 2, 1, 1},
