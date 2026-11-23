@@ -1,5 +1,6 @@
 #include "handle_table.hpp"
 
+#include <algorithm>
 #include <utility>
 
 namespace directmetal::host {
@@ -34,12 +35,16 @@ bridge::Handle HandleTable::insert(ObjectKind kind, bridge::Handle owner,
         return {};
     }
     if (free_.empty()) {
-        // Reserved first, so remove() never allocates.
-        free_.reserve(slots_.size() + 1);
+        // Reserved first, so remove() never allocates; grown geometrically like slots_.
+        if (free_.capacity() <= slots_.size()) {
+            free_.reserve(std::max<std::size_t>(16, 2 * (slots_.size() + 1)));
+        }
         slots_.emplace_back();
         free_.push_back(static_cast<std::uint32_t>(slots_.size() - 1));
     }
     const std::uint32_t index = free_.back();
+    // Indexed before the slot changes, so a failed insertion leaves the table as it was.
+    owned_[owner.value].insert(index);
     free_.pop_back();
     Slot& slot = slots_[index];
     slot.kind = kind;
@@ -78,6 +83,7 @@ TableEntry HandleTable::remove(bridge::Handle handle, ObjectKind kind) {
     TableEntry entry{handle, slot.kind, slot.owner, std::move(slot.object)};
     slot.object = nullptr;
     slot.kind = ObjectKind::none;
+    forget_owned(entry.owner, index);
     if (++slot.generation <= generation_limit) {
         free_.push_back(index);
     }
@@ -87,15 +93,25 @@ TableEntry HandleTable::remove(bridge::Handle handle, ObjectKind kind) {
 std::vector<TableEntry> HandleTable::owned_by(bridge::Handle owner) const {
     const std::lock_guard lock(mutex_);
     std::vector<TableEntry> entries;
-    for (std::size_t index = 0; index < slots_.size(); ++index) {
+    const auto owned = owned_.find(owner.value);
+    if (owned == owned_.end()) {
+        return entries;
+    }
+    entries.reserve(owned->second.size());
+    for (const std::uint32_t index : owned->second) {
         const Slot& slot = slots_[index];
-        if (slot.object != nullptr && slot.owner.value == owner.value) {
-            const auto handle =
-                make_handle(slot.kind, slot.generation, static_cast<std::uint32_t>(index));
-            entries.push_back({handle, slot.kind, slot.owner, slot.object});
-        }
+        const auto handle = make_handle(slot.kind, slot.generation, index);
+        entries.push_back({handle, slot.kind, slot.owner, slot.object});
     }
     return entries;
+}
+
+void HandleTable::forget_owned(bridge::Handle owner, std::uint32_t index) noexcept {
+    const auto owned = owned_.find(owner.value);
+    owned->second.erase(index);
+    if (owned->second.empty()) {
+        owned_.erase(owned);
+    }
 }
 
 } // namespace directmetal::host

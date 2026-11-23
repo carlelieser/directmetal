@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <memory>
 #include <mutex>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 // Handles: kind in bits 56-63, generation in bits 32-55, slot index in bits 0-31. A slot's
@@ -58,10 +60,13 @@ private:
     };
 
     const Slot* live_slot(bridge::Handle handle) const noexcept;
+    void forget_owned(bridge::Handle owner, std::uint32_t index) noexcept;
 
     mutable std::mutex mutex_;
     std::vector<Slot> slots_;
     std::vector<std::uint32_t> free_;
+    // Slot indexes of the live objects of each owner, keyed by the owner's handle value.
+    std::unordered_map<std::uint64_t, std::unordered_set<std::uint32_t>> owned_;
 };
 
 } // namespace directmetal::host
