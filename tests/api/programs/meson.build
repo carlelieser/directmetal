@@ -12,3 +12,12 @@ api_harness_dep = declare_dependency(
     link_with: api_harness_lib,
     include_directories: include_directories('../harness/include'),
 )
+
+d3d11_import_dep = meson.get_compiler('cpp').find_library('d3d11')
+
+d3d11_clear_readback = executable(
+    'd3d11_clear_readback',
+    'd3d11_clear_readback.cpp',
+    dependencies: [api_harness_dep, d3d11_import_dep],
+    link_args: '-static',
+)
