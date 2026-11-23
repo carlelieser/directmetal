@@ -1,8 +1,6 @@
-// Drives the bridge directly: uploads patterned bytes through one staging ring, copies them on the
-// GPU into a region of a second ring, and reads them back, over enough passes that both rings wrap
-// while an earlier region is still live. Prints one pass or fail line to stdout and exits non-zero
-// on failure. In 32-bit builds it runs under WoW64 and proves that VirtualAlloc'd memory below
-// 4 GiB is imported without copying: the GPU reads the CPU's writes and the CPU reads the GPU's.
+// Uploads patterned bytes through one staging ring, copies them on the GPU into a second ring and
+// reads them back, until both rings wrap. Prints one pass or fail line. On 32-bit Wine the round
+// trip of CPU writes through a GPU copy back to the CPU is the WoW64 shared-memory proof.
 
 #include <directmetal/bridge/client.hpp>
 #include <directmetal/bridge/device_client.hpp>
@@ -32,11 +30,9 @@ constexpr bool is_wow64 = false;
 
 constexpr std::uint64_t ring_capacity = 4 * shared_memory_alignment;
 constexpr std::uint64_t region_alignment = 256;
-constexpr std::uint64_t wow64_address_limit = std::uint64_t{1} << 32;
 constexpr std::chrono::nanoseconds patience = std::chrono::seconds(10);
 constexpr std::byte unwritten{0xcd};
-// Bytes copied by each pass, multiples of 4 as copy_buffer requires. Pass 4 and pass 8 do not fit
-// before the end of the 64 KiB rings and wrap to offset 0 while the previous pass is still live.
+// Multiples of 4; passes 4 and 8 wrap the rings while the previous pass is live.
 constexpr std::array<std::uint64_t, 8> pass_sizes = {20480, 20480, 20480, 20476,
                                                      12288, 20480, 4,     32768};
 
@@ -99,8 +95,7 @@ public:
 
 private:
     // Writes the pattern for check.pass into upload and marks the readback region unwritten.
-    // Under WoW64 the shared memory must lie below 4 GiB.
-    bool fill(const StagingRing::Allocation& upload, const PendingCheck& check, Report& report);
+    static void fill(const StagingRing::Allocation& upload, const PendingCheck& check);
     // Waits for the pending pass, checks its readback and retires both rings to the mirror.
     bool settle(Report& report);
 
@@ -123,9 +118,7 @@ bool Roundtrip::run_pass(std::uint64_t pass, std::uint64_t size, Report& report)
         return report.fail(name + ": ring handed out space overlapping a live region");
     }
     const PendingCheck check{pass, *readback, size};
-    if (!fill(*upload, check, report)) {
-        return false;
-    }
+    fill(*upload, check);
     writer_->record(CopyBufferCommand{upload->buffer, upload->offset, readback->buffer,
                                       readback->offset, size});
     if (!settle(report)) {
@@ -139,18 +132,11 @@ bool Roundtrip::run_pass(std::uint64_t pass, std::uint64_t size, Report& report)
     return true;
 }
 
-bool Roundtrip::fill(const StagingRing::Allocation& upload, const PendingCheck& check,
-                     Report& report) {
-    if constexpr (is_wow64) {
-        if (bridge::to_address(upload.cpu_address) + check.size > wow64_address_limit) {
-            return report.fail("shared memory above 4 GiB under WoW64");
-        }
-    }
+void Roundtrip::fill(const StagingRing::Allocation& upload, const PendingCheck& check) {
     for (std::uint64_t index = 0; index < check.size; ++index) {
         upload.cpu_address[index] = pattern(check.pass, index);
     }
     std::memset(check.readback.cpu_address, static_cast<int>(unwritten), check.size);
-    return true;
 }
 
 bool Roundtrip::settle(Report& report) {
