@@ -1,6 +1,19 @@
+platform_source = host_machine.system() == 'windows' ? 'platform_windows.cpp' : 'platform_posix.cpp'
+
 runtime_lib = static_library(
     'runtime',
+    'config.cpp',
+    'config_file.cpp',
+    'config_options.cpp',
+    'config_process.cpp',
+    'config_value.cpp',
+    'hud.cpp',
     'log.cpp',
+    'log_environment.cpp',
+    'log_file.cpp',
+    'log_spec.cpp',
+    platform_source,
+    'text.cpp',
     include_directories: include_directories('include'),
 )
 

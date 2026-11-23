@@ -1,48 +1,31 @@
-#include <directmetal/runtime/log.hpp>
+#include "log_fixture.hpp"
 
-#include <gtest/gtest.h>
+#include <format>
+#include <stdexcept>
 
-#include <string>
-#include <vector>
+struct Unformattable {};
+
+template <> struct std::formatter<Unformattable> {
+    constexpr auto parse(std::format_parse_context& context) { return context.begin(); }
+    template <typename Context>
+    auto format(const Unformattable&, Context&) const -> typename Context::iterator {
+        throw std::runtime_error("cannot format");
+    }
+};
 
 namespace {
 
 using namespace directmetal::log;
+using testing_support::LogFixture;
 
-struct Line {
-    Component component;
-    Level level;
-    std::string message;
-};
-
-class CapturingSink : public Sink {
-public:
-    void write(Component component, Level level, std::string_view message) noexcept override {
-        lines.push_back({component, level, std::string(message)});
-    }
-
-    std::vector<Line> lines;
-};
-
-class LogTest : public testing::Test {
-protected:
-    void SetUp() override { set_sink(&sink); }
-    void TearDown() override {
-        set_sink(nullptr);
-        set_level(Component::d3d11, Level::info);
-    }
-
-    CapturingSink sink;
-};
-
-TEST_F(LogTest, DefaultLevelIsInfo) {
+TEST_F(LogFixture, DefaultLevelIsInfo) {
     EXPECT_TRUE(is_enabled(Component::backend, Level::info));
     EXPECT_TRUE(is_enabled(Component::backend, Level::error));
     EXPECT_FALSE(is_enabled(Component::backend, Level::debug));
     EXPECT_FALSE(is_enabled(Component::backend, Level::off));
 }
 
-TEST_F(LogTest, PrintFormatsEnabledMessages) {
+TEST_F(LogFixture, PrintFormatsEnabledMessages) {
     print(Component::d3d11, Level::warn, "{} of {}", 3, "four");
     ASSERT_EQ(sink.lines.size(), 1u);
     EXPECT_EQ(sink.lines[0].component, Component::d3d11);
@@ -50,7 +33,14 @@ TEST_F(LogTest, PrintFormatsEnabledMessages) {
     EXPECT_EQ(sink.lines[0].message, "3 of four");
 }
 
-TEST_F(LogTest, PrintSkipsDisabledLevels) {
+TEST_F(LogFixture, PrintDropsMessagesWhoseFormatterThrows) {
+    print(Component::d3d11, Level::warn, "value {}", Unformattable{});
+    ASSERT_EQ(sink.lines.size(), 1u);
+    EXPECT_EQ(sink.lines[0].level, Level::warn);
+    EXPECT_EQ(sink.lines[0].message, "(message dropped: format error)");
+}
+
+TEST_F(LogFixture, PrintSkipsDisabledLevels) {
     set_level(Component::d3d11, Level::error);
     print(Component::d3d11, Level::warn, "dropped");
     print(Component::d3d11, Level::error, "kept");

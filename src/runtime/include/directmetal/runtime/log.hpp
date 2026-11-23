@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <format>
 #include <new>
@@ -7,7 +8,23 @@
 #include <utility>
 
 // Logging for every component. Lines are "directmetal: <level> <component>: <message>". Levels
-// come from DIRECTMETAL_LOG once configuration is resolved; until then the default is info.
+// come from DIRECTMETAL_LOG, applied when the runtime library is loaded; until then the default is
+// info.
+//
+// DIRECTMETAL_LOG grammar, ASCII case-insensitive, whitespace around tokens ignored:
+//   spec      = entry { "," entry }
+//   entry     = level | component "=" level
+//   level     = "trace" | "debug" | "info" | "warn" | "error" | "off"
+//   component = "runtime" | "bridge" | "host" | "backend" | "formats" | "com" | "dxgi"
+//             | "d3d9" | "d3d10" | "d3d11" | "d3d12"
+// A bare level sets every component; entries apply left to right, so "warn,d3d11=debug" is warn
+// everywhere except debug for d3d11. Empty entries are ignored. An invalid entry is reported as a
+// warning and skipped; the valid entries still apply.
+//
+// DIRECTMETAL_LOG_FILE names a file that receives the lines instead of stderr, appended one
+// write call per line. The file is opened by the first line written, not at load time. If it
+// cannot be opened, a warning goes to stderr and stderr stays in use. If a write to it fails, one
+// warning goes to stderr and that line and later failing lines go to stderr.
 namespace directmetal::log {
 
 enum class Level : std::uint8_t { trace, debug, info, warn, error, off };
@@ -32,7 +49,20 @@ bool is_enabled(Component component, Level level) noexcept;
 void set_level(Component component, Level level) noexcept;
 void write(Component component, Level level, std::string_view message) noexcept;
 
-// Formats only when the level is enabled.
+// Applies a DIRECTMETAL_LOG specification on top of the current levels. Returns the number of
+// invalid entries, each reported as a warning from Component::runtime.
+std::size_t apply_spec(std::string_view spec) noexcept;
+
+// Appends lines to the file at `path` (UTF-8) instead of stderr. An empty path restores stderr.
+// Returns false, leaving the current output unchanged, if the file cannot be opened. Returns only
+// when no write into the previous file is running.
+bool set_file(std::string_view path) noexcept;
+
+// Applies DIRECTMETAL_LOG and DIRECTMETAL_LOG_FILE. Runs once when the library is loaded; calling
+// it again re-reads the environment.
+void configure_from_environment() noexcept;
+
+// Formats only when the level is enabled. A throwing formatter drops the message.
 template <typename... Args>
 void print(Component component, Level level, std::format_string<Args...> format,
            Args&&... args) noexcept {
@@ -43,17 +73,22 @@ void print(Component component, Level level, std::format_string<Args...> format,
         write(component, level, std::format(format, std::forward<Args>(args)...));
     } catch (const std::bad_alloc&) {
         write(component, level, "(message dropped: out of memory)");
+    } catch (...) {
+        // A user-defined formatter can throw anything; logging must not terminate the process.
+        write(component, level, "(message dropped: format error)");
     }
 }
 
-// Receives every enabled line instead of stderr; for tests.
+// Receives every enabled line instead of stderr or the file; for tests.
 class Sink {
 public:
     virtual ~Sink() = default;
     virtual void write(Component component, Level level, std::string_view message) noexcept = 0;
 };
 
-// Null restores stderr. The sink must outlive its installation.
+// Null restores stderr. The sink must outlive its installation. Sink calls are serialized with
+// every other output, so when set_sink returns no call into the previous sink is running or will
+// start. A sink must not log or call set_sink or set_file from write.
 void set_sink(Sink* sink) noexcept;
 
 std::string_view name(Level level) noexcept;
