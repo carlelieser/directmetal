@@ -25,10 +25,10 @@ default_levels(std::index_sequence<Index...>) noexcept {
 }
 
 // Constant-initialized, so logging from other static initializers sees the default.
-std::array<std::atomic<Level>, component_count> levels =
+constinit std::array<std::atomic<Level>, component_count> levels =
     default_levels(std::make_index_sequence<component_count>{});
 
-std::atomic<Sink*> sink{nullptr};
+constinit std::atomic<Sink*> sink{nullptr};
 
 std::size_t index_of(Component component) noexcept {
     return static_cast<std::size_t>(component);
