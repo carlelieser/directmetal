@@ -66,6 +66,19 @@ INSTANTIATE_TEST_SUITE_P(
                      desc.extent.height = 1;
                      desc.array_length = 2;
                  }},
+        DescCase{"RenderTarget1D",
+                 [](TextureDesc& desc) {
+                     desc.type = TextureType::tex1d;
+                     desc.extent.height = 1;
+                     desc.mip_levels = 1;
+                 }},
+        DescCase{"RenderTarget1DArray",
+                 [](TextureDesc& desc) {
+                     desc.type = TextureType::tex1d_array;
+                     desc.extent.height = 1;
+                     desc.mip_levels = 1;
+                     desc.array_length = 2;
+                 }},
         DescCase{"TooManyCubes",
                  [](TextureDesc& desc) {
                      desc.type = TextureType::cube_array;
