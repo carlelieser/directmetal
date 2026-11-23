@@ -53,11 +53,21 @@ constexpr Support operator&(Support left, Support right) noexcept {
                                 static_cast<std::uint32_t>(right));
 }
 
+// What the backend does beyond creating pixel_format.
 enum class Substitution : std::uint8_t {
     none,
+    // The resource is Depth32Float_Stencil8 while Direct3D sees a 24-bit layout: bytes_per_block
+    // is the Direct3D layout, so uploads and readbacks convert between the two, and depth bias
+    // given in 24-bit units is rescaled for the float format.
     depth24_to_depth32_stencil8,
+    // The format has no alpha but pixel_format stores one, which must read as one: views apply the
+    // swizzle, and the backend initializes alpha to one, masks alpha out of render target writes
+    // and rewrites DEST_ALPHA and INV_DEST_ALPHA blend factors to ONE and ZERO. Applies to
+    // B8G8R8X8, D3DFMT_X8R8G8B8, D3DFMT_X1R5G5B5 and their relatives.
     alpha_forced_one,
+    // Vertex fetch only: Metal has no texture or texture buffer format for it before Apple11.
     vertex_fetch_only,
+    // Uploads unpack the data into pixel_format's layout.
     emulated_unpack,
     unsupported,
 };
@@ -97,6 +107,7 @@ struct FormatInfo {
     DxgiFormat typeless_family;
     std::uint8_t block_width;
     std::uint8_t block_height;
+    // The Direct3D layout, which differs from pixel_format's under depth24_to_depth32_stencil8.
     std::uint8_t bytes_per_block;
     std::uint8_t plane_count;
 };

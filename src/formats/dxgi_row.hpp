@@ -60,8 +60,14 @@ inline constexpr Support integer_texel =
     Support::render_target | Support::multisample_render_target | Support::typed_uav_store;
 inline constexpr Support integer_color = integer_texel | Support::vertex_buffer;
 inline constexpr Support typeless_color = textures | Support::buffer;
-// Metal's RGB pixel formats exist only as texture buffers (Apple11 and later); vertex fetch uses
-// MTLVertexFormat instead.
+// Known gaps against feature level 11:
+// - R32G32B32_FLOAT, _UINT and _SINT: buffer views, textures and shader loads are required, but
+//   Metal's RGB pixel formats exist only as texture buffers from Apple11, so only vertex fetch
+//   (MTLVertexFormat) is reported.
+// - R10G10B10A2_UINT: vertex buffers are required, but MTLVertexFormat has no unnormalized
+//   10:10:10:2 format.
+// - R10G10B10_XR_BIAS_A2_UNORM: Metal's extended-range formats put blue in the low bits and have
+//   no 2-bit alpha; whether their bias matches is unverified.
 inline constexpr Support rgb_buffer =
     Support::buffer | Support::vertex_buffer | Support::shader_load;
 inline constexpr Support packed_16bit_color =

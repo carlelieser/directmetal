@@ -39,7 +39,7 @@ inline constexpr DxgiRow packed_format_rows[] = {
     {88, "DXGI_FORMAT_B8G8R8X8_UNORM", bgra8_unorm, unorm, 92, 4,
      textures | sampled | renderable | Support::mip_autogen, Substitution::alpha_forced_one,
      alpha_one_swizzle},
-    // Metal's extended-range formats store blue in the low bits and use a different bias.
+    // Metal's extended-range formats have the opposite channel order and no alpha.
     {89, "DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM", invalid, unorm, 0, 4, Support::none,
      Substitution::unsupported},
     {90, "DXGI_FORMAT_B8G8R8A8_TYPELESS", bgra8_unorm, typeless, 90, 4, textures},
