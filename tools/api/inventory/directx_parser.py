@@ -10,7 +10,7 @@ DECLARE_INTERFACE = re.compile(
     r"DECLARE_INTERFACE(?:_IID)?_\(\s*(\w+)\s*,\s*(\w+)\s*(?:,\s*\"[^\"]*\")?\s*\)"
 )
 MIDL_INTERFACE = re.compile(r'MIDL_INTERFACE\("[^"]*"\)\s*(\w+)\s*:\s*public\s+(\w+)\s*\{')
-IDL_INTERFACE = re.compile(r"\binterface\s+(\w+)\s*:\s*(\w+)\s*\{")
+IDL_INTERFACE = re.compile(r"\binterface\s+(\w+)\s*(?::\s*(\w+)\s*)?\{")
 STDMETHOD = re.compile(r"STDMETHOD_?\(\s*(?:[^,()]+,\s*)?(\w+)\s*\)")
 CPP_METHOD = re.compile(r"STDMETHODCALLTYPE\s+(\w+)\s*\(")
 IDL_METHOD = re.compile(r"(\w+)\s*\(")
