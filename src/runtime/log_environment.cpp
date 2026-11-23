@@ -1,5 +1,6 @@
 #include <directmetal/runtime/log.hpp>
 
+#include "log_file.hpp"
 #include "platform.hpp"
 
 #include <new>
@@ -14,7 +15,8 @@ void configure_from_environment() noexcept {
             apply_spec(*spec);
         }
         if (const auto path = platform::environment_variable("DIRECTMETAL_LOG_FILE")) {
-            set_file(*path);
+            const std::lock_guard lock(output_mutex);
+            defer_file(*path);
         }
     } catch (const std::bad_alloc&) {
         write(Component::runtime, Level::error, "environment ignored: out of memory");

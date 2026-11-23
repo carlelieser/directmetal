@@ -22,7 +22,9 @@
 // warning and skipped; the valid entries still apply.
 //
 // DIRECTMETAL_LOG_FILE names a file that receives the lines instead of stderr, appended one
-// write call per line. If it cannot be opened, a warning is logged and stderr stays in use.
+// write call per line. The file is opened by the first line written, not at load time. If it
+// cannot be opened, a warning goes to stderr and stderr stays in use. If a write to it fails, one
+// warning goes to stderr and that line and later failing lines go to stderr.
 namespace directmetal::log {
 
 enum class Level : std::uint8_t { trace, debug, info, warn, error, off };

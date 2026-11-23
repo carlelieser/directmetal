@@ -52,16 +52,6 @@ void write_to_stderr(Component component, Level level, std::string_view message)
                  static_cast<int>(message.size()), message.data());
 }
 
-bool write_to_log_file(Component component, Level level, std::string_view message) noexcept {
-    try {
-        const std::string line =
-            std::format("directmetal: {} {}: {}\n", name(level), name(component), message);
-        return write_to_file(line);
-    } catch (const std::bad_alloc&) {
-        return false;
-    }
-}
-
 } // namespace
 
 bool is_enabled(Component component, Level level) noexcept {
@@ -79,9 +69,10 @@ void write(Component component, Level level, std::string_view message) noexcept 
         sink->write(component, level, message);
         return;
     }
-    if (!write_to_log_file(component, level, message)) {
-        write_to_stderr(component, level, message);
+    if (has_log_file() && write_to_file(component, level, message)) {
+        return;
     }
+    write_to_stderr(component, level, message);
 }
 
 void set_sink(Sink* new_sink) noexcept {

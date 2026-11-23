@@ -1,11 +1,14 @@
 #include "log_fixture.hpp"
 
 #include <atomic>
+#include <csignal>
 #include <cstdlib>
 #include <deque>
+#include <fcntl.h>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
+#include <sys/stat.h>
 #include <thread>
 #include <unistd.h>
 
@@ -197,12 +200,65 @@ TEST_F(LogFileTest, BadEnvironmentSpecWarnsButAppliesValidEntries) {
     EXPECT_TRUE(is_enabled(Component::host, Level::trace));
 }
 
-TEST_F(LogFileTest, UnopenableEnvironmentFileKeepsStderr) {
-    setenv("DIRECTMETAL_LOG_FILE", (directory / "missing" / "out.log").c_str(), 1);
+TEST_F(LogFileTest, EnvironmentFileIsOpenedByTheFirstWrite) {
+    setenv("DIRECTMETAL_LOG_FILE", path.c_str(), 1);
+    configure_from_environment();
+    EXPECT_FALSE(fs::exists(path));
+    write(Component::host, Level::info, "first");
+    EXPECT_EQ(read_all(path), "directmetal: info host: first\n");
+}
+
+TEST_F(LogFileTest, UnopenableEnvironmentFileWarnsAtTheFirstWriteOnly) {
+    const fs::path missing = directory / "missing" / "out.log";
+    setenv("DIRECTMETAL_LOG_FILE", missing.c_str(), 1);
     testing::internal::CaptureStderr();
     configure_from_environment();
-    EXPECT_NE(testing::internal::GetCapturedStderr().find("cannot open for append"),
-              std::string::npos);
+    EXPECT_EQ(testing::internal::GetCapturedStderr(), "");
+    testing::internal::CaptureStderr();
+    write(Component::host, Level::info, "one");
+    write(Component::host, Level::info, "two");
+    EXPECT_EQ(testing::internal::GetCapturedStderr(),
+              "directmetal: warn runtime: log file \"" + missing.string() +
+                  "\": cannot open for append\ndirectmetal: info host: one\n"
+                  "directmetal: info host: two\n");
+}
+
+// A pipe whose reader has gone away: opening succeeds, every write fails with EPIPE.
+class BrokenPipe {
+public:
+    explicit BrokenPipe(const fs::path& path) {
+        previous_handler = signal(SIGPIPE, SIG_IGN);
+        if (mkfifo(path.c_str(), 0600) == 0) {
+            reader = open(path.c_str(), O_RDONLY | O_NONBLOCK);
+        }
+    }
+    void break_pipe() {
+        close(reader);
+        reader = -1;
+    }
+    ~BrokenPipe() {
+        if (reader >= 0) {
+            close(reader);
+        }
+        signal(SIGPIPE, previous_handler);
+    }
+
+private:
+    int reader = -1;
+    void (*previous_handler)(int) = SIG_DFL;
+};
+
+TEST_F(LogFileTest, FailedFileWriteIsReportedOnceAndFallsBackToStderr) {
+    const fs::path pipe_path = directory / "pipe";
+    BrokenPipe pipe(pipe_path);
+    ASSERT_TRUE(set_file(pipe_path.string()));
+    pipe.break_pipe();
+    testing::internal::CaptureStderr();
+    write(Component::host, Level::info, "one");
+    write(Component::host, Level::info, "two");
+    EXPECT_EQ(testing::internal::GetCapturedStderr(),
+              "directmetal: warn runtime: log file write failed; using stderr\n"
+              "directmetal: info host: one\ndirectmetal: info host: two\n");
 }
 
 } // namespace
