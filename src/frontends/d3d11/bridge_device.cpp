@@ -86,6 +86,10 @@ backend::Result<bridge::Handle> BridgeDevice::import_memory(std::span<std::byte>
     return backend::Result<bridge::Handle>::success(imported.value().buffer);
 }
 
+// The lock is held across release_memory, which drains the stream and waits for the GPU: the
+// teardown contract requires the stream to be flushed with nothing unsubmitted when the call is
+// made, and another thread recording in between would break that. Every other stream user on this
+// device blocks for that drain, so releasing a staging texture costs a full GPU wait.
 backend::Status BridgeDevice::release_memory(bridge::Handle buffer) noexcept {
     const std::lock_guard lock(mutex_);
     if (has_unsubmitted_) {
