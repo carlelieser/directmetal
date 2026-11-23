@@ -97,6 +97,14 @@ bool is_single_aspect(const PixelLayout& layout) noexcept {
     return !(has_aspect(layout, Aspect::depth) && has_aspect(layout, Aspect::stencil));
 }
 
+// Metal on macOS copies between buffers only at offsets and sizes that are multiples of 4.
+constexpr std::uint64_t buffer_copy_alignment = 4;
+
+bool is_copy_aligned(const bridge::CopyBufferCommand& command) noexcept {
+    const std::uint64_t bits = command.source_offset | command.destination_offset | command.size;
+    return bits % buffer_copy_alignment == 0;
+}
+
 } // namespace
 
 bool is_valid_color_clear(const TextureDesc& desc,
@@ -125,6 +133,9 @@ bool is_valid_depth_clear(const TextureDesc& desc,
 
 bool is_valid_buffer_copy(const bridge::CopyBufferCommand& command,
                           const BufferCopyCheck& check) noexcept {
+    if (!is_copy_aligned(command)) {
+        return false;
+    }
     const bool is_source_valid =
         is_span_within(command.source_offset, command.size, check.source_size);
     const bool is_destination_valid =

@@ -124,6 +124,23 @@ TEST_F(StreamErrorTest, OverlappingBufferCopyIsSticky) {
     expect_sticky(status_invalid_parameter, raw(Opcode::copy_buffer), 1);
 }
 
+TEST_F(StreamErrorTest, UnalignedBufferCopyIsSticky) {
+    const Handle source = create_buffer(device, 256);
+    const Handle destination = create_buffer(device, 256);
+    submit(chunk(1).add(CopyBufferCommand{source, 0, destination, 0, 64}));
+    ASSERT_TRUE(wait_retired(1));
+    recorded_before_failure = 1;
+    submit(chunk(2).add(CopyBufferCommand{source, 2, destination, 0, 64}));
+    expect_sticky(status_invalid_parameter, raw(Opcode::copy_buffer), 2);
+}
+
+TEST_F(StreamErrorTest, UnalignedBufferCopySizeIsSticky) {
+    const Handle source = create_buffer(device, 256);
+    const Handle destination = create_buffer(device, 256);
+    submit(chunk(1).add(CopyBufferCommand{source, 0, destination, 4, 6}));
+    expect_sticky(status_invalid_parameter, raw(Opcode::copy_buffer), 1);
+}
+
 TEST_F(StreamErrorTest, InvalidSubresourceIsSticky) {
     ClearTextureCommand clear = clear_of(texture);
     clear.range = {1, 2, 0, 1};
