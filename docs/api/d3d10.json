@@ -1899,6 +1899,58 @@
    "name": "ID3D10EffectMatrixVariable",
    "source": "d3d10effect.idl"
   },
+  "ID3D10EffectPass": {
+   "base": null,
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "IsValid"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDesc"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetVertexShaderDesc"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetGeometryShaderDesc"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetPixelShaderDesc"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetAnnotationByIndex"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetAnnotationByName"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "Apply"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "ComputeStateBlockMask"
+    }
+   ],
+   "name": "ID3D10EffectPass",
+   "source": "d3d10effect.idl"
+  },
   "ID3D10EffectPool": {
    "base": "IUnknown",
    "members": [
@@ -2118,6 +2170,222 @@
     }
    ],
    "name": "ID3D10EffectStringVariable",
+   "source": "d3d10effect.idl"
+  },
+  "ID3D10EffectTechnique": {
+   "base": null,
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "IsValid"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDesc"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetAnnotationByIndex"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetAnnotationByName"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetPassByIndex"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetPassByName"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "ComputeStateBlockMask"
+    }
+   ],
+   "name": "ID3D10EffectTechnique",
+   "source": "d3d10effect.idl"
+  },
+  "ID3D10EffectType": {
+   "base": null,
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "IsValid"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDesc"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetMemberTypeByIndex"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetMemberTypeByName"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetMemberTypeBySemantic"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetMemberName"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetMemberSemantic"
+    }
+   ],
+   "name": "ID3D10EffectType",
+   "source": "d3d10effect.idl"
+  },
+  "ID3D10EffectVariable": {
+   "base": null,
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "IsValid"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetType"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDesc"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetAnnotationByIndex"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetAnnotationByName"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetMemberByIndex"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetMemberByName"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetMemberBySemantic"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetElement"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetParentConstantBuffer"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "AsScalar"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "AsVector"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "AsMatrix"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "AsString"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "AsShaderResource"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "AsRenderTargetView"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "AsDepthStencilView"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "AsConstantBuffer"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "AsShader"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "AsBlend"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "AsDepthStencil"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "AsRasterizer"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "AsSampler"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "SetRawValue"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetRawValue"
+    }
+   ],
+   "name": "ID3D10EffectVariable",
    "source": "d3d10effect.idl"
   },
   "ID3D10EffectVectorVariable": {
@@ -2608,6 +2876,72 @@
    ],
    "name": "ID3D10ShaderReflection1",
    "source": "d3d10_1shader.idl"
+  },
+  "ID3D10ShaderReflectionConstantBuffer": {
+   "base": null,
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDesc"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetVariableByIndex"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetVariableByName"
+    }
+   ],
+   "name": "ID3D10ShaderReflectionConstantBuffer",
+   "source": "d3d10shader.idl"
+  },
+  "ID3D10ShaderReflectionType": {
+   "base": null,
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDesc"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetMemberTypeByIndex"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetMemberTypeByName"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetMemberTypeName"
+    }
+   ],
+   "name": "ID3D10ShaderReflectionType",
+   "source": "d3d10shader.idl"
+  },
+  "ID3D10ShaderReflectionVariable": {
+   "base": null,
+   "members": [
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetDesc"
+    },
+    {
+     "is_deprecated": false,
+     "macos": null,
+     "name": "GetType"
+    }
+   ],
+   "name": "ID3D10ShaderReflectionVariable",
+   "source": "d3d10shader.idl"
   },
   "ID3D10ShaderResourceView": {
    "base": "ID3D10View",

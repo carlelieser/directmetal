@@ -16,8 +16,8 @@
 
 | Kind | Count |
 | --- | ---: |
-| Interfaces / classes | 48 |
-| Methods / properties | 284 |
+| Interfaces / classes | 55 |
+| Methods / properties | 341 |
 | Enums | 37 |
 | Structs | 69 |
 | Exported functions | 27 |
