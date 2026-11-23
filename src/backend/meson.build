@@ -5,6 +5,7 @@ backend_private_include = include_directories('.')
 subdir('commands')
 
 backend_dep = declare_dependency(
+    link_with: backend_commands_lib,
     include_directories: backend_include,
     dependencies: memory_dep,
 )
