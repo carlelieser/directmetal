@@ -21,3 +21,11 @@ d3d11_clear_readback = executable(
     dependencies: [api_harness_dep, d3d11_import_dep],
     link_args: '-static',
 )
+
+# Drives the bridge client directly under Wine; not in manifest.tsv, since it needs the unix side.
+bridge_ring_roundtrip = executable(
+    'bridge_ring_roundtrip',
+    'bridge_ring_roundtrip.cpp',
+    dependencies: [bridge_client_dep, bridge_transport_dep],
+    link_args: '-static',
+)

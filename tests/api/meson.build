@@ -119,6 +119,23 @@ test(
 
 subdir('programs')
 
+test(
+    'bridge_ring_roundtrip_wine',
+    python,
+    args: [
+        '-I', api_runner,
+        '--mode', 'wine',
+        '--arch', api_arch,
+        '--program', bridge_ring_roundtrip,
+        '--builtin', directmetal_builtin_dll,
+        '--unix-library', unix_library,
+        '--work-dir', meson.current_build_dir() / 'bridge_ring_roundtrip_wine',
+    ],
+    suite: 'api',
+    is_parallel: false,
+    timeout: 180,
+)
+
 # The validation canary's unix library stands in for directmetal.so. Its first unix call trips
 # Metal validation, which Wine reports to the PE side as status 0xc0000005, so the program fails.
 # The runner passes only on that failure with the debug layer's message on stderr, which proves
