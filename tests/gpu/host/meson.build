@@ -3,6 +3,7 @@
 host_gpu_tests = executable(
     'host_gpu_tests',
     'host_fixture.cpp',
+    'readback_test.cpp',
     'session_test.cpp',
     dependencies: [bridge_client_dep, bridge_transport_dep, runtime_dep, gtest_dep],
 )
