@@ -3,44 +3,8 @@
 #include "bridge_device.hpp"
 #include "texture.hpp"
 
-#include <algorithm>
-#include <bit>
-#include <cmath>
-#include <limits>
-
 namespace directmetal::d3d11 {
 namespace {
-
-// Truncates toward zero after clamping to Integer's range; NaN becomes 0.
-template <typename Integer> std::uint32_t saturate(FLOAT value) noexcept {
-    if (std::isnan(value)) {
-        return 0;
-    }
-    constexpr double lowest = std::numeric_limits<Integer>::lowest();
-    constexpr double highest = std::numeric_limits<Integer>::max();
-    const double clamped = std::clamp(static_cast<double>(value), lowest, highest);
-    return static_cast<std::uint32_t>(static_cast<Integer>(clamped));
-}
-
-backend::ClearKind clear_kind_of(formats::ComponentKind kind) noexcept {
-    if (kind == formats::ComponentKind::uint) {
-        return backend::ClearKind::uint_value;
-    }
-    if (kind == formats::ComponentKind::sint) {
-        return backend::ClearKind::sint_value;
-    }
-    return backend::ClearKind::float_value;
-}
-
-std::uint32_t channel_bits(FLOAT value, backend::ClearKind kind) noexcept {
-    if (kind == backend::ClearKind::uint_value) {
-        return saturate<std::uint32_t>(value);
-    }
-    if (kind == backend::ClearKind::sint_value) {
-        return saturate<std::int32_t>(value);
-    }
-    return std::bit_cast<std::uint32_t>(value);
-}
 
 bridge::BufferTextureRegion readback_region(const Texture2D& destination, const Texture2D& source,
                                             UINT subresource) noexcept {
@@ -71,15 +35,6 @@ bool is_same_format_family(DXGI_FORMAT destination, DXGI_FORMAT source) noexcept
 }
 
 } // namespace
-
-backend::ClearColor to_clear_color(const FLOAT color[4], formats::ComponentKind kind) noexcept {
-    backend::ClearColor clear{};
-    clear.kind = clear_kind_of(kind);
-    for (std::size_t channel = 0; channel < clear.bits.size(); ++channel) {
-        clear.bits[channel] = channel_bits(color[channel], clear.kind);
-    }
-    return clear;
-}
 
 bool is_copy_compatible(const D3D11_TEXTURE2D_DESC& destination,
                         const D3D11_TEXTURE2D_DESC& source) noexcept {

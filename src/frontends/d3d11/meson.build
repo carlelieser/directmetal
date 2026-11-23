@@ -14,6 +14,7 @@ d3d11_frontend_deps = [
 d3d11_frontend_lib = static_library(
     'd3d11_frontend',
     'bridge_device.cpp',
+    'clear_color.cpp',
     'context_commands.cpp',
     'context_pipeline_stubs.cpp',
     'context_query_stubs.cpp',

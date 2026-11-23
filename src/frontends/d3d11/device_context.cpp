@@ -1,6 +1,7 @@
 #include "device_context.hpp"
 
 #include "bridge_device.hpp"
+#include "clear_color.hpp"
 #include "context_commands.hpp"
 #include "device.hpp"
 #include "hresult.hpp"
@@ -113,7 +114,7 @@ void STDMETHODCALLTYPE DeviceContext::ClearRenderTargetView(
     }
     const Texture2D& texture = view->texture();
     const bridge::ClearTextureCommand command{texture.handle(), view->range(),
-                                              to_clear_color(ColorRGBA, texture.format().kind), 0};
+                                              to_clear_color(ColorRGBA, texture.format()), 0};
     com::guard("ID3D11DeviceContext::ClearRenderTargetView", [&] {
         device().bridge().record(command);
         return S_OK;
