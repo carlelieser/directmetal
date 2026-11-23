@@ -2,6 +2,7 @@
 runtime_tests = executable(
     'runtime_tests',
     'log_test.cpp',
+    'log_file_test.cpp',
     'log_spec_test.cpp',
     dependencies: [runtime_dep, gtest_dep],
 )
