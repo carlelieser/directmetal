@@ -99,7 +99,7 @@ Plan: [docs/plans/phase-1.md](plans/phase-1.md).
 - Windows reference job: runs API test programs on WARP and records readbacks, images and return codes.
 - Format tables for `DXGI_FORMAT` (123 values) and `D3DFORMAT` with support flags, substitutions (e.g. `D24_UNORM_S8_UINT` → `Depth32Float_Stencil8`, 3-component formats via buffers) and view-format compatibility.
 
-**Exit:** unit tests cover every `DXGI_FORMAT` mapping and allocator behavior; an API test clears and reads back a texture and matches the Windows reference, with Metal validation enabled.
+**Exit:** unit tests cover every `DXGI_FORMAT` mapping and allocator behavior; an API test clears and reads back a texture and matches the Windows reference, with Metal validation enabled. Gated by `d3d11_clear_readback` (native, and under Wine for win64 and win32) and `python3 -I tools/api/report_status.py --require d3d11:tested>=8 --require common:implemented>=3` on its call logs.
 
 ### Phase 2 — DXGI and presentation
 

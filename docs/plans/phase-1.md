@@ -117,3 +117,12 @@ Critical path: interfaces → B and C → F and G → I → wave 4. G2 is small 
 | 64-bit atomics in shared blocks from 32-bit processes | `std::atomic_ref` on 8-byte-aligned fields, asserted lock-free |
 | Stream threads at DLL detach | Never joined in `DllMain`; drained on `destroy_device` and `close_stream` |
 | Large format tables against the 300-line file limit | Tables split by format family |
+| `submit_stream` blocks when 64 chunks are queued | No cycle in Phase 1. Once the GPU waits on CPU-signalled timelines, a PE thread blocked in `submit_stream` while the GPU waits on that thread's signal would deadlock; revisit backpressure before then |
+| Completion callbacks that destroy or wait on their own timeline deadlock | Callbacks only touch atomics and lock-free queues; never destroy, wait on or block a timeline from a callback |
+
+## Deferred decisions
+
+- Device loss is tracked per queue in Phase 1. Direct3D device removal is device-wide; a device-owned loss tracker arrives with deferred contexts in Phase 4.
+- Each PE DLL that statically links the runtime has its own log levels, log file and HUD counters. One module must own runtime state before a second front end ships.
+- The runtime does not expose the executable name, so front ends initialize the bridge with an empty client name.
+- Follow-up issues from the format GPU check: #29, #30, #31, #32.
