@@ -11,6 +11,7 @@ Arena::Arena(id<MTLDevice> device, const DeviceRequest& request)
 
 Result<PlacedResource> Arena::place(const MemoryRequirement& requirement, ResourceMaker make) {
     const std::lock_guard lock(mutex_);
+    reclaim();
     const bool is_dedicated =
         requirement.storage == StorageMode::memoryless || requirement.size >= dedicated_threshold_;
     return is_dedicated ? place_dedicated(requirement, make) : place_in_heap(requirement, make);
@@ -45,13 +46,30 @@ Result<PlacedResource> Arena::place_dedicated(const MemoryRequirement& requireme
 
 void Arena::release(PlacedResource resource) {
     const std::lock_guard lock(mutex_);
-    resource.resource = nil;
-    used_bytes_ -= resource.allocation.requirement.size;
-    free_now(resource.allocation);
+    const Allocation allocation = resource.allocation;
+    used_bytes_ -= allocation.requirement.size;
+    pending_free_bytes_ += allocation.requirement.size;
+    if (auto ready = deferred_.defer(std::move(resource))) {
+        ready->resource = nil;
+        pending_free_bytes_ -= allocation.requirement.size;
+        free_now(allocation);
+    }
+    reclaim();
+}
+
+void Arena::track(Queue& queue) {
+    const std::lock_guard lock(mutex_);
+    deferred_.track(queue);
+}
+
+void Arena::untrack(Queue& queue) noexcept {
+    const std::lock_guard lock(mutex_);
+    deferred_.untrack(queue);
 }
 
 MemoryStats Arena::stats() {
     const std::lock_guard lock(mutex_);
+    reclaim();
     MemoryStats stats{};
     for (const HeapPool& heaps : pools_) {
         stats.heap_count += heaps.heap_count();
@@ -59,6 +77,7 @@ MemoryStats Arena::stats() {
     }
     stats.used_bytes = used_bytes_;
     stats.dedicated_count = dedicated_count_;
+    stats.pending_free_bytes = pending_free_bytes_;
     return stats;
 }
 
@@ -73,6 +92,13 @@ void Arena::free_now(const Allocation& allocation) {
         return;
     }
     pool(allocation.requirement.storage).free(allocation.range);
+}
+
+void Arena::reclaim() {
+    for (const Allocation& allocation : deferred_.take_completed()) {
+        pending_free_bytes_ -= allocation.requirement.size;
+        free_now(allocation);
+    }
 }
 
 } // namespace directmetal::backend::resources

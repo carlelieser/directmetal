@@ -2,6 +2,7 @@
 backend_memory_tests = executable(
     'backend_memory_tests',
     'adapter_test.mm',
+    'deferred_free_test.mm',
     'gpu_access_test.mm',
     'heap_test.mm',
     'texture_test.mm',

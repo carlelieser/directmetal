@@ -9,6 +9,7 @@ backend_lib = static_library(
     'backend',
     'adapters.mm',
     'arena.mm',
+    'deferred_free.mm',
     'device.mm',
     'heap_pool.mm',
     'pixel_format_check.mm',

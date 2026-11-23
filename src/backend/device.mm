@@ -133,4 +133,12 @@ id<MTLDevice> metal_device(Device& device) noexcept {
     return static_cast<MetalDevice&>(device).arena().device();
 }
 
+void track_queue(Device& device, Queue& queue) {
+    static_cast<MetalDevice&>(device).arena().track(queue);
+}
+
+void untrack_queue(Device& device, Queue& queue) noexcept {
+    static_cast<MetalDevice&>(device).arena().untrack(queue);
+}
+
 } // namespace directmetal::backend::resources
