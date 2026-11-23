@@ -8,7 +8,7 @@ unit_tests = executable(
     cpp_args: '-DDIRECTMETAL_EXPECTED_VERSION="@0@"'.format(meson.project_version()),
 )
 
-test('unit', unit_tests, protocol: 'gtest', timeout: 30)
+test('unit', unit_tests, protocol: 'gtest', suite: 'unit', timeout: 30)
 
 marker_tests = executable(
     'marker_tests',
@@ -16,7 +16,7 @@ marker_tests = executable(
     dependencies: [frontend_markers_dep, gtest_dep],
 )
 
-test('markers', marker_tests, protocol: 'gtest', timeout: 30)
+test('markers', marker_tests, protocol: 'gtest', suite: 'unit', timeout: 30)
 
 call_log_tests = executable(
     'call_log_tests',
@@ -24,4 +24,8 @@ call_log_tests = executable(
     dependencies: [frontend_markers_dep, gtest_dep],
 )
 
-test('call_log', call_log_tests, protocol: 'gtest', timeout: 30)
+test('call_log', call_log_tests, protocol: 'gtest', suite: 'unit', timeout: 30)
+
+foreach component : ['runtime', 'memory', 'formats', 'bridge', 'host', 'com']
+    subdir(component)
+endforeach

@@ -1,2 +1,5 @@
 subdir('markers')
-subdir('d3d11')
+subdir('com')
+if is_windows
+    subdir('d3d11')
+endif

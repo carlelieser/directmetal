@@ -75,3 +75,5 @@ test(
     is_parallel: false,
     timeout: 60,
 )
+
+subdir('programs')
