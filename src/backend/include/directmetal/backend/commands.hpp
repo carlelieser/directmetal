@@ -25,6 +25,10 @@ public:
     virtual void set_label(std::string_view label) = 0;
 };
 
+// Timeline::wait without a time limit. The host maps the protocol's timeout_infinite, and any
+// timeout above INT64_MAX nanoseconds, to this value.
+inline constexpr std::chrono::nanoseconds wait_forever = std::chrono::nanoseconds::max();
+
 // A monotonically increasing 64-bit counter backed by MTLSharedEvent. Thread-safe.
 class Timeline {
 public:
@@ -47,6 +51,7 @@ struct BufferCopy {
     std::uint64_t size;
 };
 
+// On depth-stencil formats, copies the depth aspect only in Phase 1.
 struct BufferTextureCopy {
     Buffer& buffer;
     std::uint64_t offset;
@@ -72,7 +77,8 @@ struct TextureCopy {
 };
 
 // Records into the queue's current command buffer. Used by one thread at a time; valid until
-// the next Queue::submit.
+// the next Queue::submit. Arguments are not validated: the host validates every decoded command
+// against the resources it names (I3), and the backend only asserts in debug builds.
 class CommandRecorder {
 public:
     virtual ~CommandRecorder() = default;
