@@ -89,6 +89,8 @@ Each phase ends in a working, tested state. Phases 4–7 depend on 1–3; 5 depe
 
 ### Phase 1 — Core runtime and Metal backend
 
+Plan: [docs/plans/phase-1.md](plans/phase-1.md).
+
 - COM base: `IUnknown`, internal/external refcounts, private data (`SetPrivateData`/`GetPrivateData`), `QueryInterface` tables, debug object names.
 - Logging, per-application configuration, environment overrides, HUD hook points.
 - Bridge: argument marshalling, WoW64 pointer thunks, command-stream batching to minimise PE↔unix transitions.
