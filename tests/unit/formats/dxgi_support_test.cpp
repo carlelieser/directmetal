@@ -107,6 +107,13 @@ TEST(DxgiSupport, DepthFilteringFollowsTheMetalTables) {
     EXPECT_FALSE(has(support(d32_float, GpuFamily::apple7), Support::render_target));
 }
 
+TEST(DxgiSupport, B8G8R8A8HasNoTypedUavs) {
+    // Direct3D 11 disallows typed UAVs of B8G8R8A8_UNORM.
+    for (const DxgiFormat format : {87u, 88u, 90u, 91u}) {
+        EXPECT_FALSE(has(support(format, GpuFamily::apple10), Support::typed_uav_store)) << format;
+    }
+}
+
 TEST(DxgiSupport, TypedUavLoadsMatchTheDirect3DSet) {
     const std::set<std::string_view> expected = {
         "DXGI_FORMAT_R32G32B32A32_FLOAT",

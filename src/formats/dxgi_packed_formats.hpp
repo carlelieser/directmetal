@@ -31,8 +31,10 @@ inline constexpr DxgiRow packed_format_rows[] = {
     {67, "DXGI_FORMAT_R9G9B9E5_SHAREDEXP", rgb9e5_float, float_value, 0, 4, textures | sampled},
     {85, "DXGI_FORMAT_B5G6R5_UNORM", b5g6r5_unorm, unorm, 0, 2, packed_16bit_color},
     {86, "DXGI_FORMAT_B5G5R5A1_UNORM", bgr5a1_unorm, unorm, 0, 2, packed_16bit_color},
+    // Direct3D 11 disallows typed UAVs of B8G8R8A8_UNORM (footnote 12 of the format support page).
     {87, "DXGI_FORMAT_B8G8R8A8_UNORM", bgra8_unorm, unorm, 90, 4,
-     filterable_color | Support::display},
+     textures | Support::buffer | Support::vertex_buffer | sampled | renderable |
+         Support::mip_autogen | Support::display},
     // Render targets write the unused byte; reads replace it with one.
     {88, "DXGI_FORMAT_B8G8R8X8_UNORM", bgra8_unorm, unorm, 92, 4,
      textures | sampled | renderable | Support::mip_autogen, Substitution::alpha_forced_one,
