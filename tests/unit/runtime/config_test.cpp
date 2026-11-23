@@ -124,6 +124,36 @@ TEST_F(ConfigTest, FileWithoutTrailingNewline) {
     EXPECT_EQ(from_file("[*]\nname=last").get_string("name"), "last");
 }
 
+TEST_F(ConfigTest, LeadingUtf8ByteOrderMarkIsIgnored) {
+    const Config config = from_file("\xEF\xBB\xBF[*]\nname = marked\n");
+    EXPECT_EQ(config.get_string("name"), "marked");
+    EXPECT_TRUE(sink.lines.empty());
+}
+
+TEST_F(ConfigTest, ByteOrderMarkOnlyCountsAtTheStart) {
+    const Config config = from_file("[*]\n\xEF\xBB\xBFname = late\n");
+    EXPECT_EQ(config.get_string("name"), "plain");
+    EXPECT_EQ(sink.lines.size(), 1u);
+}
+
+TEST_F(ConfigTest, VeryLongLinesAreHandled) {
+    const std::string huge(1 << 20, 'x');
+    const Config config = from_file("[*]\nname = " + huge + "\n" + huge + "\ncount = 3\n");
+    EXPECT_EQ(config.get_string("name"), huge);
+    EXPECT_EQ(config.get_int("count"), 3);
+    EXPECT_EQ(sink.lines.size(), 1u);
+}
+
+TEST_F(ConfigTest, DuplicateKeyLastValidValueWins) {
+    const Config config = from_file("[*]\ncount = 1\ncount = 2\ncount = nope\n");
+    EXPECT_EQ(config.get_int("count"), 2);
+    EXPECT_EQ(sink.lines.size(), 1u);
+}
+
+TEST_F(ConfigTest, DuplicateKeyAcrossOverridesLastWins) {
+    EXPECT_EQ(from_overrides("count=1;count=2").get_int("count"), 2);
+}
+
 TEST_F(ConfigTest, EmptyValueIsAValue) {
     EXPECT_EQ(from_file("[*]\nname =\n").get_string("name"), "");
 }

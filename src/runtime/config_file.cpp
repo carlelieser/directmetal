@@ -13,6 +13,7 @@ using log::Component;
 using log::Level;
 
 constexpr std::string_view application_prefix = "app:";
+constexpr std::string_view utf8_byte_order_mark = "\xEF\xBB\xBF";
 
 struct Section {
     Scope scope = Scope::everywhere;
@@ -107,6 +108,8 @@ private:
 } // namespace
 
 std::vector<Assignment> parse_file_text(std::string_view text) {
+    // Notepad writes a byte order mark that would otherwise hide the first section header.
+    text.remove_prefix(text.starts_with(utf8_byte_order_mark) ? utf8_byte_order_mark.size() : 0);
     return FileParser().parse(text);
 }
 
