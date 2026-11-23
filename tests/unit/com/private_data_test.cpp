@@ -1,9 +1,10 @@
+#include "counting_unknown.hpp"
+
 #include <directmetal/com/private_data.hpp>
 
 #include <gtest/gtest.h>
 
 #include <array>
-#include <functional>
 #include <string>
 
 namespace {
@@ -15,25 +16,6 @@ constexpr GUID data_guid = {
     0x1f0e2d3c, 0x4b5a, 0x6978, {0x87, 0x96, 0xa5, 0xb4, 0xc3, 0xd2, 0xe1, 0xf0}};
 constexpr GUID other_guid = {
     0x1f0e2d3c, 0x4b5a, 0x6978, {0x87, 0x96, 0xa5, 0xb4, 0xc3, 0xd2, 0xe1, 0xf1}};
-
-// Counts references; on_release runs inside every Release.
-class CountingUnknown final : public IUnknown {
-public:
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID, void** object) override {
-        *object = nullptr;
-        return E_NOINTERFACE;
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override { return ++count; }
-    ULONG STDMETHODCALLTYPE Release() override {
-        if (on_release) {
-            on_release();
-        }
-        return --count;
-    }
-
-    ULONG count = 1;
-    std::function<void()> on_release;
-};
 
 std::string read_string(const PrivateDataStore& store, REFGUID guid) {
     std::array<char, 64> buffer{};
@@ -158,6 +140,18 @@ TEST(PrivateDataTest, ReplacedInterfaceIsReleasedOutsideTheLock) {
     store.set(data_guid, 0, nullptr);
     EXPECT_EQ(size_in_release, 0u);
     object.on_release = nullptr;
+}
+
+TEST(PrivateDataTest, StoredInterfaceIsReferencedOutsideTheLock) {
+    CountingUnknown object;
+    PrivateDataStore store;
+    UINT size_in_add_ref = 1;
+    object.on_add_ref = [&] { store.get(other_guid, &size_in_add_ref, nullptr); };
+
+    store.set_interface(data_guid, &object);
+    object.on_add_ref = nullptr;
+    EXPECT_EQ(size_in_add_ref, 0u);
+    EXPECT_EQ(object.count, 2u);
 }
 
 } // namespace

@@ -25,7 +25,15 @@ struct ReleaseInterface {
     void operator()(IUnknown* object) const noexcept { object->Release(); }
 };
 
-using ReplacedInterface = std::unique_ptr<IUnknown, ReleaseInterface>;
+// A reference this store holds until it is committed to an entry or dropped.
+using HeldInterface = std::unique_ptr<IUnknown, ReleaseInterface>;
+
+HeldInterface hold(IUnknown* object) noexcept {
+    if (object != nullptr) {
+        object->AddRef();
+    }
+    return HeldInterface(object);
+}
 
 std::string narrow_name(std::span<const std::byte> bytes) {
     const auto* begin = reinterpret_cast<const char*>(bytes.data());
@@ -102,14 +110,15 @@ void PrivateDataStore::on_debug_name_changed(std::function<void(std::string_view
     debug_name_callback_ = std::move(callback);
 }
 
-// An entry without bytes or an object is a removal. The replaced interface is released and the
-// callback runs after the lock is dropped: either may call back into this store.
+// An entry without bytes or an object is a removal. The stored interface is referenced before the
+// lock is taken, and the replaced one released and the callback run after it is dropped: each may
+// call back into this store.
 void PrivateDataStore::store(Entry entry) {
     const bool is_name = is_debug_name(entry.guid);
     const bool is_removal = entry.bytes.empty() && entry.object == nullptr;
     const bool is_wide_name = IsEqualGUID(entry.guid, debug_object_name_wide);
-    IUnknown* const object = entry.object;
-    ReplacedInterface replaced;
+    HeldInterface added = hold(entry.object);
+    HeldInterface replaced;
     DebugNameCallback callback;
     std::string name;
     {
@@ -118,9 +127,7 @@ void PrivateDataStore::store(Entry entry) {
             callback = debug_name_callback_;
         }
         replaced.reset(replace(entry.guid, is_removal ? nullptr : &entry));
-        if (object != nullptr) {
-            object->AddRef();
-        }
+        (void)added.release();
         if (is_name && !is_removal) {
             is_wide_name_preferred_ = is_wide_name;
         }
