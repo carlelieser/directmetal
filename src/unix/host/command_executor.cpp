@@ -34,6 +34,9 @@ Status CommandExecutor::execute(const DecodedCommand& command) noexcept {
         return (this->*handlers[static_cast<std::size_t>(command.opcode())])(command);
     } catch (const std::bad_alloc&) {
         return bridge::status_no_memory;
+    } catch (...) {
+        // The consumer thread must not end on an exception; the decoder makes this sticky.
+        return bridge::status_unsuccessful;
     }
 }
 

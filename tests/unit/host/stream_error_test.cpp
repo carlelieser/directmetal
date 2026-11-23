@@ -160,6 +160,14 @@ TEST_F(StreamErrorTest, FailedSubmitIsStickyAndWatchesNothing) {
     expect_sticky(status_device_removed, raw(Opcode::submit), 1);
 }
 
+TEST_F(StreamErrorTest, BackendExceptionIsSticky) {
+    gpu.is_recording_throwing = true;
+    submit(chunk(1).add(clear_of(texture)));
+    ASSERT_TRUE(wait_failed());
+    gpu.is_recording_throwing = false;
+    expect_sticky(status_unsuccessful, raw(Opcode::clear_texture), 1);
+}
+
 TEST_F(StreamErrorTest, WaitsFailAfterStickyError) {
     const Handle timeline = create_timeline(device, 3, nullptr);
     EXPECT_EQ(wait(timeline, 3), status_success);

@@ -142,6 +142,9 @@ std::vector<std::string> FakeGpu::recorded() const {
 
 void FakeGpu::record(std::string name) {
     pass_gate();
+    if (is_recording_throwing) {
+        throw std::runtime_error("fake recorder failure");
+    }
     const std::lock_guard lock(mutex_);
     recorded_.push_back(std::move(name));
 }

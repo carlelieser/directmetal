@@ -93,6 +93,8 @@ public:
     // notify calls on timelines created with create_timeline.
     std::atomic<int> timeline_notifies = 0;
     DeferredCallbacks deferred;
+    // Recorder calls throw std::runtime_error while set.
+    std::atomic<bool> is_recording_throwing = false;
     // Queue submits fail with device_lost while set.
     std::atomic<bool> is_submit_failing = false;
 
