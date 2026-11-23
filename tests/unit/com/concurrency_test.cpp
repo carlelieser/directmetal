@@ -73,10 +73,8 @@ TEST(ConcurrencyTest, ConcurrentFinalReleasesDestroyOnce) {
         for (int index = 1; index < thread_count; ++index) {
             object->AddRef();
         }
-        object->add_private_ref();
 
         run_together([object] { object->Release(); });
-        object->release_private();
         ASSERT_EQ(lifetime.destructions, 1);
     }
 }
