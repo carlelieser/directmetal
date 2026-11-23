@@ -123,6 +123,27 @@ TEST_F(TeardownTest, DestroyDeviceWaitsAndReleasesEverything) {
     EXPECT_EQ(gpu.live_queues, 0);
 }
 
+constexpr std::uint64_t five_seconds = 5'000'000'000;
+
+TEST_F(TeardownTest, DestroyTimelineEndsWaits) {
+    const Handle timeline = create_timeline(device, 0, nullptr);
+    auto waited = std::async(std::launch::async, [&] { return wait(timeline, 1, five_seconds); });
+    EXPECT_EQ(waited.wait_for(still_blocked), std::future_status::timeout);
+    DestroyTimelineParams destroy{timeline};
+    ASSERT_EQ(call(FunctionCode::destroy_timeline, destroy), status_success);
+    EXPECT_EQ(waited.get(), status_invalid_handle);
+}
+
+TEST_F(TeardownTest, DestroyDeviceEndsWaits) {
+    gpu.is_auto_complete = true;
+    auto waited =
+        std::async(std::launch::async, [&] { return wait(stream.progress, 1, five_seconds); });
+    EXPECT_EQ(waited.wait_for(still_blocked), std::future_status::timeout);
+    DestroyDeviceParams destroy{device};
+    ASSERT_EQ(call(FunctionCode::destroy_device, destroy), status_success);
+    EXPECT_EQ(waited.get(), status_invalid_handle);
+}
+
 TEST_F(TeardownTest, DestroyTimelineDetachesMirror) {
     std::uint64_t mirror = 0;
     const Handle timeline = create_timeline(device, 1, &mirror);

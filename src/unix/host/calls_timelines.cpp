@@ -45,11 +45,19 @@ std::shared_ptr<TimelineObject> make_timeline(std::shared_ptr<DeviceObject> devi
     return timeline;
 }
 
-// Waits in slices so a stream error raised meanwhile ends the wait.
+bool is_gone(const TimelineObject& timeline) noexcept {
+    return timeline.is_destroyed.load() || timeline.device->is_destroyed.load();
+}
+
+// Waits in slices so a stream error, or the destruction of the timeline or its device, raised
+// meanwhile ends the wait.
 Status wait_for(const TimelineObject& timeline, std::uint64_t value, std::uint64_t timeout_ns) {
     const bool is_unlimited = timeout_ns > max_finite_timeout;
     const auto deadline = steady_clock::now() + nanoseconds(is_unlimited ? 0 : timeout_ns);
     for (;;) {
+        if (is_gone(timeline)) {
+            return status_invalid_handle;
+        }
         if (timeline.device->has_failed_stream.load()) {
             return status_device_removed;
         }

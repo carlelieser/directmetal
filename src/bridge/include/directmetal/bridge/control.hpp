@@ -132,6 +132,8 @@ struct alignas(8) SubmitStreamParams {
 // Returns status_success or status_timeout. Once the stream that signals the timeline (or whose
 // progress timeline it is) has a sticky error, every wait fails with status_device_removed. The
 // host applies this per device, which is the same thing while a device has one stream (Phase 1).
+// A wait still running when destroy_timeline, close_stream or destroy_device retires its timeline
+// ends with status_invalid_handle.
 struct alignas(8) WaitTimelineParams {
     Handle timeline;
     std::uint64_t value;

@@ -21,9 +21,12 @@ void release(HostContext& context, const TableEntry& removed) noexcept {
         break;
     }
     case ObjectKind::timeline:
-    case ObjectKind::progress_timeline:
-        static_cast<const TimelineObject*>(removed.object.get())->mirror->detach();
+    case ObjectKind::progress_timeline: {
+        auto* timeline = static_cast<TimelineObject*>(removed.object.get());
+        timeline->is_destroyed.store(true);
+        timeline->mirror->detach();
         break;
+    }
     default:
         break;
     }

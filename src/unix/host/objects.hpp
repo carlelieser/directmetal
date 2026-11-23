@@ -64,6 +64,8 @@ struct TimelineObject {
     std::shared_ptr<MirrorWriter> mirror;
     // The highest value a stream has signaled; signals never lower it.
     std::atomic<std::uint64_t> highest_signaled;
+    // Set when the handle is retired, so waits still running end.
+    std::atomic<bool> is_destroyed = false;
 };
 
 } // namespace directmetal::host
