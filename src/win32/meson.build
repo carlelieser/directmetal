@@ -11,4 +11,4 @@ else
         dependencies: subproject('mingw-w64-headers').get_variable('mingw_w64_headers_dep'),
     )
 endif
-has_native_win32_headers = false
+has_native_win32_headers = not is_windows
