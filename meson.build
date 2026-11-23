@@ -28,7 +28,7 @@ if is_darwin
     add_global_link_arguments(macos_min_version, language: ['cpp', 'objcpp'])
 endif
 
-python = find_program('python3')
+python = find_program('python3', version: '>=3.11')
 bridge_include = include_directories('src/bridge/include')
 backend_include = include_directories('src/backend/include')
 # The backend's plain C++ types, shared with the bridge protocol and the format tables.

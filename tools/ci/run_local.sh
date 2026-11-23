@@ -9,7 +9,8 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 export DIRECTMETAL_LLVM_MINGW="${DIRECTMETAL_LLVM_MINGW:-$HOME/.local/opt/llvm-mingw}"
 export DIRECTMETAL_WINE="${DIRECTMETAL_WINE:-$HOME/.local/opt/wine-devel.app/Contents/Resources/wine}"
 export DIRECTMETAL_SANITIZERS="${DIRECTMETAL_SANITIZERS:-undefined}"
-export PATH="$DIRECTMETAL_LLVM_MINGW/bin:$DIRECTMETAL_WINE/bin:$PATH"
+# Homebrew first: macOS ships Python 3.9, and the tools need 3.11 or later.
+export PATH="$DIRECTMETAL_LLVM_MINGW/bin:$DIRECTMETAL_WINE/bin:${DIRECTMETAL_TOOLS_BIN:-/opt/homebrew/bin}:$PATH"
 
 checks=(lint unix unix-arm64 tools-tests sanitize pe wine-api api-status)
 

@@ -6,12 +6,16 @@
 # DIRECTMETAL_LLVM_MINGW names an LLVM-MinGW install whose bin/ is prepended to PATH.
 # DIRECTMETAL_WINE names a Wine install root whose bin/wine runs API tests (default: wine on PATH).
 # DIRECTMETAL_SANITIZERS overrides the sanitize target's sanitizer list (default: address,undefined).
+# DIRECTMETAL_JOBS caps compile jobs (default: 4); DIRECTMETAL_TEST_JOBS caps parallel tests
+# (default: 2). Builds run at reduced priority and tests hold the GPU lock (tools/with_gpu_lock.sh).
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 default_targets=(win64 win32 unix)
 is_testing=0
 setup_options=()
+compile_jobs="${DIRECTMETAL_JOBS:-4}"
+test_jobs="${DIRECTMETAL_TEST_JOBS:-2}"
 
 fail() {
   echo "build.sh: $*" >&2
@@ -73,7 +77,14 @@ compile_target() {
   else
     meson setup "$build_dir" "${setup_options[@]}" || fail "setup failed for $target"
   fi
-  meson compile -C "$build_dir" || fail "compile failed for $target"
+  nice -n 10 meson compile -C "$build_dir" -j "$compile_jobs" || fail "compile failed for $target"
+}
+
+run_tests() {
+  local build_dir="$1"
+  shift
+  tools/with_gpu_lock.sh meson test -C "$build_dir" --num-processes "$test_jobs" \
+    --print-errorlogs "$@"
 }
 
 # API tests load the unix library from build/unix, so it is built before the PE targets.
@@ -84,8 +95,7 @@ build_wine_api() {
   done
   [[ "$is_testing" == 1 ]] || return 0
   for target in win64 win32; do
-    meson test -C "build/$target" --suite api --print-errorlogs \
-      || fail "api tests failed for $target"
+    run_tests "build/$target" --suite api || fail "api tests failed for $target"
   done
 }
 
@@ -96,7 +106,7 @@ build_target() {
     *)
       compile_target "$1"
       if [[ "$is_testing" == 1 ]]; then
-        meson test -C "build/$1" --print-errorlogs || fail "test failed for $1"
+        run_tests "build/$1" || fail "test failed for $1"
       fi
       ;;
   esac
