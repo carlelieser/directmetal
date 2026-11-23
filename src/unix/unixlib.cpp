@@ -49,18 +49,29 @@ Status log_call(void* params) noexcept {
     return status_success;
 }
 
+// Placeholder for control calls the host does not implement yet.
+Status not_implemented(void*) noexcept {
+    return status_not_implemented;
+}
+
 } // namespace
 } // namespace directmetal
 
 // Argument layouts are identical for 32-bit and 64-bit callers, so both tables share entries.
 extern "C" {
 const directmetal::UnixCallEntry __wine_unix_call_funcs[] = {
-    directmetal::query_version,
-    directmetal::log_call,
+    directmetal::query_version,   directmetal::log_call,        directmetal::not_implemented,
+    directmetal::not_implemented, directmetal::not_implemented, directmetal::not_implemented,
+    directmetal::not_implemented, directmetal::not_implemented, directmetal::not_implemented,
+    directmetal::not_implemented, directmetal::not_implemented, directmetal::not_implemented,
+    directmetal::not_implemented, directmetal::not_implemented, directmetal::not_implemented,
 };
 const directmetal::UnixCallEntry __wine_unix_call_wow64_funcs[] = {
-    directmetal::query_version,
-    directmetal::log_call,
+    directmetal::query_version,   directmetal::log_call,        directmetal::not_implemented,
+    directmetal::not_implemented, directmetal::not_implemented, directmetal::not_implemented,
+    directmetal::not_implemented, directmetal::not_implemented, directmetal::not_implemented,
+    directmetal::not_implemented, directmetal::not_implemented, directmetal::not_implemented,
+    directmetal::not_implemented, directmetal::not_implemented, directmetal::not_implemented,
 };
 }
 

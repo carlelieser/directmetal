@@ -79,6 +79,13 @@ TEST_P(UnixCallTable, LogCallRejectsOverlongName) {
     EXPECT_EQ(call(FunctionCode::log_call, &params), status_invalid_parameter);
 }
 
+TEST_P(UnixCallTable, UnimplementedControlCallsReportNotImplemented) {
+    for (auto code = to_index(FunctionCode::initialize); code < to_index(FunctionCode::count);
+         ++code) {
+        EXPECT_EQ(GetParam().entries[code](nullptr), status_not_implemented) << "code " << code;
+    }
+}
+
 INSTANTIATE_TEST_SUITE_P(Tables, UnixCallTable,
                          testing::Values(CallTable{"native", __wine_unix_call_funcs},
                                          CallTable{"wow64", __wine_unix_call_wow64_funcs}),

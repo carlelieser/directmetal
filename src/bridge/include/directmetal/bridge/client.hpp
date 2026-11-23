@@ -2,14 +2,38 @@
 
 #include <directmetal/bridge/protocol.hpp>
 
+#include <cstdint>
+
+// Exported by directmetal.dll in PE builds and by the native bridge library in macOS builds.
 #ifndef DIRECTMETAL_BRIDGE_API
+#ifdef _WIN32
 #define DIRECTMETAL_BRIDGE_API __declspec(dllimport)
+#else
+#define DIRECTMETAL_BRIDGE_API
+#endif
 #endif
 
-// Exported by directmetal.dll. Returns the failure that prevented connecting to directmetal.so
-// when the unix library is unavailable.
-extern "C" DIRECTMETAL_BRIDGE_API directmetal::bridge::Status __cdecl
+#ifdef _WIN32
+#define DIRECTMETAL_CDECL __cdecl
+#else
+#define DIRECTMETAL_CDECL
+#endif
+
+extern "C" {
+
+// Returns the failure that prevented connecting to the unix side when it is unavailable.
+DIRECTMETAL_BRIDGE_API directmetal::bridge::Status DIRECTMETAL_CDECL
 directmetal_bridge_call(std::uint32_t code, void* params) noexcept;
+
+// Zeroed memory the unix side can import (ImportMemoryParams), aligned to and rounded up to
+// shared_memory_alignment. Below 4 GiB in 32-bit processes. Null on failure. Imported memory may
+// be freed only after release_memory returns for its buffer.
+DIRECTMETAL_BRIDGE_API void* DIRECTMETAL_CDECL
+directmetal_bridge_allocate_shared(std::uint64_t size) noexcept;
+
+DIRECTMETAL_BRIDGE_API void DIRECTMETAL_CDECL
+directmetal_bridge_free_shared(void* memory, std::uint64_t size) noexcept;
+}
 
 namespace directmetal::bridge {
 
