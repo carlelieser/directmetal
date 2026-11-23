@@ -6,6 +6,7 @@
 
 #import <Metal/Metal.h>
 
+#include "loss_tracker.hpp"
 #include "recorder.hpp"
 #include "timeline.hpp"
 
@@ -13,6 +14,7 @@
 
 #include <atomic>
 #include <cstdint>
+#include <memory>
 
 namespace directmetal::backend::commands {
 
@@ -34,12 +36,15 @@ public:
     }
 
     Timeline& progress() noexcept override { return progress_; }
+    void fail_next_submit() noexcept { is_failure_injected_.store(true); }
 
 private:
     Device& device_;
     MetalTimeline progress_;
     MetalRecorder recorder_;
+    std::shared_ptr<LossTracker> loss_;
     std::atomic<std::uint64_t> submitted_value_ = 0;
+    std::atomic<bool> is_failure_injected_ = false;
     id<MTLCommandBuffer> last_committed_ = nil;
 };
 

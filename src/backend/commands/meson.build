@@ -1,9 +1,10 @@
 # Queues, command recording, submission and timelines (factory.hpp). backend_commands_lib is linked
-# into the backend.
+# into the backend. fault_injection.hpp is a private seam for the backend_commands GPU tests.
 backend_commands_lib = static_library(
     'backend_commands',
     'clear.mm',
     'factory.mm',
+    'loss_tracker.mm',
     'queue.mm',
     'recorder.mm',
     'timeline.mm',
