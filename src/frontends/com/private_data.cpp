@@ -134,28 +134,40 @@ void PrivateDataStore::store(Entry entry) {
     const bool is_removal = entry.bytes.empty() && entry.object == nullptr;
     HeldInterface added = hold(entry.object);
     HeldInterface replaced;
-    DebugNameCallback callback;
-    std::string name;
+    NameChange name_change;
     {
         const std::scoped_lock lock(mutex_);
         // Everything that can throw comes first, so a failure leaves the store unchanged.
         entries_.reserve(entries_.size() + 1);
         if (is_name) {
-            callback = debug_name_callback_;
+            name_change.callback = debug_name_callback_;
         }
-        if (callback) {
-            name = debug_name_after(entry, is_removal);
+        if (name_change.callback) {
+            name_change.name = debug_name_after(entry, is_removal);
         }
         if (is_name && !is_removal) {
             is_wide_name_preferred_ = IsEqualGUID(entry.guid, debug_object_name_wide);
         }
         replaced.reset(replace(entry.guid, is_removal ? nullptr : &entry));
         (void)added.release();
+        if (is_name) {
+            name_change.sequence = ++name_sequence_;
+        }
     }
     replaced.reset();
-    if (callback) {
-        callback(name);
+    deliver(name_change);
+}
+
+void PrivateDataStore::deliver(const NameChange& change) {
+    if (!change.callback) {
+        return;
     }
+    const std::scoped_lock lock(delivery_mutex_);
+    if (change.sequence <= delivered_sequence_) {
+        return;
+    }
+    delivered_sequence_ = change.sequence;
+    change.callback(change.name);
 }
 
 IUnknown* PrivateDataStore::replace(REFGUID guid, Entry* replacement) {

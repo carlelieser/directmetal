@@ -1,8 +1,12 @@
+#include "counting_unknown.hpp"
+
 #include <directmetal/com/private_data.hpp>
 
 #include <gtest/gtest.h>
 
+#include <mutex>
 #include <string>
+#include <thread>
 #include <vector>
 
 namespace {
@@ -88,6 +92,43 @@ TEST_F(DebugNameTest, CallbackRunsOutsideTheLock) {
 
     set_narrow(store, "label");
     EXPECT_EQ(seen, "label");
+}
+
+// The interface replaced by "stale" is released between that set's commit and its callback; a
+// newer name set and delivered meanwhile must stay the last one delivered.
+TEST_F(DebugNameTest, StaleNameIsNotDeliveredAfterANewerOne) {
+    CountingUnknown blocker;
+    store.set_interface(debug_name_guid, &blocker);
+    blocker.on_release = [&] {
+        blocker.on_release = nullptr;
+        std::thread([&] { set_narrow(store, "newer"); }).join();
+    };
+
+    set_narrow(store, "stale");
+    EXPECT_EQ(store.debug_name(), "newer");
+    EXPECT_EQ(names.back(), "newer");
+}
+
+TEST(DebugNameConcurrencyTest, LastDeliveredNameMatchesTheStore) {
+    PrivateDataStore store;
+    std::mutex delivered_mutex;
+    std::string delivered;
+    store.on_debug_name_changed([&](std::string_view name) {
+        const std::scoped_lock lock(delivered_mutex);
+        delivered = name;
+    });
+    std::vector<std::thread> threads;
+    for (int thread_index = 0; thread_index < 8; ++thread_index) {
+        threads.emplace_back([&store, thread_index] {
+            for (int index = 0; index < 2000; ++index) {
+                set_narrow(store, std::to_string(thread_index) + "-" + std::to_string(index));
+            }
+        });
+    }
+    for (std::thread& thread : threads) {
+        thread.join();
+    }
+    EXPECT_EQ(delivered, store.debug_name());
 }
 
 } // namespace

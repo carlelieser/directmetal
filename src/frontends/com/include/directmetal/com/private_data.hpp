@@ -34,7 +34,8 @@ public:
     // UTF-8 value of WKPDID_D3DDebugObjectName or WKPDID_D3DDebugObjectNameW.
     std::string debug_name() const;
     // Called with the new name whenever a debug name is set, outside the store's lock; forwards
-    // labels to the backend.
+    // labels to the backend. Calls are serialized, and a name is never delivered after a newer
+    // one.
     void on_debug_name_changed(std::function<void(std::string_view)> callback);
 
 private:
@@ -45,6 +46,12 @@ private:
         IUnknown* object;
     };
     using DebugNameCallback = std::function<void(std::string_view)>;
+    // A debug name change, numbered in commit order.
+    struct NameChange {
+        DebugNameCallback callback;
+        std::string name;
+        std::uint64_t sequence = 0;
+    };
 
     // Replaces or, for a null replacement, removes the entry for `guid`; returns the interface
     // the old entry held, for the caller to release outside the lock.
@@ -53,12 +60,17 @@ private:
     const Entry* find(REFGUID guid) const noexcept;
     std::string debug_name_locked() const;
     std::string debug_name_after(const Entry& change, bool is_removal) const;
+    void deliver(const NameChange& change);
 
     mutable std::mutex mutex_;
     std::vector<Entry> entries_;
     DebugNameCallback debug_name_callback_;
     // Which of the two debug-name GUIDs was set last; debug_name prefers it.
     bool is_wide_name_preferred_ = false;
+    std::uint64_t name_sequence_ = 0;
+    // Serializes callbacks; recursive so a callback may set a debug name itself.
+    std::recursive_mutex delivery_mutex_;
+    std::uint64_t delivered_sequence_ = 0;
 };
 
 } // namespace directmetal::com
