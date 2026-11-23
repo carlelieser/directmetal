@@ -106,7 +106,8 @@ struct alignas(8) OpenStreamParams {
 
 // Queues a chunk for the stream's consumer thread and returns without waiting for it. sequence and
 // chunk_size must equal the chunk's ChunkHeader sequence and size, and chunk_size is at most
-// max_chunk_size; anything else makes the stream's error sticky.
+// max_chunk_size; anything else makes the stream's error sticky. Sequences start at 1 and increase
+// by 1 per chunk; StreamControl::retired_sequence (commands.hpp) reports how far decoding got.
 struct alignas(8) SubmitStreamParams {
     Handle stream;
     std::uint64_t chunk_address;

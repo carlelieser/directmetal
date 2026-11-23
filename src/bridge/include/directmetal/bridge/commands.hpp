@@ -22,7 +22,8 @@ inline constexpr std::uint32_t max_label_length = 256;
 inline constexpr std::uint32_t max_chunk_size = 1024 * 1024;
 
 // sequence and size must equal the SubmitStreamParams that submits the chunk, and size is at most
-// max_chunk_size.
+// max_chunk_size. A stream's first chunk carries sequence 1 and each later chunk the previous
+// sequence plus 1.
 struct alignas(8) ChunkHeader {
     std::uint32_t magic;
     std::uint16_t version;
@@ -134,10 +135,12 @@ struct alignas(8) SubmitCommand {
     std::uint64_t reserved;
 };
 
-// PE-allocated, 64-byte aligned, written only by the unix side. A chunk's memory may be reused once
-// retired_sequence reaches its sequence (decoded, not GPU-complete). completed_progress mirrors the
-// stream's progress timeline. A decode failure or stale handle makes status sticky; later chunks
-// are ignored and waits on the stream's timelines fail with status_device_removed.
+// PE-allocated, 64-byte aligned, written only by the unix side. retired_sequence starts at 0; the
+// host stores a chunk's sequence there with release semantics once it has decoded the chunk
+// (validated and executed it, not GPU-complete), and its memory may then be reused.
+// completed_progress mirrors the stream's progress timeline. A decode failure or stale handle makes
+// status sticky; later chunks are ignored and waits on the stream's timelines fail with
+// status_device_removed.
 struct alignas(64) StreamControl {
     std::uint64_t retired_sequence;
     Status status;
