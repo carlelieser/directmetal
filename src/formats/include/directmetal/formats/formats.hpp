@@ -39,6 +39,8 @@ enum class Support : std::uint32_t {
     typed_uav_store = 0x10000,
     display = 0x20000,
     mip_autogen = 0x40000,
+    sample_comparison = 0x80000,
+    gather_comparison = 0x100000,
 };
 
 constexpr Support operator|(Support left, Support right) noexcept {

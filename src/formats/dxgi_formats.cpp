@@ -23,8 +23,11 @@ constexpr Requirement requirements[] = {
     {Support::buffer, metal::Capability::texture_buffer},
     {Support::shader_load, metal::Capability::texture},
     {Support::shader_sample, metal::Capability::filter},
-    // Gather reads four texels without filtering them.
+    // Gather reads four texels without filtering them; comparison samplers filter the results of
+    // comparisons, not texels.
     {Support::shader_gather, metal::Capability::texture},
+    {Support::sample_comparison, metal::Capability::texture},
+    {Support::gather_comparison, metal::Capability::texture},
     {Support::render_target, metal::Capability::render},
     {Support::blendable, metal::Capability::blend},
     {Support::depth_stencil, metal::Capability::render},

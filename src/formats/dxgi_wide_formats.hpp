@@ -38,7 +38,7 @@ inline constexpr DxgiRow wide_format_rows[] = {
     {39, "DXGI_FORMAT_R32_TYPELESS", r32_float, typeless, 39, 4, typeless_color, Substitution::none,
      identity_swizzle, 1, 1, 1, depth32_float},
     {41, "DXGI_FORMAT_R32_FLOAT", r32_float, float_value, 39, 4,
-     filterable_color | Support::typed_uav_load},
+     filterable_color | comparison | Support::typed_uav_load},
     {42, "DXGI_FORMAT_R32_UINT", r32_uint, uint, 39, 4,
      integer_color | Support::index_buffer | Support::typed_uav_load},
     {43, "DXGI_FORMAT_R32_SINT", r32_sint, sint, 39, 4, integer_color | Support::typed_uav_load},

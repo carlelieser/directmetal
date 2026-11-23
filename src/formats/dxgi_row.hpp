@@ -70,7 +70,10 @@ inline constexpr Support packed_16bit_color =
 inline constexpr Support depth_textures = Support::texture2d | Support::texture_cube;
 inline constexpr Support depth_stencil_target =
     depth_textures | Support::depth_stencil | Support::multisample_render_target;
-inline constexpr Support depth_read = depth_textures | sampled;
+// Comparison sampling on the views Direct3D 11 requires it for. Metal compares only depth
+// textures, so R32_FLOAT and R16_UNORM views compare when their resource is depth-bound.
+inline constexpr Support comparison = Support::sample_comparison | Support::gather_comparison;
+inline constexpr Support depth_read = depth_textures | sampled | comparison;
 inline constexpr Support stencil_read = depth_textures | Support::shader_load;
 inline constexpr Support compressed_typeless =
     Support::texture2d | Support::texture3d | Support::texture_cube;

@@ -201,6 +201,18 @@ TEST(DxgiSupport, TypedUavLoadsMatchTheDirect3DSet) {
     EXPECT_EQ(formats_with(Support::typed_uav_load, mac_features(GpuFamily::apple7)), expected);
 }
 
+TEST(DxgiSupport, DepthViewsSupportComparisonSampling) {
+    const std::set<std::string_view> expected = {
+        "DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS",
+        "DXGI_FORMAT_R32_FLOAT",
+        "DXGI_FORMAT_R24_UNORM_X8_TYPELESS",
+        "DXGI_FORMAT_R16_UNORM",
+    };
+    const DeviceFeatures features = mac_features(GpuFamily::apple7);
+    EXPECT_EQ(formats_with(Support::sample_comparison, features), expected);
+    EXPECT_EQ(formats_with(Support::gather_comparison, features), expected);
+}
+
 TEST(DxgiSupport, OnlyR16AndR32UintAreIndexFormats) {
     const std::set<std::string_view> expected = {"DXGI_FORMAT_R16_UINT", "DXGI_FORMAT_R32_UINT"};
     EXPECT_EQ(formats_with(Support::index_buffer, mac_features(GpuFamily::apple7)), expected);

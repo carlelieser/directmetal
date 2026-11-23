@@ -19,7 +19,7 @@ inline constexpr DxgiRow small_format_rows[] = {
      identity_swizzle, 1, 1, 1, depth16_unorm},
     {54, "DXGI_FORMAT_R16_FLOAT", r16_float, float_value, 53, 2,
      filterable_color | Support::typed_uav_load},
-    {56, "DXGI_FORMAT_R16_UNORM", r16_unorm, unorm, 53, 2, filterable_color},
+    {56, "DXGI_FORMAT_R16_UNORM", r16_unorm, unorm, 53, 2, filterable_color | comparison},
     {57, "DXGI_FORMAT_R16_UINT", r16_uint, uint, 53, 2,
      integer_color | Support::index_buffer | Support::typed_uav_load},
     {58, "DXGI_FORMAT_R16_SNORM", r16_snorm, snorm, 53, 2, filterable_color},
