@@ -96,8 +96,10 @@ struct FormatInfo {
     std::uint8_t plane_count;
 };
 
-// D3D11 casts within a typeless family only; D3D12 relaxed casting also allows casts between
-// fully typed formats of the same family and bit layout.
+// D3D11 casts from a typeless resource to a member of its family only. D3D12 relaxed casting also
+// casts between fully typed members of a family, except float to non-float and SNORM to UNORM
+// (https://microsoft.github.io/DirectX-Specs/d3d/RelaxedCasting.html). Depth formats and the
+// plane views of depth-stencil families are never cast: Metal cannot view depth as color.
 enum class CastingRules : std::uint8_t { d3d11, d3d12_relaxed };
 
 // Null for values outside the DXGI_FORMAT enum.

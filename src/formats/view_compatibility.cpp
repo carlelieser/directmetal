@@ -1,6 +1,7 @@
 #include <directmetal/formats/formats.hpp>
 
 #include <algorithm>
+#include <cstdint>
 #include <iterator>
 
 namespace directmetal::formats {
@@ -19,16 +20,55 @@ bool is_in_family(const FormatInfo& resource, const FormatInfo& view) noexcept {
     return has_family && view.typeless_family == resource.typeless_family;
 }
 
-bool is_depth(const FormatInfo& info) noexcept {
-    return info.kind == ComponentKind::depth || info.kind == ComponentKind::depth_stencil;
+// Relaxed casting never crosses between float and non-float or between SNORM and UNORM
+// (https://microsoft.github.io/DirectX-Specs/d3d/RelaxedCasting.html); sRGB counts as UNORM.
+enum class FloatClass : std::uint8_t { none, signed_float, unsigned_float };
+enum class Normalization : std::uint8_t { none, unorm, snorm };
+
+struct KindTraits {
+    ComponentKind kind;
+    FloatClass float_class;
+    Normalization normalization;
+};
+
+// Depth, typeless, video and opaque kinds are absent: Metal cannot view depth formats as color.
+constexpr KindTraits castable_kinds[] = {
+    {ComponentKind::unorm, FloatClass::none, Normalization::unorm},
+    {ComponentKind::unorm_srgb, FloatClass::none, Normalization::unorm},
+    {ComponentKind::snorm, FloatClass::none, Normalization::snorm},
+    {ComponentKind::uint, FloatClass::none, Normalization::none},
+    {ComponentKind::sint, FloatClass::none, Normalization::none},
+    {ComponentKind::float_value, FloatClass::signed_float, Normalization::none},
+    {ComponentKind::compressed_unorm, FloatClass::none, Normalization::unorm},
+    {ComponentKind::compressed_unorm_srgb, FloatClass::none, Normalization::unorm},
+    {ComponentKind::compressed_snorm, FloatClass::none, Normalization::snorm},
+    {ComponentKind::compressed_ufloat, FloatClass::unsigned_float, Normalization::none},
+    {ComponentKind::compressed_sfloat, FloatClass::signed_float, Normalization::none},
+};
+
+const KindTraits* find_traits(ComponentKind kind) noexcept {
+    const auto* entry =
+        std::find_if(std::begin(castable_kinds), std::end(castable_kinds),
+                     [kind](const KindTraits& candidate) { return candidate.kind == kind; });
+    return entry == std::end(castable_kinds) ? nullptr : entry;
 }
 
-// Relaxed casting reinterprets bits of one color plane; it does not reach depth formats or the
-// plane views of depth-stencil families.
+bool is_norm_compatible(Normalization left, Normalization right) noexcept {
+    const bool is_either_unnormalized = left == Normalization::none || right == Normalization::none;
+    return is_either_unnormalized || left == right;
+}
+
+// Relaxed casting reinterprets the bits of one color plane; the plane views of depth-stencil
+// families are never cast.
 bool is_relaxed_castable(const FormatInfo& resource, const FormatInfo& view) noexcept {
+    const KindTraits* resource_traits = find_traits(resource.kind);
+    const KindTraits* view_traits = find_traits(view.kind);
     const bool is_single_plane = resource.plane_count == 1 && view.plane_count == 1;
-    const bool has_depth = is_depth(resource) || is_depth(view);
-    return is_single_plane && !has_depth && resource.bytes_per_block == view.bytes_per_block;
+    if (!is_single_plane || resource_traits == nullptr || view_traits == nullptr) {
+        return false;
+    }
+    return resource_traits->float_class == view_traits->float_class &&
+           is_norm_compatible(resource_traits->normalization, view_traits->normalization);
 }
 
 } // namespace

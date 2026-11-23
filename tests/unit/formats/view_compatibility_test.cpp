@@ -23,8 +23,18 @@ constexpr ViewCase view_cases[] = {
     {28, 28, true, true},     // the resource's own format
     {28, 29, false, true},    // R8G8B8A8_UNORM -> R8G8B8A8_UNORM_SRGB
     {28, 30, false, true},    // R8G8B8A8_UNORM -> R8G8B8A8_UINT
-    {41, 42, false, true},    // R32_FLOAT -> R32_UINT
+    {41, 42, false, false},   // R32_FLOAT -> R32_UINT: float to non-float
+    {28, 31, false, false},   // R8G8B8A8_UNORM -> R8G8B8A8_SNORM
+    {29, 31, false, false},   // R8G8B8A8_UNORM_SRGB -> R8G8B8A8_SNORM
+    {30, 32, false, true},    // R8G8B8A8_UINT -> R8G8B8A8_SINT
+    {31, 32, false, true},    // R8G8B8A8_SNORM -> R8G8B8A8_SINT
+    {54, 57, false, false},   // R16_FLOAT -> R16_UINT
+    {34, 35, false, false},   // R16G16_FLOAT -> R16G16_UNORM
     {71, 72, false, true},    // BC1_UNORM -> BC1_UNORM_SRGB
+    {80, 81, false, false},   // BC4_UNORM -> BC4_SNORM
+    {83, 84, false, false},   // BC5_UNORM -> BC5_SNORM
+    {95, 96, false, false},   // BC6H_UF16 -> BC6H_SF16
+    {98, 99, false, true},    // BC7_UNORM -> BC7_UNORM_SRGB
     {70, 72, true, true},     // BC1_TYPELESS -> BC1_UNORM_SRGB
     {70, 74, false, false},   // BC1_TYPELESS -> BC2_UNORM
     {87, 91, false, true},    // B8G8R8A8_UNORM -> B8G8R8A8_UNORM_SRGB
