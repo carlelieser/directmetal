@@ -2,7 +2,9 @@
 # into the backend.
 backend_commands_lib = static_library(
     'backend_commands',
-    'factory.cpp',
+    'factory.mm',
+    'timeline.mm',
     include_directories: [backend_private_include, backend_include],
-    dependencies: memory_dep,
+    dependencies: [memory_dep, metal_dep],
+    objcpp_args: '-fobjc-arc',
 )
