@@ -17,7 +17,7 @@ TEST_F(HostTest, RejectsCallsBeforeInitialize) {
     for (auto code = to_index(FunctionCode::enumerate_adapters);
          code < to_index(FunctionCode::count); ++code) {
         std::uint64_t params[32] = {};
-        EXPECT_EQ(host->call(code, params), status_unsuccessful) << "code " << code;
+        EXPECT_EQ(host->call(code, params), status_invalid_device_state) << "code " << code;
     }
 }
 
@@ -58,7 +58,7 @@ TEST_F(HostTest, RejectsInvalidInitialize) {
     InitializeParams log_level{0, 0, 0, 6, 0};
     EXPECT_EQ(call(FunctionCode::initialize, log_level), status_invalid_parameter);
     CreateDeviceParams device{};
-    EXPECT_EQ(call(FunctionCode::create_device, device), status_unsuccessful);
+    EXPECT_EQ(call(FunctionCode::create_device, device), status_invalid_device_state);
 }
 
 TEST_F(HostTest, RejectsInitializeChangingWow64) {

@@ -75,14 +75,13 @@ Host::Host(DeviceProvider& provider) : state_(std::make_unique<State>(provider))
 
 Host::~Host() = default;
 
-// Calls before initialize fail with status_unsuccessful: the protocol has no dedicated status.
 Status Host::call(std::uint32_t code, void* params) noexcept {
     if (code >= calls.size()) {
         return status_invalid_parameter;
     }
     const Call& call = calls[code];
     if (call.needs_initialize && !state_->context.is_initialized.load()) {
-        return params == nullptr ? status_invalid_parameter : status_unsuccessful;
+        return params == nullptr ? status_invalid_parameter : status_invalid_device_state;
     }
     try {
         return call.entry(state_->context, params);

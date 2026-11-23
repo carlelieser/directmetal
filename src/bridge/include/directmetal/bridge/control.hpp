@@ -16,7 +16,8 @@ namespace directmetal::bridge {
 
 inline constexpr std::uint32_t initialize_flag_wow64 = 0x1;
 
-// Required before any other call except query_version; repeating it is harmless.
+// Required before any other call except query_version and log_call, which fail with
+// status_invalid_device_state until it succeeds; repeating it is harmless.
 struct alignas(8) InitializeParams {
     // UTF-8 executable name, for logs.
     std::uint64_t client_name;

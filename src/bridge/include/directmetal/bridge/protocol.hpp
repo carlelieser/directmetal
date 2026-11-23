@@ -51,6 +51,8 @@ inline constexpr Status status_invalid_parameter = static_cast<Status>(0xC000000
 inline constexpr Status status_no_memory = static_cast<Status>(0xC0000017);
 inline constexpr Status status_revision_mismatch = static_cast<Status>(0xC0000059);
 inline constexpr Status status_not_supported = static_cast<Status>(0xC00000BB);
+// A call made before initialize, or one the object's current state does not allow.
+inline constexpr Status status_invalid_device_state = static_cast<Status>(0xC0000184);
 inline constexpr Status status_dll_not_found = static_cast<Status>(0xC0000135);
 inline constexpr Status status_entrypoint_not_found = static_cast<Status>(0xC0000139);
 inline constexpr Status status_device_removed = static_cast<Status>(0xC00002B6);
