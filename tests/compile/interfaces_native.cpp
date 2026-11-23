@@ -3,6 +3,7 @@
 #include <directmetal/bridge/commands.hpp>
 #include <directmetal/bridge/control.hpp>
 #include <directmetal/bridge/device_client.hpp>
+#include <directmetal/bridge/shared_block_allocator.hpp>
 #include <directmetal/bridge/staging_ring.hpp>
 #include <directmetal/bridge/stream_writer.hpp>
 #include <directmetal/formats/formats.hpp>
