@@ -39,6 +39,8 @@ enum class Support : std::uint32_t {
     typed_uav_store = 0x10000,
     display = 0x20000,
     mip_autogen = 0x40000,
+    // Metal compares only depth textures: on R32_FLOAT and R16_UNORM views of a color-bound
+    // resource, the shader translator must emulate the comparison.
     sample_comparison = 0x80000,
     gather_comparison = 0x100000,
 };
