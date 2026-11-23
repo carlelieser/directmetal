@@ -80,8 +80,9 @@ bool is_within_limits(const TextureDesc& desc, const TypeRule& rule,
 bool has_valid_counts(const TextureDesc& desc, const TypeRule& rule) noexcept {
     const bool is_array_length = desc.array_length >= 1 && desc.array_length <= max_array_length;
     const bool is_valid_array = rule.is_array ? is_array_length : desc.array_length == 1;
-    const bool is_valid_mips =
-        desc.mip_levels >= 1 && desc.mip_levels <= full_mip_chain(desc.extent);
+    // Metal has no mipmapped 1D textures.
+    const std::uint32_t mip_limit = rule.dimensions == 1 ? 1 : full_mip_chain(desc.extent);
+    const bool is_valid_mips = desc.mip_levels >= 1 && desc.mip_levels <= mip_limit;
     if (!is_valid_array || !is_valid_mips) {
         return false;
     }

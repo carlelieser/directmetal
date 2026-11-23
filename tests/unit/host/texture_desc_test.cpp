@@ -55,6 +55,17 @@ INSTANTIATE_TEST_SUITE_P(
                      desc.type = TextureType::tex1d;
                      desc.mip_levels = 1;
                  }},
+        DescCase{"Mipmapped1D",
+                 [](TextureDesc& desc) {
+                     desc.type = TextureType::tex1d;
+                     desc.extent.height = 1;
+                 }},
+        DescCase{"Mipmapped1DArray",
+                 [](TextureDesc& desc) {
+                     desc.type = TextureType::tex1d_array;
+                     desc.extent.height = 1;
+                     desc.array_length = 2;
+                 }},
         DescCase{"NonSquareCube",
                  [](TextureDesc& desc) {
                      desc.type = TextureType::cube;
