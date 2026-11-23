@@ -141,6 +141,47 @@ class SetupTest(RunnerTestCase):
         self.assertEqual(run.status, 99)
 
 
+ABORT_TEXT = "failed assertion `Copy From Buffer Validation"
+
+
+class ExpectAbortTest(RunnerTestCase):
+    def run_expecting_abort(self, body: str) -> Run:
+        arguments = ["--mode", "native", "--program", str(self.program(body))]
+        return self.run_runner(arguments + ["--expect-abort-stderr", ABORT_TEXT])
+
+    def test_passes_on_abort_with_expected_message(self) -> None:
+        run = self.run_expecting_abort(
+            f"sys.stderr.write({ABORT_TEXT!r}); sys.stderr.flush(); os.abort()"
+        )
+        self.assertEqual(run.status, 0, run.stderr)
+        self.assertIn("aborted as expected: terminated by SIGABRT", run.stderr)
+
+    def test_passes_on_failed_exit_with_expected_message(self) -> None:
+        run = self.run_expecting_abort(f"sys.stderr.write({ABORT_TEXT!r}); sys.exit(1)")
+        self.assertEqual(run.status, 0, run.stderr)
+
+    def test_fails_on_abort_for_another_reason(self) -> None:
+        run = self.run_expecting_abort("sys.stderr.write('segmentation fault'); os.abort()")
+        self.assertEqual(run.status, 1)
+        self.assertIn("terminated by SIGABRT without", run.stderr)
+
+    def test_fails_on_clean_exit(self) -> None:
+        run = self.run_expecting_abort(f"sys.stderr.write({ABORT_TEXT!r})")
+        self.assertEqual(run.status, 1)
+        self.assertIn("exited cleanly", run.stderr)
+
+    def test_timeout_is_an_error(self) -> None:
+        with mock.patch.object(run_api_test, "TIMEOUT_SECONDS", 1):
+            run = self.run_expecting_abort(f"sys.stderr.write({ABORT_TEXT!r}); time.sleep(30)")
+        self.assertEqual(run.status, 99)
+
+    def test_excludes_reference(self) -> None:
+        arguments = ["--mode", "native", "--program", str(self.program())]
+        arguments += ["--reference", str(self.reference), "--expect-abort-stderr", ABORT_TEXT]
+        with self.assertRaises(SystemExit), redirect_stderr(StringIO()):
+            run_api_test.main(arguments)
+
+
 # Stands in for wine, winepath and wineserver: records how it was called, then runs the staged
 # program (a script) directly.
 FAKE_WINE = """#!/bin/sh
@@ -204,6 +245,24 @@ class WineModeTest(RunnerTestCase):
         self.assertEqual(self.run_wine(self.program("sys.exit(5)")).status, 1)
         [latest] = self.run_dirs()
         self.assertNotEqual(kept, latest)
+
+    def test_expected_abort_removes_run_dir(self) -> None:
+        program = self.program(f"sys.stderr.write({ABORT_TEXT!r}); sys.exit(1)")
+        arguments = ["--mode", "wine", "--arch", "win64", "--program", str(program)]
+        arguments += ["--unix-library", str(self.unix_library), "--work-dir", str(self.work_dir)]
+        arguments += ["--expect-abort-stderr", ABORT_TEXT]
+        run = self.run_runner(arguments, {"DIRECTMETAL_WINE": str(self.root / "wine")})
+        self.assertEqual(run.status, 0, run.stderr)
+        self.assertEqual(self.run_dirs(), [])
+
+    def test_missing_stand_in_unix_library_is_not_a_pass(self) -> None:
+        self.unix_library.unlink()
+        program = self.program(f"sys.stderr.write({ABORT_TEXT!r}); sys.exit(1)")
+        arguments = ["--mode", "wine", "--arch", "win64", "--program", str(program)]
+        arguments += ["--unix-library", str(self.unix_library), "--work-dir", str(self.work_dir)]
+        arguments += ["--expect-abort-stderr", ABORT_TEXT]
+        run = self.run_runner(arguments, {"DIRECTMETAL_WINE": str(self.root / "wine")})
+        self.assertEqual(run.status, 99)
 
     def test_missing_unix_library_is_a_setup_error(self) -> None:
         self.unix_library.unlink()

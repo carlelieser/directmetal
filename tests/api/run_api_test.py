@@ -3,7 +3,9 @@
 The program always runs with Metal API and shader validation in assert mode, so a validation error
 aborts it. Any exit other than a clean 0 fails the test. With --reference, the JSON document the
 program prints to stdout must match the reference's result within the per-format tolerances of
-tolerance.json beside it (tools/reference/compare.py); every difference is printed.
+tolerance.json beside it (tools/reference/compare.py); every difference is printed. With
+--expect-abort-stderr, the test instead passes only when the program exits abnormally and stderr
+contains the given text, which proves a validation abort rather than any failure.
 
 Under Wine (--mode wine) each run is staged by run_under_wine.py: a fresh directory under
 --work-dir with the program and its app-local DLLs, a new WINEPREFIX, and directmetal.dll as a
@@ -155,10 +157,23 @@ def signal_name(number: int) -> str:
         return f"signal {number}"
 
 
-def describe_exit(outcome: Outcome) -> str:
+def exit_summary(outcome: Outcome) -> str:
     if outcome.returncode < 0:
-        return f"abnormal exit: terminated by {signal_name(-outcome.returncode)}"
-    return f"abnormal exit: status {outcome.returncode:#x}, expected 0"
+        return f"terminated by {signal_name(-outcome.returncode)}"
+    return f"status {outcome.returncode:#x}"
+
+
+def describe_exit(outcome: Outcome) -> str:
+    expected = "" if outcome.returncode < 0 else ", expected 0"
+    return f"abnormal exit: {exit_summary(outcome)}{expected}"
+
+
+def abort_problems(outcome: Outcome, text: str) -> list[str]:
+    if outcome.returncode == 0:
+        return [f"exited cleanly, expected an abnormal exit with {text!r} on stderr"]
+    if text not in outcome.stderr:
+        return [f"{exit_summary(outcome)} without {text!r} on stderr"]
+    return []
 
 
 def parse_output(stdout: str) -> tuple[dict | None, str | None]:
@@ -199,16 +214,21 @@ def keep_failed_run(outcome: Outcome, found: list[str]) -> None:
         print(f"run_api_test: kept {outcome.run_dir}", file=sys.stderr)
 
 
-def report(outcome: Outcome, expectation: Expectation | None) -> int:
+def report(outcome: Outcome, expectation: Expectation | None, abort_text: str | None) -> int:
     sys.stdout.write(outcome.stdout)
     sys.stderr.write(outcome.stderr)
     if outcome.timeout_error is not None:
         keep_failed_run(outcome, [outcome.timeout_error])
         return EXIT_ERROR
-    found = problems(outcome, expectation)
+    if abort_text is None:
+        found = problems(outcome, expectation)
+    else:
+        found = abort_problems(outcome, abort_text)
     if found:
         keep_failed_run(outcome, found)
         return EXIT_FAILURE
+    if abort_text is not None:
+        print(f"run_api_test: aborted as expected: {exit_summary(outcome)}", file=sys.stderr)
     if outcome.run_dir is not None:
         shutil.rmtree(outcome.run_dir)
     return EXIT_PASS
@@ -221,6 +241,11 @@ def parse_arguments(arguments: list[str]) -> argparse.Namespace:
     parser.add_argument("--program-arg", action="append", default=[], help="program argument")
     parser.add_argument("--reference", type=Path, help="reference.json; omit to check exit only")
     parser.add_argument("--tolerance", type=Path, help="default: tolerance.json beside reference")
+    parser.add_argument(
+        "--expect-abort-stderr",
+        metavar="TEXT",
+        help="pass only on an abnormal exit with TEXT on stderr",
+    )
     parser.add_argument("--skip", metavar="REASON", help="report the test as skipped")
     wine = parser.add_argument_group("wine mode")
     wine.add_argument("--arch", choices=sorted(wine_staging.PE_DIRS))
@@ -237,6 +262,8 @@ def parse_arguments(arguments: list[str]) -> argparse.Namespace:
     )
     if is_wine_incomplete:
         parser.error("--mode wine needs --arch, --unix-library and --work-dir")
+    if options.reference is not None and options.expect_abort_stderr is not None:
+        parser.error("--reference and --expect-abort-stderr exclude each other")
     return options
 
 
@@ -254,7 +281,7 @@ def main(arguments: list[str]) -> int:
     except (wine_staging.SetupError, OSError) as error:
         print(f"run_api_test: setup failed: {error}", file=sys.stderr)
         return EXIT_ERROR
-    return report(outcome, expectation)
+    return report(outcome, expectation, options.expect_abort_stderr)
 
 
 if __name__ == "__main__":
